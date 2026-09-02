@@ -1,4 +1,4 @@
-import { getDb } from "./client";
+import { canQueryDatabase, getDb } from "./client";
 import { getProductsByIds } from "./products";
 import type { CartItem as ClientCart } from "@/lib/cart";
 
@@ -47,6 +47,7 @@ export async function replaceUserCart(userId: string, items: Array<{ productId: 
 
 export async function listRelatedProducts(slug: string, take = 3) {
   try {
+    if (!canQueryDatabase()) return [];
     const db = getDb();
     return await db.product.findMany({
       where: { slug: { not: slug }, inStock: true },

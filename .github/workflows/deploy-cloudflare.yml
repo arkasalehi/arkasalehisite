@@ -1,7 +1,8 @@
 name: Deploy to Cloudflare Workers
 
-# Optional CI path. Dashboard Git integration (Workers → Connect repository) is the
-# supported no-config alternative — see DEPLOY.md.
+# Optional CI path. Dashboard Git integration is the usual path.
+# Dashboard Build command MUST be: npx opennextjs-cloudflare build
+# (not npm run build). See DEPLOY.md.
 
 on:
   push:

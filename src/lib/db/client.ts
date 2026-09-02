@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { isAccelerateUrl } from "@/lib/runtime";
+import { isAccelerateUrl, isNextProductionBuild } from "@/lib/runtime";
 
 /**
  * Isolated Prisma factory — no Cloudflare bindings in app code.
@@ -12,6 +12,11 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 export function hasDatabaseUrl() {
   return Boolean(process.env.DATABASE_URL?.trim() || process.env.PRISMA_ACCELERATE_URL?.trim());
+}
+
+/** Skip Prisma during `next build` and when no URL is configured. */
+export function canQueryDatabase() {
+  return hasDatabaseUrl() && !isNextProductionBuild();
 }
 
 function createClient(): PrismaClient {
@@ -33,7 +38,7 @@ function createClient(): PrismaClient {
 }
 
 export function getDb(): PrismaClient {
-  if (!hasDatabaseUrl()) {
+  if (!canQueryDatabase()) {
     throw new Error("DATABASE_URL is not set");
   }
   if (!globalForPrisma.prisma) {

@@ -6,8 +6,13 @@ export function isCloudflareRuntime() {
   return (
     process.env.CF_PAGES === "1" ||
     process.env.CF_PAGES === "true" ||
-    typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers"
+    (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers")
   );
+}
+
+/** True while `next build` / OpenNext is compiling (no live DB). */
+export function isNextProductionBuild() {
+  return process.env.NEXT_PHASE === "phase-production-build";
 }
 
 export function isAccelerateUrl(url = process.env.PRISMA_ACCELERATE_URL || process.env.DATABASE_URL || "") {

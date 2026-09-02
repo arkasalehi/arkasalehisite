@@ -4,6 +4,8 @@ import { listProductSlugs } from "@/lib/db/products";
 import { postPath } from "@/lib/utils";
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes = ["", "/blog", "/video", "/shorts", "/products"].map((path) => ({
     url: `${siteConfig.url}${path}`,

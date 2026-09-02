@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
 import { PostDetail } from "@/components/content/PostDetail";
-import { hasDatabaseUrl } from "@/lib/db/client";
-import { getPublishedPostBySlug, listPublishedSlugs } from "@/lib/db/posts";
+import { getPublishedPostBySlug } from "@/lib/db/posts";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  if (!hasDatabaseUrl()) return [];
-  try {
-    const posts = await listPublishedSlugs("SHORT");
-    return posts.map((post) => ({ slug: post.slug }));
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function generateMetadata({

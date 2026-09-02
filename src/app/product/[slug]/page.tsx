@@ -4,22 +4,16 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/content/JsonLd";
 import { ProductBuyBox } from "@/components/content/ProductBuyBox";
 import { ProductCard } from "@/components/content/ProductCard";
-import { hasDatabaseUrl } from "@/lib/db/client";
-import { getProductBySlug, listProductSlugs } from "@/lib/db/products";
+import { getProductBySlug } from "@/lib/db/products";
 import { listRelatedProducts } from "@/lib/db/cart";
 import { buildMetadata, productJsonLd } from "@/lib/seo";
 import { formatToman, effectivePrice, isProductAvailable } from "@/lib/utils";
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  if (!hasDatabaseUrl()) return [];
-  try {
-    const products = await listProductSlugs();
-    return products.map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function generateMetadata({

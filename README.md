@@ -33,18 +33,23 @@ Seed accounts (see `.env.example`):
 
 Do **not** publish the raw `.next` folder. OpenNext builds Next.js, then emits a Worker in `.open-next/`.
 
-```bash
-npx wrangler login
-npm run cf:deploy
-```
+**Cloudflare dashboard (required):**
 
-Or connect this GitHub repo in the Cloudflare dashboard (Workers → Next.js / OpenNext).
-
-Build command: `npx opennextjs-cloudflare build` (or `npm run build` — Workers CI delegates to OpenNext)
+| Field | Value |
+| --- | --- |
+| Build command | `npx opennextjs-cloudflare build` |
+| Deploy command | `npx wrangler deploy` |
+| Output directory | leave empty (not `.next`) |
 
 Runtime on Workers needs **Prisma Accelerate** (`PRISMA_ACCELERATE_URL=prisma://...`). Set `NEXT_PUBLIC_BASE_URL` at **build** time.
 
-Full env list, cookies, and custom domain: **[DEPLOY.md](./DEPLOY.md)**.
+```bash
+npx wrangler login
+npm run cf:build
+npm run cf:deploy
+```
+
+Full env list, cookies, custom domain, and clean reinstall: **[DEPLOY.md](./DEPLOY.md)**.
 
 ### Node (self-hosted)
 

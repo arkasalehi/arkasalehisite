@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { PostStatus, PostType, Prisma } from "@prisma/client";
-import { getDb, hasDatabaseUrl } from "./client";
+import { canQueryDatabase, getDb } from "./client";
 import { readingTimeFromBody } from "@/lib/utils";
 import { cached, invalidateCache } from "@/lib/cache";
 
@@ -39,7 +39,7 @@ export type PostListOpts = {
 export const listPublishedPosts = cache(async (opts?: PostListOpts) => {
   const key = `posts:${JSON.stringify(opts ?? {})}`;
   return cached(key, 15_000, async () => {
-    if (!hasDatabaseUrl()) return [];
+    if (!canQueryDatabase()) return [];
     try {
       const db = getDb();
       return await db.post.findMany({
@@ -96,7 +96,7 @@ export const searchPublishedPosts = cache(async (q: string, take = 8) => {
 });
 
 export const getPublishedPostBySlug = cache(async (slug: string, type?: PostType) => {
-  if (!hasDatabaseUrl()) return null;
+  if (!canQueryDatabase()) return null;
   try {
     const db = getDb();
     return await db.post.findFirst({
@@ -142,7 +142,7 @@ export async function getPostsBySlugs(slugs: string[]) {
 }
 
 export async function listPublishedSlugs(type?: PostType) {
-  if (!hasDatabaseUrl()) return [];
+  if (!canQueryDatabase()) return [];
   try {
     const db = getDb();
     return await db.post.findMany({
