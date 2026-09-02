@@ -74,7 +74,7 @@ Auth cookies: `httpOnly`, `SameSite=lax`, `Secure` when `NODE_ENV=production`, h
 3. Framework preset: **Next.js** (OpenNext).
 4. **Build command** (either works):
    - Preferred: `npx opennextjs-cloudflare build`
-   - Also OK: `npm run build` — on Workers CI this runs Next.js, then OpenNext (`--skipNextBuild`) so `.open-next/` exists before Wrangler deploys.
+   - Also OK: `npm run build` — on Workers CI this delegates to `opennextjs-cloudflare build` (OpenNext must run `next build` itself so standalone output exists).
 5. **Deploy command:** `npx wrangler deploy`  
    Wrangler detects OpenNext and calls `opennextjs-cloudflare deploy`. That **fails** if the build step only produced `.next` (`Could not find compiled Open Next config`).
 6. Do **not** set output directory to `.next`.
@@ -91,7 +91,7 @@ Executing user deploy command: npx wrangler deploy
 ERROR Could not find compiled Open Next config
 ```
 
-Cause: `npm run build` used to stop at Next.js. Wrangler then ran OpenNext **deploy** without an OpenNext **build**. Local `npm run build` is still Next-only; Workers CI (`WORKERS_CI=1`) appends `opennextjs-cloudflare build --skipNextBuild`.
+Cause: `npm run build` used to stop at Next.js. Wrangler then ran OpenNext **deploy** without an OpenNext **build**. Local `npm run build` is still Next-only; Workers CI (`WORKERS_CI=1`) runs `opennextjs-cloudflare build` (not `--skipNextBuild`).
 
 ---
 
