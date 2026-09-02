@@ -1,5 +1,8 @@
-import { readdirSync, rmSync, statSync } from "node:fs";
+import { readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
+/** Smallest valid WASM module so Wrangler can still resolve imports. */
+const STUB = Buffer.from([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
 
 function walk(dir, acc = []) {
   for (const name of readdirSync(dir)) {
@@ -11,12 +14,11 @@ function walk(dir, acc = []) {
 }
 
 const root = join(process.cwd(), ".open-next");
-const removed = [];
+const stubbed = [];
 for (const file of walk(root)) {
-  if (file.endsWith(".wasm")) {
-    rmSync(file);
-    removed.push(file.replace(process.cwd(), "."));
-  }
+  if (!file.endsWith(".wasm")) continue;
+  writeFileSync(file, STUB);
+  stubbed.push(file.replace(process.cwd(), "."));
 }
-console.log(`trim-open-next: removed ${removed.length} wasm files`);
-for (const file of removed) console.log("  -", file);
+console.log(`trim-open-next: stubbed ${stubbed.length} wasm files`);
+for (const file of stubbed) console.log("  -", file);

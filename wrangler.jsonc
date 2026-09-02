@@ -16,8 +16,5 @@
   ],
   "observability": {
     "enabled": true
-  },
-  "build": {
-    "command": "node scripts/trim-open-next.mjs"
   }
 }
