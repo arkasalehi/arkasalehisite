@@ -40,7 +40,7 @@ npm run cf:deploy
 
 Or connect this GitHub repo in the Cloudflare dashboard (Workers → Next.js / OpenNext).
 
-Build command: `npx opennextjs-cloudflare build`
+Build command: `npx opennextjs-cloudflare build` (or `npm run build` — Workers CI also emits `.open-next/`)
 
 Runtime on Workers needs **Prisma Accelerate** (`PRISMA_ACCELERATE_URL=prisma://...`). Set `NEXT_PUBLIC_BASE_URL` at **build** time.
 

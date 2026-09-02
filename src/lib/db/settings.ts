@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { cache } from "react";
-import { getDb } from "./client";
+import { getDb, hasDatabaseUrl } from "./client";
 import { cached, invalidateCache } from "@/lib/cache";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
 
@@ -20,6 +20,7 @@ function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
 export const getSiteCms = cache(async (): Promise<SiteCms> => {
   return cached("cms:all", 30_000, async () => {
     const defaults = defaultCms();
+    if (!hasDatabaseUrl()) return defaults;
     try {
       const db = getDb();
       const rows = await db.siteSetting.findMany();

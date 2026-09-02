@@ -1,10 +1,11 @@
 import { cache } from "react";
-import { getDb } from "./client";
+import { getDb, hasDatabaseUrl } from "./client";
 import { cached } from "@/lib/cache";
 import { effectivePrice } from "@/lib/utils";
 
 export const listProducts = cache(async (opts?: { featured?: boolean; take?: number }) => {
   return cached(`products:${JSON.stringify(opts ?? {})}`, 20_000, async () => {
+    if (!hasDatabaseUrl()) return [];
     try {
       const db = getDb();
       return await db.product.findMany({
@@ -20,6 +21,7 @@ export const listProducts = cache(async (opts?: { featured?: boolean; take?: num
 });
 
 export const getProductBySlug = cache(async (slug: string) => {
+  if (!hasDatabaseUrl()) return null;
   try {
     const db = getDb();
     return await db.product.findUnique({ where: { slug } });
@@ -30,6 +32,7 @@ export const getProductBySlug = cache(async (slug: string) => {
 });
 
 export async function listProductSlugs() {
+  if (!hasDatabaseUrl()) return [];
   try {
     const db = getDb();
     return await db.product.findMany({ select: { slug: true, updatedAt: true } });

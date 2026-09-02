@@ -72,13 +72,26 @@ Auth cookies: `httpOnly`, `SameSite=lax`, `Secure` when `NODE_ENV=production`, h
 1. Push this repo to GitHub.
 2. [Cloudflare dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Workers** → Connect GitHub.
 3. Framework preset: **Next.js** (OpenNext).
-4. Build command: `npx opennextjs-cloudflare build`  
-   (this runs `npm run build` then converts `.next` → `.open-next`)
-5. Do **not** set output directory to `.next`.
-6. Add the env vars above (build + runtime).
-7. Deploy. Custom domain: Worker → **Custom Domains** → add `arkasalehi.ir` / `www`.
+4. **Build command** (either works):
+   - Preferred: `npx opennextjs-cloudflare build`
+   - Also OK: `npm run build` — on Workers CI this runs Next.js, then OpenNext (`--skipNextBuild`) so `.open-next/` exists before Wrangler deploys.
+5. **Deploy command:** `npx wrangler deploy`  
+   Wrangler detects OpenNext and calls `opennextjs-cloudflare deploy`. That **fails** if the build step only produced `.next` (`Could not find compiled Open Next config`).
+6. Do **not** set output directory to `.next`.
+7. Add the env vars above. `NEXT_PUBLIC_*` must be present at **build** time. Runtime on Workers needs `PRISMA_ACCELERATE_URL` (`prisma://…`) and `JWT_SECRET`.
+8. Deploy. Custom domain: Worker → **Custom Domains** → add `arkasalehi.ir` / `www`.
 
 App Router routes (`/blog/[slug]`, `/video/[slug]`, `/shorts/[slug]`, `/product/[slug]`) are handled by the Worker. No extra `_routes.json` is required.
+
+### Dashboard mistake this repo already hit
+
+```
+Executing user build command: npm run build     → next build (OK)
+Executing user deploy command: npx wrangler deploy
+ERROR Could not find compiled Open Next config
+```
+
+Cause: `npm run build` used to stop at Next.js. Wrangler then ran OpenNext **deploy** without an OpenNext **build**. Local `npm run build` is still Next-only; Workers CI (`WORKERS_CI=1`) appends `opennextjs-cloudflare build --skipNextBuild`.
 
 ---
 
