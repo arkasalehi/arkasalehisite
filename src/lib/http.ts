@@ -20,6 +20,9 @@ export function errorResponse(error: unknown) {
     if (error.name === "FORBIDDEN") return json({ error: "دسترسی مجاز نیست" }, 403);
     if (error.name === "NOT_FOUND") return json({ error: "یافت نشد" }, 404);
     if (error.name === "RATE_LIMIT") return json({ error: "درخواست‌های زیاد. کمی بعد تلاش کنید." }, 429);
+    if (error.message.includes("DATABASE_URL") || error.message.includes("JWT_SECRET")) {
+      return json({ error: "سرویس موقتاً در دسترس نیست" }, 503);
+    }
   }
   console.error(error);
   return json({ error: "خطای سرور" }, 500);

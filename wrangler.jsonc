@@ -1,10 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "arkasalehisite",
-  // OpenNext emits this Worker. Do not point main/assets at `.next`.
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-09-02",
-  // Equivalent to wrangler.toml `nodejs_compat = true`.
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": ".open-next/assets",
@@ -16,9 +14,6 @@
       "service": "arkasalehisite"
     }
   ],
-  "images": {
-    "binding": "IMAGES"
-  },
   "observability": {
     "enabled": true
   }

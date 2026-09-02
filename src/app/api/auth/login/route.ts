@@ -38,7 +38,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) return json({ user: null }, 401);
-  return json({ user: session });
+  try {
+    const session = await getSession();
+    if (!session) return json({ user: null }, 401);
+    return json({ user: session });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

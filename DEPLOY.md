@@ -146,4 +146,4 @@ Then either `npm run dev` (Node) or `npm run cf:build` (OpenNext).
 - Do not set `export const runtime = "edge"` — OpenNext uses **Node.js** on `workerd`.
 - Do not import `cloudflare:` / KV / D1 / R2 in `src/` (bindings stay in `wrangler.jsonc`).
 - Do not use `@cloudflare/next-on-pages` (deprecated).
-- Image Resizing: `wrangler.jsonc` includes `IMAGES` for `next/image`. If the account has no Images entitlement, remove that block and set `images.unoptimized = true` in `next.config.ts`.
+- Image Resizing is off (`images.unoptimized = true`) so deploy does not require an `IMAGES` binding.
