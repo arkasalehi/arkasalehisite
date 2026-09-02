@@ -1,69 +1,92 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import { Hero } from "@/components/landing/Hero";
+import { About } from "@/components/landing/About";
+import { ShortsRail } from "@/components/landing/ShortsRail";
+import { PostCard } from "@/components/content/PostCard";
+import { ProductCard } from "@/components/content/ProductCard";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+import { Reveal, Stagger } from "@/components/motion/Reveal";
+import { buildMetadata } from "@/lib/seo";
+import { getSiteCms } from "@/lib/db/settings";
+import { getPostsBySlugs, listPublishedPosts } from "@/lib/db/posts";
+import { listProducts } from "@/lib/db/products";
 
-export default function Home() {
+export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getSiteCms();
+  return buildMetadata({
+    title: cms.seo.title,
+    description: cms.seo.description,
+    image: cms.seo.ogImage || undefined,
+    path: "/",
+  });
+}
+
+export default async function HomePage() {
+  const cms = await getSiteCms();
+  const [featured, latest, shorts, products, startHere] = await Promise.all([
+    listPublishedPosts({ featured: true, take: 6 }),
+    listPublishedPosts({ take: 9 }),
+    listPublishedPosts({ type: "SHORT", take: 8 }),
+    listProducts({ featured: true, take: 3 }),
+    getPostsBySlugs(cms.startHere.slugs),
+  ]);
+
+  const highlight = featured.length ? featured : latest.slice(0, 4);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-20">
+      <Hero cms={cms} />
+
+      {startHere.length ? (
+        <Reveal>
+          <section>
+            <SectionHeader title={cms.startHere.title} description={cms.startHere.description} />
+            <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {startHere.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </Stagger>
+          </section>
+        </Reveal>
+      ) : null}
+
+      <Reveal>
+        <section>
+          <SectionHeader title="برگزیده‌ها" href="/blog" description="کارهایی که الان باید دیده شوند." />
+          <Stagger className="grid gap-5 md:grid-cols-2">
+            {highlight.map((post, i) => (
+              <PostCard key={post.id} post={post} featured={i === 0} />
+            ))}
+          </Stagger>
+        </section>
+      </Reveal>
+
+      <section>
+        <SectionHeader title="جدیدترین‌ها" href="/blog" description="مقاله، ویدیو و شورتس در یک جریان." />
+        <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {latest.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </Stagger>
+      </section>
+
+      <section>
+        <SectionHeader title="شورتس" href="/shorts" description="پخش خودکار فقط در دید." />
+        <ShortsRail posts={shorts} />
+      </section>
+
+      <section>
+        <SectionHeader title="فروشگاه" href="/products" description="محصولات محدود و کاربردی." />
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
+
+      <About cms={cms} />
     </div>
   );
 }

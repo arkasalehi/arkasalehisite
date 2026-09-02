@@ -1,0 +1,291 @@
+// Unified content model: blog / video / shorts share likes, comments, bookmarks.
+// This is more scalable than three parallel tables with duplicated relations.
+// Video-specific fields live on Post; type discriminator keeps URLs clean.
+
+generator client {
+  provider = "prisma-client-js"
+  // Do not set `output` — OpenNext patches the default client for Workers.
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PostType {
+  BLOG
+  VIDEO
+  SHORT
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+  SPAM
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  REPLY
+  NEW_CONTENT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  displayName  String
+  passwordHash String
+  role         Role     @default(USER)
+  avatarUrl    String?
+  bio          String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts         Post[]         @relation("PostAuthor")
+  comments      Comment[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+  notifications Notification[]
+  cartItems     CartItem[]
+  orders        Order[]
+  refreshTokens RefreshToken[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  posts       Post[]
+
+  @@index([slug])
+}
+
+model Post {
+  id             String     @id @default(cuid())
+  type           PostType
+  status         PostStatus @default(DRAFT)
+  title          String
+  slug           String      @unique
+  excerpt        String?    @db.Text
+  body           String?     @db.Text
+  coverImage     String?
+  videoUrl       String?
+  thumbnailUrl   String?
+  duration       Int?
+  readingTime    Int?
+  seoTitle       String?
+  seoDescription String?
+  featured       Boolean    @default(false)
+  scheduledAt    DateTime?
+  publishedAt    DateTime?
+  viewCount      Int        @default(0)
+  categoryId     String?
+  authorId       String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  author     User          @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  comments   Comment[]
+  likes      Like[]
+  bookmarks  Bookmark[]
+  products   PostProduct[]
+
+  @@index([type, status, publishedAt])
+  @@index([status, publishedAt])
+  @@index([featured, status, publishedAt])
+  @@index([status, viewCount])
+  @@index([slug])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([title])
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  body      String        @db.Text
+  status    CommentStatus @default(VISIBLE)
+  postId    String
+  userId    String
+  parentId  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@index([parentId])
+  @@index([status])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+  @@index([postId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  read      Boolean          @default(false)
+  actorId   String?
+  postId    String?
+  groupKey  String?
+  count     Int              @default(1)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+  @@index([userId, groupKey, read])
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  title        String
+  slug         String    @unique
+  description  String?   @db.Text
+  price           Int
+  comparePrice    Int?
+  discountPercent Int      @default(0)
+  stock           Int      @default(0)
+  imageUrl        String?
+  inStock         Boolean  @default(true)
+  sku             String?  @unique
+  featured        Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts      PostProduct[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([slug])
+  @@index([featured, inStock])
+}
+
+model PostProduct {
+  postId    String
+  productId String
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([postId, productId])
+}
+
+model CartItem {
+  id        String @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int    @default(1)
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String
+  status    OrderStatus @default(PENDING)
+  total     Int
+  note      String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int    @default(1)
+  price     Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}

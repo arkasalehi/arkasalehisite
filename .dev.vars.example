@@ -1,0 +1,2 @@
+# Used by `npm run preview` (Wrangler). Secrets stay in `.env`.
+NEXTJS_ENV=development

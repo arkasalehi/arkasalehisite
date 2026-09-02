@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# آرکا صالحی (arkasalehisite)
 
-## Getting Started
+Persian RTL creator platform. Only the admin publishes; visitors can like, save, comment, and buy.
 
-First, run the development server:
+Portable between **Cloudflare Workers** (OpenNext) and a self-hosted **Node.js** server. No Cloudflare-only APIs in application code.
+
+## Stack
+
+- **Next.js 16** (App Router) + React 19 + Tailwind 4
+- **PostgreSQL** + **Prisma 6**
+- **Cloudflare Workers** via `@opennextjs/cloudflare`
+- JWT cookies (`jose`) + PBKDF2 (Web Crypto)
+
+## Run locally
 
 ```bash
+cp .env.example .env
+# set DATABASE_URL (postgresql://...) and JWT_SECRET
+npm install
+npx prisma migrate deploy
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Seed accounts (see `.env.example`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Admin: `admin@arkasalehi.ir` / `Admin123!`
+- User: `user@arkasalehi.ir` / `User123!`
 
-## Learn More
+## Deploy (Cloudflare / OpenNext)
 
-To learn more about Next.js, take a look at the following resources:
+Do **not** publish the raw `.next` folder. OpenNext builds Next.js, then emits a Worker in `.open-next/`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx wrangler login
+npm run cf:deploy
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Or connect this GitHub repo in the Cloudflare dashboard (Workers → Next.js / OpenNext).
 
-## Deploy on Vercel
+Build command: `npx opennextjs-cloudflare build`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Runtime on Workers needs **Prisma Accelerate** (`PRISMA_ACCELERATE_URL=prisma://...`). Set `NEXT_PUBLIC_BASE_URL` at **build** time.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Full env list, cookies, and custom domain: **[DEPLOY.md](./DEPLOY.md)**.
+
+### Node (self-hosted)
+
+```bash
+npx prisma migrate deploy
+npm run build
+npm start
+```
