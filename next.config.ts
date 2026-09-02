@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
   // Prisma must stay external so OpenNext can patch the client for workerd,
   // while Node (`next start`) still uses the native engine.
   serverExternalPackages: ["@prisma/client", ".prisma/client"],
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/@prisma/engines/**",
+      "node_modules/.prisma/client/libquery_engine*",
+      "node_modules/.prisma/client/query_engine*",
+      "node_modules/.prisma/client/*.node",
+      "node_modules/.prisma/client/*.wasm",
+      "node_modules/next/dist/compiled/@vercel/og/**",
+    ],
+  },
   turbopack: {
     root: path.dirname(fileURLToPath(import.meta.url)),
   },

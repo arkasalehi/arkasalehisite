@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { ACCESS_COOKIE, REFRESH_COOKIE, SESSION_COOKIE, authCookieOptions, refreshAccess } from "@/lib/auth/session";
+import { ACCESS_COOKIE, SESSION_COOKIE } from "@/lib/auth/cookies";
 
 function secret() {
   const value = process.env.JWT_SECRET;
@@ -8,16 +8,10 @@ function secret() {
   return new TextEncoder().encode(value);
 }
 
-function applyAccess(response: NextResponse, access: string) {
-  response.cookies.set(ACCESS_COOKIE, access, authCookieOptions(60 * 15));
-  response.cookies.delete(SESSION_COOKIE);
-}
-
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const key = secret();
   const access = request.cookies.get(ACCESS_COOKIE)?.value || request.cookies.get(SESSION_COOKIE)?.value;
-  const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
 
   let role: string | null = null;
   let authed = false;
@@ -31,16 +25,6 @@ export async function proxy(request: NextRequest) {
       }
     } catch {
       authed = false;
-    }
-  }
-
-  let issuedAccess: string | null = null;
-  if (!authed && refresh) {
-    const next = await refreshAccess(refresh);
-    if (next) {
-      authed = true;
-      role = next.user.role;
-      issuedAccess = next.access;
     }
   }
 
@@ -61,9 +45,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  const res = NextResponse.next();
-  if (issuedAccess) applyAccess(res, issuedAccess);
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {

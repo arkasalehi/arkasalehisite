@@ -2,11 +2,9 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import type { Role } from "@prisma/client";
 import { getDb } from "@/lib/db/client";
+import { ACCESS_COOKIE, REFRESH_COOKIE, SESSION_COOKIE, authCookieOptions } from "@/lib/auth/cookies";
 
-export const ACCESS_COOKIE = "as_access";
-export const REFRESH_COOKIE = "as_refresh";
-/** Legacy 30-day JWT; still accepted during migration. */
-export const SESSION_COOKIE = "as_session";
+export { ACCESS_COOKIE, REFRESH_COOKIE, SESSION_COOKIE, authCookieOptions } from "@/lib/auth/cookies";
 
 const ACCESS_TTL = "15m";
 const REFRESH_DAYS = 30;
@@ -103,18 +101,6 @@ export async function refreshAccess(refreshJwt: string): Promise<{ user: Session
   } catch {
     return null;
   }
-}
-
-export function authCookieOptions(maxAge: number) {
-  const domain = process.env.COOKIE_DOMAIN;
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge,
-    ...(domain ? { domain } : {}),
-  };
 }
 
 export async function setAuthCookies(access: string, refresh?: string) {
