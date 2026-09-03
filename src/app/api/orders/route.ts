@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/session";
-import { getProductsByIds, createOrder } from "@/lib/db/products";
+import { getProductsByIds, createOrder } from "@/lib/data/products";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { checkoutSchema } from "@/lib/validators";
 import { effectivePrice } from "@/lib/utils";

@@ -1,4 +1,4 @@
-import type { PostType } from "@prisma/client";
+import type { PostType } from "@/lib/types";
 
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");

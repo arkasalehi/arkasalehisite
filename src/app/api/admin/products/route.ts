@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth/session";
-import { listProducts, upsertProduct, deleteProduct } from "@/lib/db/products";
+import { listProducts, upsertProduct, deleteProduct } from "@/lib/data/products";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { productInputSchema } from "@/lib/validators";
 import { invalidateCache } from "@/lib/cache";

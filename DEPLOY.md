@@ -46,23 +46,16 @@ If Build command is still `npm run build`, change it before the next deploy. The
 | Name | Build | Runtime | Value |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_BASE_URL` | **yes** | yes | Canonical origin, e.g. `https://arkasalehi.ir` (inlined at build) |
-| `PRISMA_ACCELERATE_URL` | optional | **yes on Workers** | `prisma://…` HTTP URL |
-| `DATABASE_URL` | optional | yes if no Accelerate URL | `postgresql://…` on Node; `prisma://…` OK if Accelerate-only |
-| `JWT_SECRET` | no | **yes** | long random string |
+| `NEXT_PUBLIC_SUPABASE_URL` | **yes** | yes | `https://xxxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **yes** | yes | Publishable/anon key |
 
 Optional: `NEXT_PUBLIC_SITE_URL` (alias of base URL), `NEXT_PUBLIC_SITE_NAME`, `COOKIE_DOMAIN`.
 
 `NEXT_PUBLIC_*` must exist at **build** time. Changing the public URL requires a rebuild.
 
-Workers cannot open a durable TCP pool to Postgres. Runtime on Cloudflare must use Prisma Accelerate (`prisma://` or `prisma+postgres://`). Keep `postgresql://` for migrations (local or CI, not the Worker):
+Workers talk to Supabase over HTTPS (`@supabase/supabase-js`). Apply `supabase/migrations/20260903120000_init.sql` in the Supabase SQL editor before first use.
 
-```bash
-DATABASE_URL="postgresql://..." npx prisma migrate deploy
-```
-
-Pages skip Prisma during `next build` (`NEXT_PHASE=phase-production-build`) and when no URL is set. Missing env does not fail the compile; the live site needs Accelerate + `JWT_SECRET` at **runtime**.
-
-Auth cookies: `httpOnly`, `SameSite=lax`, `Secure` in production, host-only unless `COOKIE_DOMAIN` is set.
+Auth cookies are managed by `@supabase/ssr` (`httpOnly`, `SameSite=lax`, `Secure` in production).
 
 ---
 
@@ -70,19 +63,16 @@ Auth cookies: `httpOnly`, `SameSite=lax`, `Secure` in production, host-only unle
 
 ```bash
 cp .env.example .env
-# DATABASE_URL=postgresql://...
-# JWT_SECRET=...
+# NEXT_PUBLIC_SUPABASE_URL=...
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 # NEXT_PUBLIC_BASE_URL=http://localhost:3000
 npm install
-npx prisma migrate deploy
-npm run db:seed
 npm run dev
 ```
 
 Production Node:
 
 ```bash
-npx prisma migrate deploy
 npm run build
 npm start
 ```
@@ -105,8 +95,8 @@ npm run preview
 ```
 
 Optional GitHub Action: `.github/workflows/deploy-cloudflare.yml`  
-Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URL`, `PRISMA_ACCELERATE_URL`, `JWT_SECRET`.  
-Vars: `NEXT_PUBLIC_BASE_URL`.
+Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.  
+Vars: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`.
 
 ---
 
@@ -132,7 +122,7 @@ Then either `npm run dev` (Node) or `npm run cf:build` (OpenNext).
 - `GET /blog` → 200
 - `GET /login` → 200
 - `GET /api/posts` → JSON
-- Login → `as_access` (15m) + `as_refresh` (30d), `Secure; HttpOnly; SameSite=Lax`
+- Login → session cookies from Supabase (`sb-*-auth-token`), `Secure; HttpOnly; SameSite=Lax`
 - Refresh the page: session persists
 - `GET /manifest.webmanifest` and `GET /sw.js` → 200
 - Custom domain: same checks over HTTPS

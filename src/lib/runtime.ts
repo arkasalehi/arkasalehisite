@@ -15,10 +15,6 @@ export function isNextProductionBuild() {
   return process.env.NEXT_PHASE === "phase-production-build";
 }
 
-export function isAccelerateUrl(url = process.env.PRISMA_ACCELERATE_URL || process.env.DATABASE_URL || "") {
-  return url.startsWith("prisma://") || url.startsWith("prisma+postgres://");
-}
-
 export function publicSiteUrl() {
   return (
     process.env.NEXT_PUBLIC_BASE_URL ||

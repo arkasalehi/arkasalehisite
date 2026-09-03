@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getAdminStats } from "@/lib/db/users";
-import { getContentAnalytics } from "@/lib/db/posts";
+import { getAdminStats } from "@/lib/data/users";
+import { getContentAnalytics } from "@/lib/data/posts";
 import { formatNumber, postPath, typeLabel } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 
@@ -20,7 +20,8 @@ export default async function AdminHomePage() {
   return (
     <section className="space-y-10">
       <div>
-        <h1 className="text-3xl font-semibold">داشبورد ادمین</h1>
+        <p className="text-sm text-accent">پنل مدیریت</p>
+        <h1 className="mt-1 text-3xl font-semibold">نمای کلی</h1>
         <p className="mt-2 text-muted">فقط ادمین می‌تواند محتوا بسازد و منتشر کند.</p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map(([label, value]) => (
@@ -32,8 +33,8 @@ export default async function AdminHomePage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <GlassCard>
           <h2 className="text-xl font-semibold">پربازدیدترین مطالب</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {analytics.byViews.map((post) => (
@@ -48,8 +49,8 @@ export default async function AdminHomePage() {
             ))}
             {!analytics.byViews.length ? <p className="text-muted">داده‌ای نیست</p> : null}
           </ul>
-        </div>
-        <div>
+        </GlassCard>
+        <GlassCard>
           <h2 className="text-xl font-semibold">محبوب‌ترین (پسند)</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {analytics.byLikes.map((post) => (
@@ -61,7 +62,7 @@ export default async function AdminHomePage() {
               </li>
             ))}
           </ul>
-        </div>
+        </GlassCard>
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import { searchPublishedPosts } from "@/lib/db/posts";
+import { searchPublishedPosts } from "@/lib/data/posts";
 import { errorResponse, json, publicGetCache } from "@/lib/http";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 

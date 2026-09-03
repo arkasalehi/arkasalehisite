@@ -1,4 +1,4 @@
-import { getPublishedPostBySlug } from "@/lib/db/posts";
+import { getPublishedPostBySlug } from "@/lib/data/posts";
 import { errorResponse, json, publicGetCache } from "@/lib/http";
 
 export const runtime = "nodejs";

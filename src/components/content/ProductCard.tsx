@@ -49,7 +49,7 @@ export function ProductCard({
           {!available ? (
             <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] text-white">ناموجود</span>
           ) : product.discountPercent ? (
-            <span className="absolute left-2 top-2 rounded-full bg-cyan-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">
+            <span className="absolute left-2 top-2 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[11px] font-bold text-slate-950">
               ٪{product.discountPercent}
             </span>
           ) : null}

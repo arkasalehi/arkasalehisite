@@ -1,6 +1,6 @@
 import { siteConfig } from "@/lib/config";
-import { listPublishedSlugs } from "@/lib/db/posts";
-import { listProductSlugs } from "@/lib/db/products";
+import { listPublishedSlugs } from "@/lib/data/posts";
+import { listProductSlugs } from "@/lib/data/products";
 import { postPath } from "@/lib/utils";
 import type { MetadataRoute } from "next";
 

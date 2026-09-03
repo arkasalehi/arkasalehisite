@@ -1,30 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-import { ACCESS_COOKIE, SESSION_COOKIE } from "@/lib/auth/cookies";
-
-function secret() {
-  const value = process.env.JWT_SECRET;
-  if (!value) return null;
-  return new TextEncoder().encode(value);
-}
+import { createServerClient } from "@supabase/ssr";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const key = secret();
-  const access = request.cookies.get(ACCESS_COOKIE)?.value || request.cookies.get(SESSION_COOKIE)?.value;
+  let response = NextResponse.next({ request });
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
 
-  let role: string | null = null;
   let authed = false;
+  let role: string | null = null;
 
-  if (key && access) {
-    try {
-      const { payload } = await jwtVerify(access, key);
-      if (payload.sub && (!payload.typ || payload.typ === "access")) {
-        authed = true;
-        role = typeof payload.role === "string" ? payload.role : null;
-      }
-    } catch {
-      authed = false;
+  if (url && key) {
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        },
+      },
+    });
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    authed = Boolean(user);
+
+    if (user && (pathname.startsWith("/admin") || pathname.startsWith("/preview"))) {
+      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      role = typeof data?.role === "string" ? data.role : null;
     }
   }
 
@@ -35,17 +43,17 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/preview");
 
   if (needsAuth && !authed) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    const login = request.nextUrl.clone();
+    login.pathname = "/login";
+    login.searchParams.set("next", pathname);
+    return NextResponse.redirect(login);
   }
 
   if ((pathname.startsWith("/admin") || pathname.startsWith("/preview")) && role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

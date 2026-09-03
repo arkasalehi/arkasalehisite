@@ -23,6 +23,7 @@ export default async function BlogIndexPage({
       description="یادداشت‌ها و مقالات بلند، بهینه‌شده برای مطالعه و سئو."
       categorySlug={sp.category}
       sort={sp.sort === "popular" ? "popular" : "latest"}
+      sidebar
     />
   );
 }

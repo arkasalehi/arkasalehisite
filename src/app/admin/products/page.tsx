@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listProducts } from "@/lib/db/products";
+import { listProducts } from "@/lib/data/products";
 import { formatToman } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { DeleteButton } from "@/components/admin/DeleteButton";

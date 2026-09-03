@@ -26,7 +26,7 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
   if (items.length < 2) return null;
 
   return (
-    <nav className="sticky top-24 hidden max-h-[70vh] overflow-auto lg:block" aria-label="فهرست">
+    <nav className="glass sticky top-24 hidden max-h-[70vh] overflow-auto rounded-3xl p-4 lg:block" aria-label="فهرست">
       <p className="text-xs font-medium text-muted">فهرست مطلب</p>
       <ul className="mt-3 space-y-1 border-r border-[var(--border)] pr-3 text-sm">
         {items.map((item) => (

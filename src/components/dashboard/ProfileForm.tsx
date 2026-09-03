@@ -28,7 +28,7 @@ export function ProfileForm({ displayName, bio }: { displayName: string; bio?: s
       <input name="displayName" defaultValue={displayName} className="field" />
       <textarea name="bio" defaultValue={bio ?? ""} placeholder="بیو" className="field min-h-28" />
       <Button type="submit">ذخیره</Button>
-      {message ? <p className="text-sm text-slate-400">{message}</p> : null}
+      {message ? <p className="text-sm text-muted">{message}</p> : null}
     </form>
   );
 }
@@ -38,7 +38,7 @@ export function LogoutButton() {
   return (
     <button
       type="button"
-      className="text-sm text-slate-400"
+      className="text-sm text-muted"
       onClick={async () => {
         await fetch("/api/auth/logout", { method: "POST" });
         router.push("/");

@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
 import { cache } from "react";
-import { canQueryDatabase, getDb } from "./client";
+import { canQueryDatabase } from "./client";
 import { cached, invalidateCache } from "@/lib/cache";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 const KEYS: Array<keyof SiteCms> = ["hero", "about", "footer", "seo", "socials", "startHere"];
 
@@ -22,10 +22,11 @@ export const getSiteCms = cache(async (): Promise<SiteCms> => {
     const defaults = defaultCms();
     if (!canQueryDatabase()) return defaults;
     try {
-      const db = getDb();
-      const rows = await db.siteSetting.findMany();
+      const db = await createServerSupabase();
+      const { data, error } = await db.from("site_settings").select("key, value");
+      if (error) throw error;
       const raw: Partial<SiteCms> = {};
-      for (const row of rows) {
+      for (const row of data ?? []) {
         const key = row.key as keyof SiteCms;
         if (KEYS.includes(key)) (raw as Record<string, unknown>)[key] = row.value;
       }
@@ -38,15 +39,12 @@ export const getSiteCms = cache(async (): Promise<SiteCms> => {
 });
 
 export async function saveSiteCms(patch: Partial<SiteCms>) {
-  const db = getDb();
+  const db = await createServerSupabase();
   const entries = Object.entries(patch) as Array<[keyof SiteCms, SiteCms[keyof SiteCms]]>;
   for (const [key, value] of entries) {
     if (!KEYS.includes(key) || value === undefined) continue;
-    await db.siteSetting.upsert({
-      where: { key },
-      create: { key, value: value as Prisma.InputJsonValue },
-      update: { value: value as Prisma.InputJsonValue },
-    });
+    const { error } = await db.from("site_settings").upsert({ key, value });
+    if (error) throw error;
   }
   invalidateCache("cms:");
 }

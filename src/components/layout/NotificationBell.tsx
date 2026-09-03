@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BellIcon } from "@/components/icons";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/components/providers";
+import { createBrowserSupabase } from "@/lib/supabase/browser";
 
 type Item = {
   id: string;
@@ -41,14 +42,24 @@ export function NotificationBell() {
     };
 
     loadCount();
-    const id = window.setInterval(loadCount, 45_000);
+    const supabase = createBrowserSupabase();
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => {
+          loadCount();
+        },
+      )
+      .subscribe();
     const onVis = () => {
       if (!document.hidden) loadCount();
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
       cancelled = true;
-      clearInterval(id);
+      supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [user]);
@@ -106,14 +117,14 @@ export function NotificationBell() {
       >
         <BellIcon />
         {unread > 0 ? (
-          <span className="absolute -left-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
+          <span className="absolute -left-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-bold text-slate-950">
             {unread > 9 ? "۹+" : unread}
           </span>
         ) : null}
       </button>
       {open ? (
-        <div className="glass absolute left-0 top-11 z-50 w-80 overflow-hidden rounded-2xl p-0 text-sm">
-          <div className="flex items-center justify-between border-b border-[var(--border)] px-3 py-2">
+        <div className="glass absolute left-0 top-11 z-50 w-80 overflow-hidden rounded-2xl p-0 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-3 py-2.5">
             <span className="font-medium">اعلان‌ها</span>
             {unread > 0 ? (
               <button type="button" className="text-xs text-accent" onClick={markAll}>
@@ -127,10 +138,10 @@ export function NotificationBell() {
                 key={item.id}
                 href={item.link || "/dashboard/notifications"}
                 onClick={() => markOne(item)}
-                className={`block px-3 py-3 hover:bg-foreground/5 ${item.read ? "opacity-70" : ""}`}
+                className={`block px-3 py-3 transition hover:bg-foreground/5 ${item.read ? "opacity-70" : "bg-[var(--accent)]/5"}`}
               >
                 <p className="font-medium">{item.title}</p>
-                {item.body ? <p className="text-xs text-muted">{item.body}</p> : null}
+                {item.body ? <p className="mt-0.5 text-xs leading-6 text-muted">{item.body}</p> : null}
                 <p className="mt-1 text-[11px] text-muted">{formatDate(item.createdAt)}</p>
               </Link>
             ))}

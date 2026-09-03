@@ -7,27 +7,23 @@ Portable between **Cloudflare Workers** (OpenNext) and a self-hosted **Node.js**
 ## Stack
 
 - **Next.js 16** (App Router) + React 19 + Tailwind 4
-- **PostgreSQL** + **Prisma 6**
+- **Supabase** (Postgres, Auth, Realtime)
 - **Cloudflare Workers** via `@opennextjs/cloudflare`
-- JWT cookies (`jose`) + PBKDF2 (Web Crypto)
 
 ## Run locally
 
 ```bash
 cp .env.example .env
-# set DATABASE_URL (postgresql://...) and JWT_SECRET
+# set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm install
-npx prisma migrate deploy
-npm run db:seed
 npm run dev
 ```
 
+Apply `supabase/migrations/20260903120000_init.sql` in the Supabase SQL editor once.
+
 Open [http://localhost:3000](http://localhost:3000).
 
-Seed accounts (see `.env.example`):
-
-- Admin: `admin@arkasalehi.ir` / `Admin123!`
-- User: `user@arkasalehi.ir` / `User123!`
+Register `admin@arkasalehi.ir` to get the admin role (and demo content). Disable **Confirm email** in Supabase Auth if you want instant login.
 
 ## Deploy (Cloudflare / OpenNext)
 
@@ -41,7 +37,7 @@ Do **not** publish the raw `.next` folder. OpenNext builds Next.js, then emits a
 | Deploy command | `npx wrangler deploy` |
 | Output directory | leave empty (not `.next`) |
 
-Runtime on Workers needs **Prisma Accelerate** (`PRISMA_ACCELERATE_URL=prisma://...`). Set `NEXT_PUBLIC_BASE_URL` at **build** time.
+Runtime on Workers uses the Supabase HTTP API. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_BASE_URL` at **build** time.
 
 ```bash
 npx wrangler login
@@ -54,7 +50,6 @@ Full env list, cookies, custom domain, and clean reinstall: **[DEPLOY.md](./DEPL
 ### Node (self-hosted)
 
 ```bash
-npx prisma migrate deploy
 npm run build
 npm start
 ```

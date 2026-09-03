@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth/session";
-import { getAdminStats } from "@/lib/db/users";
-import { getContentAnalytics } from "@/lib/db/posts";
+import { getAdminStats } from "@/lib/data/users";
+import { getContentAnalytics } from "@/lib/data/posts";
 import { errorResponse, json } from "@/lib/http";
 
 export const runtime = "nodejs";

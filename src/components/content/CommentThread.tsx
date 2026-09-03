@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { createBrowserSupabase } from "@/lib/supabase/browser";
 
 type CommentUser = { id: string; displayName: string; username: string; avatarUrl?: string | null };
 
@@ -36,7 +37,8 @@ export function CommentThread({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const id = setInterval(async () => {
+    const supabase = createBrowserSupabase();
+    const refresh = async () => {
       try {
         const res = await fetch(`/api/comments?postId=${postId}`, { cache: "no-store" });
         if (!res.ok) return;
@@ -45,8 +47,20 @@ export function CommentThread({
       } catch {
         /* ignore */
       }
-    }, 15000);
-    return () => clearInterval(id);
+    };
+    const channel = supabase
+      .channel(`comments:${postId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "comments", filter: `post_id=eq.${postId}` },
+        () => {
+          void refresh();
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [postId]);
 
   async function submit(parentId?: string | null) {
@@ -115,8 +129,8 @@ export function CommentThread({
         />
         {error ? <p className="text-sm text-rose-400">{error}</p> : null}
         <div className="flex items-center gap-2">
-          <Button type="submit" disabled={loading}>
-            {loading ? "در حال ارسال…" : "ارسال"}
+          <Button type="submit" loading={loading}>
+            ارسال
           </Button>
           {replyTo ? (
             <button type="button" className="text-sm text-muted" onClick={() => setReplyTo(null)}>

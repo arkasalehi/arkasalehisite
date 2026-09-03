@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProductCard } from "@/components/content/ProductCard";
-import { listProducts } from "@/lib/db/products";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { listProducts } from "@/lib/data/products";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
@@ -16,12 +17,18 @@ export default async function ProductsPage() {
   return (
     <section>
       <h1 className="text-3xl font-semibold">فروشگاه</h1>
-      <p className="mt-2 text-slate-400">فروش سبک؛ پرداخت در نسخه بعدی به درگاه وصل می‌شود.</p>
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      <p className="mt-2 text-muted">فروش سبک؛ پرداخت در نسخه بعدی به درگاه وصل می‌شود.</p>
+      {products.length ? (
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-8">
+          <EmptyState title="محصولی موجود نیست" description="وقتی محصولی اضافه شود اینجا دیده می‌شود." href="/" action="صفحه نخست" />
+        </div>
+      )}
     </section>
   );
 }

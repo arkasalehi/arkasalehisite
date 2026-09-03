@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/session";
-import { getUserCart, replaceUserCart } from "@/lib/db/cart";
+import { getUserCart, replaceUserCart } from "@/lib/data/cart";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { z } from "zod";
 

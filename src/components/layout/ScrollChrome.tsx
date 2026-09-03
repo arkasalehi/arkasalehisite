@@ -19,7 +19,7 @@ export function ScrollProgress() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent">
       <div
-        className="h-full origin-right bg-gradient-to-l from-cyan-400 to-blue-500"
+        className="h-full origin-right bg-gradient-to-l from-[var(--accent)] to-[var(--primary)]"
         style={{ transform: `scaleX(${p})` }}
       />
     </div>

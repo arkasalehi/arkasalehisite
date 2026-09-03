@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { typeLabel, formatDate, postPath } from "@/lib/utils";
+import { typeLabel, formatDate } from "@/lib/utils";
 import { DeleteButton } from "@/components/admin/DeleteButton";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type Row = {
   id: string;
@@ -16,11 +18,11 @@ type Row = {
   updatedAt: Date | string;
 };
 
-function statusLabel(post: Row) {
-  if (post.status === "DRAFT") return "پیش‌نویس";
-  if (post.scheduledAt && new Date(post.scheduledAt) > new Date()) return "زمان‌بندی";
-  if (post.status === "PUBLISHED") return "منتشر";
-  return "آرشیو";
+function statusMeta(post: Row): { label: string; tone: "muted" | "success" | "warning" | "danger" } {
+  if (post.status === "DRAFT") return { label: "پیش‌نویس", tone: "muted" };
+  if (post.scheduledAt && new Date(post.scheduledAt) > new Date()) return { label: "زمان‌بندی", tone: "warning" };
+  if (post.status === "PUBLISHED") return { label: "منتشر", tone: "success" };
+  return { label: "آرشیو", tone: "danger" };
 }
 
 export function PostsTable({ posts }: { posts: Row[] }) {
@@ -41,6 +43,10 @@ export function PostsTable({ posts }: { posts: Row[] }) {
     router.refresh();
   }
 
+  if (!posts.length) {
+    return <EmptyState title="محتوایی نیست" description="اولین مطلب را بسازید." href="/admin/posts/new" action="محتوای جدید" />;
+  }
+
   return (
     <div>
       {selected.length ? (
@@ -56,7 +62,7 @@ export function PostsTable({ posts }: { posts: Row[] }) {
           </button>
         </div>
       ) : null}
-      <div className="overflow-x-auto">
+      <div className="glass overflow-x-auto rounded-3xl">
         <table className="w-full text-right text-sm">
           <thead className="text-muted">
             <tr>
@@ -75,32 +81,39 @@ export function PostsTable({ posts }: { posts: Row[] }) {
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
-              <tr key={post.id} className="border-t border-[var(--border)]">
-                <td className="p-3">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(post.id)}
-                    onChange={(e) =>
-                      setSelected((prev) => (e.target.checked ? [...prev, post.id] : prev.filter((id) => id !== post.id)))
-                    }
-                  />
-                </td>
-                <td className="p-3">{post.title}</td>
-                <td>{typeLabel(post.type)}</td>
-                <td>{statusLabel(post)}</td>
-                <td>{formatDate(post.updatedAt)}</td>
-                <td className="space-x-3 space-x-reverse">
-                  <Link href={`/preview/${post.slug}`} className="text-muted">
-                    پیش‌نمایش
-                  </Link>
-                  <Link href={`/admin/posts/${post.id}`} className="text-accent">
-                    ویرایش
-                  </Link>
-                  <DeleteButton endpoint={`/api/admin/posts?id=${post.id}`} />
-                </td>
-              </tr>
-            ))}
+            {posts.map((post) => {
+              const status = statusMeta(post);
+              return (
+                <tr key={post.id} className="border-t border-[var(--border)]">
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(post.id)}
+                      onChange={(e) =>
+                        setSelected((prev) => (e.target.checked ? [...prev, post.id] : prev.filter((id) => id !== post.id)))
+                      }
+                    />
+                  </td>
+                  <td className="p-3 font-medium">{post.title}</td>
+                  <td>
+                    <Badge>{typeLabel(post.type)}</Badge>
+                  </td>
+                  <td>
+                    <Badge tone={status.tone}>{status.label}</Badge>
+                  </td>
+                  <td className="text-muted">{formatDate(post.updatedAt)}</td>
+                  <td className="space-x-3 space-x-reverse p-3">
+                    <Link href={`/preview/${post.slug}`} className="text-muted">
+                      پیش‌نمایش
+                    </Link>
+                    <Link href={`/admin/posts/${post.id}`} className="text-accent">
+                      ویرایش
+                    </Link>
+                    <DeleteButton endpoint={`/api/admin/posts?id=${post.id}`} />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

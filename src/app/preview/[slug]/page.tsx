@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { getPostBySlugAny } from "@/lib/db/posts";
+import { getPostBySlugAny } from "@/lib/data/posts";
 import { PostDetail } from "@/components/content/PostDetail";
 
 export const dynamic = "force-dynamic";

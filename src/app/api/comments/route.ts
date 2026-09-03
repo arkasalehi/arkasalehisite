@@ -1,4 +1,4 @@
-import { listVisibleComments } from "@/lib/db/comments";
+import { listVisibleComments } from "@/lib/data/comments";
 import { errorResponse, json } from "@/lib/http";
 
 export const runtime = "nodejs";

@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth/session";
-import { listUserActivity } from "@/lib/db/interactions";
+import { listUserActivity } from "@/lib/data/interactions";
 import { formatDate, postPath } from "@/lib/utils";
+import { GlassCard } from "@/components/ui/GlassCard";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -11,23 +12,24 @@ export default async function ActivityPage() {
   const { likes, comments, bookmarks } = await listUserActivity(session.id);
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6">
       <h1 className="text-3xl font-semibold">تاریخچه فعالیت</h1>
       <ActivityBlock title="پسندها" items={likes} />
-      <div>
+      <GlassCard>
         <h2 className="text-xl font-medium">نظرها</h2>
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-3">
           {comments.map((item) => (
             <div key={item.id} className="text-sm">
-              <Link href={postPath(item.post.type, item.post.slug)} className="text-cyan-300">
+              <Link href={postPath(item.post.type, item.post.slug)} className="text-accent">
                 {item.post.title}
               </Link>
-              <p className="text-slate-400">{item.body}</p>
-              <p className="text-slate-500">{formatDate(item.createdAt)}</p>
+              <p className="text-muted">{item.body}</p>
+              <p className="text-xs text-muted">{formatDate(item.createdAt)}</p>
             </div>
           ))}
+          {!comments.length ? <p className="text-muted">خالی</p> : null}
         </div>
-      </div>
+      </GlassCard>
       <ActivityBlock title="ذخیره‌ها" items={bookmarks} />
     </section>
   );
@@ -45,19 +47,19 @@ function ActivityBlock({
   }>;
 }) {
   return (
-    <div>
+    <GlassCard>
       <h2 className="text-xl font-medium">{title}</h2>
       <div className="mt-3 space-y-2">
         {items.map((item) => (
           <div key={item.id} className="flex justify-between gap-4 text-sm">
-            <Link href={postPath(item.post.type, item.post.slug)} className="text-cyan-300">
+            <Link href={postPath(item.post.type, item.post.slug)} className="text-accent">
               {item.post.title}
             </Link>
-            <span className="text-slate-500">{formatDate(item.createdAt)}</span>
+            <span className="text-muted">{formatDate(item.createdAt)}</span>
           </div>
         ))}
-        {!items.length ? <p className="text-slate-500">خالی</p> : null}
+        {!items.length ? <p className="text-muted">خالی</p> : null}
       </div>
-    </div>
+    </GlassCard>
   );
 }

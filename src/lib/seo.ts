@@ -1,5 +1,5 @@
 import { siteConfig } from "./config";
-import type { PostType } from "@prisma/client";
+import type { PostType } from "@/lib/types";
 import { postPath } from "./utils";
 
 type MetaInput = {

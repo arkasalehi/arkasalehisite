@@ -41,6 +41,17 @@ export function CartIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+export function ShareIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="18" cy="5" r="2.2" />
+      <circle cx="6" cy="12" r="2.2" />
+      <circle cx="18" cy="19" r="2.2" />
+      <path d="M8 13l8 5M16 6l-8 5" />
+    </svg>
+  );
+}
+
 export function UserIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">

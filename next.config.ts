@@ -3,19 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const nextConfig: NextConfig = {
-  // Prisma must stay external so OpenNext can patch the client for workerd,
-  // while Node (`next start`) still uses the native engine.
-  serverExternalPackages: ["@prisma/client", ".prisma/client"],
-  outputFileTracingExcludes: {
-    "*": [
-      "node_modules/@prisma/engines/**",
-      "node_modules/.prisma/client/libquery_engine*",
-      "node_modules/.prisma/client/query_engine*",
-      "node_modules/.prisma/client/*.node",
-      "node_modules/.prisma/client/*.wasm",
-      "node_modules/next/dist/compiled/@vercel/og/**",
-    ],
-  },
   turbopack: {
     root: path.dirname(fileURLToPath(import.meta.url)),
   },
@@ -24,6 +11,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "oohmoaaaklmjknuoayue.supabase.co" },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },

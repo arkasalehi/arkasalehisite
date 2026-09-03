@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
-import type { PostType } from "@prisma/client";
+import type { PostType } from "@/lib/types";
 import { InteractionBar } from "@/components/content/InteractionBar";
 import { JsonLd } from "@/components/content/JsonLd";
 import { PostCard } from "@/components/content/PostCard";
@@ -12,14 +12,14 @@ import { TableOfContents } from "@/components/content/TableOfContents";
 import { Stagger } from "@/components/motion/Reveal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getSession } from "@/lib/auth/session";
-import { listVisibleComments } from "@/lib/db/comments";
-import { getUserPostState } from "@/lib/db/interactions";
+import { listVisibleComments } from "@/lib/data/comments";
+import { getUserPostState } from "@/lib/data/interactions";
 import {
   getPostBySlugAny,
   getPublishedPostBySlug,
   getRelatedPosts,
   incrementPostViews,
-} from "@/lib/db/posts";
+} from "@/lib/data/posts";
 import { articleJsonLd, videoJsonLd } from "@/lib/seo";
 import { extractToc } from "@/lib/toc";
 import { formatDate, formatNumber, postPath, typeLabel } from "@/lib/utils";
@@ -74,15 +74,15 @@ export async function PostDetail({
           </>
         ) : null}
       </p>
-      <h1 className="mt-2 max-w-3xl text-3xl font-semibold leading-[1.4] md:text-5xl">{post.title}</h1>
-      <p className="mt-3 text-muted">
+      <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.45] md:text-6xl">{post.title}</h1>
+      <p className="mt-4 text-muted">
         {post.publishedAt ? formatDate(post.publishedAt) : ""}
         {post.readingTime ? ` · ${formatNumber(post.readingTime)} دقیقه مطالعه` : ""}
         {` · ${formatNumber(post.viewCount)} بازدید`}
       </p>
 
       {post.type === "BLOG" && post.coverImage ? (
-        <div className="relative mt-8 aspect-[16/8] overflow-hidden rounded-[var(--radius-lg)]">
+        <div className="relative mt-8 aspect-[16/8] overflow-hidden rounded-[2rem]">
           <Image src={post.coverImage} alt={post.title} fill className="object-cover" priority sizes="100vw" />
         </div>
       ) : null}
@@ -108,11 +108,12 @@ export async function PostDetail({
           saved={state.saved}
           likeCount={post._count.likes}
           commentCount={post._count.comments}
+          title={post.title}
         />
       </div>
 
       {post.body ? (
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_14rem]">
+        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem]">
           <ArticleBody body={post.body} />
           <TableOfContents items={toc} />
         </div>
@@ -129,14 +130,19 @@ export async function PostDetail({
         </section>
       ) : null}
 
+      <div id="comments">
       <CommentThread
         postId={post.id}
         initialComments={comments.map((c) => ({
           ...c,
-          createdAt: c.createdAt.toISOString(),
-          replies: c.replies.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+          createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : String(c.createdAt),
+          replies: c.replies.map((r) => ({
+            ...r,
+            createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+          })),
         }))}
       />
+      </div>
 
       {related.length ? (
         <section className="mt-12">

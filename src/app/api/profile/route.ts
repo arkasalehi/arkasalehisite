@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/session";
-import { updateProfile } from "@/lib/db/users";
+import { updateProfile } from "@/lib/data/users";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { sanitizeText } from "@/lib/security";
 import { z } from "zod";

@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth/session";
-import { getSiteCms, saveSiteCms } from "@/lib/db/settings";
+import { getSiteCms, saveSiteCms } from "@/lib/data/settings";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { siteCmsSchema } from "@/lib/validators";
 

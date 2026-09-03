@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth/session";
-import { listAdminPosts, upsertPost, deletePost, getPostById, bulkPosts } from "@/lib/db/posts";
-import { notifyAllUsers } from "@/lib/db/notifications";
+import { listAdminPosts, upsertPost, deletePost, getPostById, bulkPosts } from "@/lib/data/posts";
+import { notifyAllUsers } from "@/lib/data/notifications";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { bulkPostsSchema, postInputSchema } from "@/lib/validators";
 import { postPath } from "@/lib/utils";

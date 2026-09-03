@@ -1,6 +1,6 @@
 import { PostEditor } from "@/components/admin/PostEditor";
-import { listCategories } from "@/lib/db/posts";
-import { listProducts } from "@/lib/db/products";
+import { listCategories } from "@/lib/data/posts";
+import { listProducts } from "@/lib/data/products";
 
 export const dynamic = "force-dynamic";
 

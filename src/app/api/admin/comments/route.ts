@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth/session";
-import { updateCommentStatus, deleteComment } from "@/lib/db/comments";
+import { updateCommentStatus, deleteComment } from "@/lib/data/comments";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { z } from "zod";
 

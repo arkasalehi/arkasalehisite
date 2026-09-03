@@ -3,7 +3,7 @@ import "./globals.css";
 import { vazir } from "@/lib/fonts";
 import { siteConfig } from "@/lib/config";
 import { getSession } from "@/lib/auth/session";
-import { getSiteCms } from "@/lib/db/settings";
+import { getSiteCms } from "@/lib/data/settings";
 import { Providers } from "@/components/providers";
 import { Footer, Header, MobileNav } from "@/components/layout/Shell";
 import { ScrollProgress } from "@/components/layout/ScrollChrome";

@@ -24,9 +24,8 @@ jobs:
       - name: Build OpenNext Worker
         run: npx opennextjs-cloudflare build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PRISMA_ACCELERATE_URL: ${{ secrets.PRISMA_ACCELERATE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || vars.NEXT_PUBLIC_BASE_URL }}
           NEXT_PUBLIC_SITE_NAME: ${{ vars.NEXT_PUBLIC_SITE_NAME }}

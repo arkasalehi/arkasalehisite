@@ -1,11 +1,6 @@
 # Used by `npm run preview` / Wrangler. Do not commit real secrets.
 
 NEXTJS_ENV=production
-JWT_SECRET="replace-with-a-long-random-secret"
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-
-# Workers: Prisma Accelerate HTTP URL (prisma://…)
-# PRISMA_ACCELERATE_URL="prisma://..."
-
-# Node / migrations: TCP Postgres
-# DATABASE_URL="postgresql://postgres:postgres@localhost:5432/arkasalehi"
+NEXT_PUBLIC_SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_..."

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { postPath, excerpt } from "@/lib/utils";
-import type { PostType } from "@prisma/client";
+import type { PostType } from "@/lib/types";
 
 type Hit = {
   id: string;

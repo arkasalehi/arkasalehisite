@@ -1,7 +1,6 @@
-import { getSession, issueAuth } from "@/lib/auth/session";
-import { hashPassword, passwordNeedsRehash, verifyPassword } from "@/lib/auth/password";
-import { findUserByEmail } from "@/lib/db/users";
-import { getDb } from "@/lib/db/client";
+import { getSession } from "@/lib/auth/session";
+import { createServerSupabase } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/data/users";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { loginSchema } from "@/lib/validators";
 
@@ -11,26 +10,22 @@ export async function POST(request: Request) {
   try {
     guardMutation(request, "login", 8);
     const body = loginSchema.parse(await request.json());
-    const user = await findUserByEmail(body.email);
-    if (!user || !(await verifyPassword(body.password, user.passwordHash))) {
+    const supabase = await createServerSupabase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: body.email.toLowerCase(),
+      password: body.password,
+    });
+    if (error || !data.user) {
       return json({ error: "ایمیل یا رمز عبور نادرست است" }, 401);
     }
-
-    if (passwordNeedsRehash(user.passwordHash)) {
-      await getDb().user.update({
-        where: { id: user.id },
-        data: { passwordHash: await hashPassword(body.password) },
-      });
-    }
-
+    const profile = await getProfile(data.user.id);
     const session = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      displayName: user.displayName,
-      role: user.role,
+      id: data.user.id,
+      email: profile?.email ?? data.user.email ?? body.email,
+      username: profile?.username ?? String(data.user.user_metadata?.username ?? ""),
+      displayName: profile?.displayName ?? String(data.user.user_metadata?.display_name ?? ""),
+      role: profile?.role ?? "USER",
     };
-    await issueAuth(session);
     return json({ user: session });
   } catch (error) {
     return errorResponse(error);

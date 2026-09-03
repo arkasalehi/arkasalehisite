@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Stagger } from "@/components/motion/Reveal";
 import { PostCard } from "@/components/content/PostCard";
-import { getCategoryBySlug, listPublishedPosts } from "@/lib/db/posts";
+import { getCategoryBySlug, listPublishedPosts } from "@/lib/data/posts";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;

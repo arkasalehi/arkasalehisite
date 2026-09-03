@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/session";
-import { listNotifications, markNotificationsRead, unreadCount } from "@/lib/db/notifications";
+import { listNotifications, markNotificationsRead, unreadCount } from "@/lib/data/notifications";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { z } from "zod";
 

@@ -22,7 +22,7 @@ export default function CartPage() {
               <Link href={`/product/${item.slug}`} className="font-medium">
                 {item.title}
               </Link>
-              <p className="text-sm text-cyan-300">{formatToman(item.price)}</p>
+              <p className="text-sm text-accent">{formatToman(item.price)}</p>
             </div>
             <input
               type="number"
@@ -43,7 +43,7 @@ export default function CartPage() {
           <Button href="/checkout">ادامه خرید</Button>
         </div>
       ) : (
-        <p className="mt-8 text-slate-400">سبد خالی است.</p>
+        <p className="mt-8 text-muted">سبد خالی است.</p>
       )}
     </section>
   );

@@ -1,7 +1,7 @@
 import { requireUser } from "@/lib/auth/session";
-import { createComment } from "@/lib/db/comments";
-import { getDb } from "@/lib/db/client";
-import { notifyAdmins, createNotification } from "@/lib/db/notifications";
+import { createComment, getCommentById } from "@/lib/data/comments";
+import { getPostMeta } from "@/lib/data/posts";
+import { notifyAdmins, createNotification } from "@/lib/data/notifications";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { commentSchema } from "@/lib/validators";
 import { postPath } from "@/lib/utils";
@@ -17,8 +17,7 @@ export async function POST(request: Request) {
     const body = sanitizeText(input.body, 2000);
     if (!body) return json({ error: "متن نظر خالی است" }, 400);
 
-    const db = getDb();
-    const post = await db.post.findUnique({ where: { id: input.postId } });
+    const post = await getPostMeta(input.postId);
     if (!post) return json({ error: "یافت نشد" }, 404);
 
     const comment = await createComment({
@@ -30,7 +29,7 @@ export async function POST(request: Request) {
 
     const link = postPath(post.type, post.slug);
     if (input.parentId) {
-      const parent = await db.comment.findUnique({ where: { id: input.parentId } });
+      const parent = await getCommentById(input.parentId);
       if (parent && parent.userId !== session.id) {
         await createNotification({
           userId: parent.userId,

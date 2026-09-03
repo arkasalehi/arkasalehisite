@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Input } from "@/components/ui/Input";
 
 function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -33,32 +34,33 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <GlassCard className="mx-auto max-w-md">
-      <h1 className="text-2xl font-semibold">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
-      <p className="mt-2 text-sm text-slate-400">
+    <GlassCard className="mx-auto max-w-md p-8">
+      <p className="text-sm text-accent">حساب کاربری</p>
+      <h1 className="mt-1 text-3xl font-semibold">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
+      <p className="mt-2 text-sm leading-7 text-muted">
         کاربران می‌توانند تعامل کنند؛ انتشار محتوا فقط با حساب ادمین است.
       </p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         {mode === "register" ? (
           <>
-            <input name="displayName" required placeholder="نام نمایشی" className="field" />
-            <input name="username" required placeholder="نام کاربری" className="field" />
+            <Input name="displayName" required placeholder="نام نمایشی" />
+            <Input name="username" required placeholder="نام کاربری" />
           </>
         ) : null}
-        <input name="email" type="email" required placeholder="ایمیل" className="field" />
-        <input name="password" type="password" required minLength={8} placeholder="رمز عبور" className="field" />
+        <Input name="email" type="email" required placeholder="ایمیل" />
+        <Input name="password" type="password" required minLength={8} placeholder="رمز عبور" />
         {error ? <p className="text-sm text-rose-300">{error}</p> : null}
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "..." : mode === "login" ? "ورود" : "ساخت حساب"}
+        <Button type="submit" loading={loading} className="w-full">
+          {mode === "login" ? "ورود" : "ساخت حساب"}
         </Button>
       </form>
-      <p className="mt-4 text-sm text-slate-400">
+      <p className="mt-4 text-sm text-muted">
         {mode === "login" ? (
-          <a href="/register" className="text-cyan-300">
+          <a href="/register" className="text-accent">
             حساب ندارید؟ ثبت‌نام
           </a>
         ) : (
-          <a href="/login" className="text-cyan-300">
+          <a href="/login" className="text-accent">
             حساب دارید؟ ورود
           </a>
         )}

@@ -58,7 +58,7 @@ export function FadeItem({ children, className }: { children: ReactNode; classNa
 
 export function HoverLift({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <motion.div className={cn("h-full", className)} whileHover={{ y: -4, scale: 1.015 }} transition={{ duration: 0.25 }}>
+    <motion.div className={cn("h-full", className)} whileHover={{ y: -4, scale: 1.03 }} transition={{ duration: 0.2 }}>
       {children}
     </motion.div>
   );

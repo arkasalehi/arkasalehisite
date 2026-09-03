@@ -1,7 +1,7 @@
-import { listPublishedPosts } from "@/lib/db/posts";
+import { listPublishedPosts } from "@/lib/data/posts";
 import { errorResponse, json, publicGetCache } from "@/lib/http";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
-import type { PostType } from "@prisma/client";
+import type { PostType } from "@/lib/types";
 
 export const runtime = "nodejs";
 

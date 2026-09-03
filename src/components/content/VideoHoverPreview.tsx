@@ -19,7 +19,7 @@ export function VideoHoverPreview({
       ) : poster ? (
         <Image src={poster} alt="" fill sizes="33vw" className="object-cover" />
       ) : (
-        <div className="h-full bg-gradient-to-br from-cyan-500/20 to-blue-700/20" />
+        <div className="h-full bg-gradient-to-br from-[var(--primary)]/25 to-[var(--accent)]/10" />
       )}
     </div>
   );

@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex flex-col gap-6 md:flex-row">
-      <DashNav items={items} />
+      <DashNav title="مدیریت" items={items} />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

@@ -3,7 +3,7 @@ import { parseArticleBody } from "@/lib/toc";
 export function ArticleBody({ body }: { body: string }) {
   const blocks = parseArticleBody(body);
   return (
-    <div className="max-w-3xl text-lg leading-9">
+    <div className="max-w-3xl text-lg leading-10">
       {blocks.map((block, i) => {
         if (block.type === "h2") {
           return (

@@ -102,6 +102,7 @@ export function PostEditor({
   return (
     <form className="space-y-5" onSubmit={onSubmit}>
       <Card className="grid gap-4 md:grid-cols-2">
+        <p className="text-sm font-medium md:col-span-2">نوع و انتشار</p>
         <Select value={type} onChange={(e) => setType(e.target.value as PostFormValues["type"])}>
           <option value="BLOG">مقاله</option>
           <option value="VIDEO">ویدیو</option>
@@ -139,6 +140,7 @@ export function PostEditor({
       </Card>
 
       <Card className="grid gap-4">
+        <p className="text-sm font-medium">رسانه و متن</p>
         <Input name="coverImage" defaultValue={initial?.coverImage ?? ""} placeholder="URL تصویر جلد" />
         {type !== "BLOG" ? (
           <>
@@ -163,6 +165,7 @@ export function PostEditor({
       </Card>
 
       <Card className="grid gap-4 md:grid-cols-2">
+        <p className="text-sm font-medium md:col-span-2">سئو و محصولات</p>
         <Input name="seoTitle" defaultValue={initial?.seoTitle ?? ""} placeholder="عنوان سئو" />
         <Input name="seoDescription" defaultValue={initial?.seoDescription ?? ""} placeholder="توضیح سئو" />
         <fieldset className="md:col-span-2">
@@ -178,8 +181,8 @@ export function PostEditor({
 
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={saving}>
-          {saving ? "در حال ذخیره…" : "ذخیره"}
+        <Button type="submit" loading={saving}>
+          ذخیره
         </Button>
         {slug ? (
           <Button href={`/preview/${slug}`} variant="ghost" type="button">

@@ -1,4 +1,4 @@
-import { getSiteCms } from "@/lib/db/settings";
+import { getSiteCms } from "@/lib/data/settings";
 import { SettingsEditor } from "@/components/admin/SettingsEditor";
 
 export const dynamic = "force-dynamic";

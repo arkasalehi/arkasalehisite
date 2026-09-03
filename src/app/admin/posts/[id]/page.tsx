@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PostEditor } from "@/components/admin/PostEditor";
-import { getPostById, listCategories } from "@/lib/db/posts";
-import { listProducts } from "@/lib/db/products";
+import { getPostById, listCategories } from "@/lib/data/posts";
+import { listProducts } from "@/lib/data/products";
 
 export const dynamic = "force-dynamic";
 

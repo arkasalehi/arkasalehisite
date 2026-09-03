@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listAdminPosts } from "@/lib/db/posts";
+import { listAdminPosts } from "@/lib/data/posts";
 import { Button } from "@/components/ui/Button";
 import { PostsTable } from "@/components/admin/PostsTable";
 

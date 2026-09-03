@@ -32,8 +32,8 @@ export default function CheckoutPage() {
   return (
     <section className="mx-auto max-w-xl">
       <h1 className="text-3xl font-semibold">تسویه حساب</h1>
-      <p className="mt-2 text-slate-400">درگاه پرداخت هنوز وصل نیست — سفارش به‌صورت پیش‌نویس ثبت می‌شود.</p>
-      <p className="mt-6 text-xl text-cyan-300">{formatToman(total)}</p>
+      <p className="mt-2 text-muted">درگاه پرداخت هنوز وصل نیست — سفارش به‌صورت پیش‌نویس ثبت می‌شود.</p>
+      <p className="mt-6 text-xl text-accent">{formatToman(total)}</p>
       <Button type="button" className="mt-6" disabled={!items.length} onClick={submit}>
         ثبت سفارش آزمایشی
       </Button>

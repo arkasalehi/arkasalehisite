@@ -15,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex flex-col gap-6 md:flex-row">
-      <DashNav items={items} />
+      <DashNav title="حساب من" items={items} />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

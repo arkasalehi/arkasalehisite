@@ -1,4 +1,4 @@
-import { listAdminComments } from "@/lib/db/comments";
+import { listAdminComments } from "@/lib/data/comments";
 import { CommentModeration } from "@/components/admin/CommentModeration";
 
 export const dynamic = "force-dynamic";

@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/content/JsonLd";
 import { ProductBuyBox } from "@/components/content/ProductBuyBox";
 import { ProductCard } from "@/components/content/ProductCard";
-import { getProductBySlug } from "@/lib/db/products";
-import { listRelatedProducts } from "@/lib/db/cart";
+import { getProductBySlug } from "@/lib/data/products";
+import { listRelatedProducts } from "@/lib/data/cart";
 import { buildMetadata, productJsonLd } from "@/lib/seo";
 import { formatToman, effectivePrice, isProductAvailable } from "@/lib/utils";
 
@@ -46,9 +46,14 @@ export default async function ProductPage({
     <div>
       <article className="grid gap-8 md:grid-cols-2">
         <JsonLd data={productJsonLd(product)} />
-        <div className="relative aspect-square overflow-hidden rounded-3xl bg-foreground/8">
+        <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-foreground/8">
           {product.imageUrl ? (
             <Image src={product.imageUrl} alt={product.title} fill className="object-cover" priority sizes="50vw" />
+          ) : null}
+          {product.discountPercent > 0 || (product.comparePrice && product.comparePrice > product.price) ? (
+            <span className="absolute right-3 top-3 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-slate-950">
+              تخفیف
+            </span>
           ) : null}
         </div>
         <div>

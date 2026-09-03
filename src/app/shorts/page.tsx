@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { VideoPlayer } from "@/components/content/VideoPlayer";
-import { listPublishedPosts } from "@/lib/db/posts";
+import { ShortsFeed } from "@/components/content/ShortsFeed";
+import { getSession } from "@/lib/auth/session";
+import { getUserPostState } from "@/lib/data/interactions";
+import { listPublishedPosts } from "@/lib/data/posts";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
@@ -13,29 +14,29 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ShortsIndexPage() {
-  const shorts = await listPublishedPosts({ type: "SHORT", take: 20 });
+  const [shorts, session] = await Promise.all([listPublishedPosts({ type: "SHORT", take: 20 }), getSession()]);
+  const states = session
+    ? await Promise.all(shorts.map((post) => getUserPostState(session.id, post.id).then((s) => [post.id, s] as const)))
+    : [];
+  const map = Object.fromEntries(states);
 
   return (
-    <section>
-      <h1 className="text-3xl font-semibold">شورتس</h1>
-      <p className="mt-2 text-slate-400">پخش خودکار فقط وقتی ویدیو در دید است.</p>
-      <div className="mx-auto mt-8 flex max-w-sm snap-y snap-mandatory flex-col gap-8">
-        {shorts.map((post) => (
-          <article key={post.id} className="snap-start">
-            {post.videoUrl ? (
-              <VideoPlayer
-                src={post.videoUrl}
-                poster={post.thumbnailUrl || post.coverImage}
-                autoPlayInView
-                vertical
-              />
-            ) : null}
-            <Link href={`/shorts/${post.slug}`} className="mt-3 block text-lg font-medium">
-              {post.title}
-            </Link>
-          </article>
-        ))}
-      </div>
+    <section className="-mx-4 -mt-8 md:mx-0">
+      <h1 className="sr-only">شورتس</h1>
+      <ShortsFeed
+        posts={shorts.map((post) => ({
+          id: post.id,
+          slug: post.slug,
+          title: post.title,
+          type: post.type,
+          videoUrl: post.videoUrl,
+          thumbnailUrl: post.thumbnailUrl,
+          coverImage: post.coverImage,
+          _count: post._count,
+          liked: map[post.id]?.liked,
+          saved: map[post.id]?.saved,
+        }))}
+      />
     </section>
   );
 }

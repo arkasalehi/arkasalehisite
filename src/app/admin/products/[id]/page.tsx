@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProductEditor } from "@/components/admin/ProductEditor";
-import { getDb } from "@/lib/db/client";
+import { getProductById } from "@/lib/data/products";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = await getDb().product.findUnique({ where: { id } });
+  const product = await getProductById(id);
   if (!product) notFound();
 
   return (
