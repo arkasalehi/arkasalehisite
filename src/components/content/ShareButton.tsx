@@ -1,7 +1,7 @@
 "use client";
 
 import { ShareIcon } from "@/components/icons";
-import { useToast } from "@/components/ui/Toast";
+import { useToast } from "@/components/ui/Toaster";
 
 export function ShareButton({ title }: { title: string }) {
   const { push } = useToast();

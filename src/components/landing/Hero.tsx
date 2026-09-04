@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { CoverImage } from "@/components/content/CoverImage";
 import { ArrowIcon } from "@/components/icons";
+import { TypeReveal } from "@/components/motion/TypeReveal";
 import { samples } from "@/lib/media";
 import type { SiteCms } from "@/lib/cms/types";
 
@@ -17,17 +18,24 @@ export function Hero({ cms }: { cms: SiteCms }) {
 
   return (
     <section className="flex flex-col pb-4 pt-6 md:pt-10">
-      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass)] px-3 py-1 text-xs text-muted backdrop-blur">
+      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-xs text-muted">
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--status)]" />
         در دسترس برای پروژه جدید
       </span>
 
-      <h1 className="mt-6 max-w-5xl text-right text-[40px] font-extrabold leading-[1.12] tracking-[-0.05em] md:text-[72px] lg:text-[80px]">
-        {title}
-      </h1>
+      <TypeReveal
+        as="h1"
+        text={title}
+        className="mt-6 max-w-5xl text-right text-[40px] font-extrabold leading-[1.12] tracking-[-0.05em] md:text-[72px] lg:text-[80px]"
+      />
 
       <div className="order-3 mt-6 flex flex-col gap-5 md:order-2 md:mt-8 md:flex-row md:items-end md:justify-between">
-        <p className="max-w-xl text-base leading-8 text-muted md:text-lg">{hero.subtitle}</p>
+        <p
+          className="fade-line max-w-xl text-base leading-8 text-muted md:text-lg"
+          style={{ animationDelay: `${90 + Array.from(title).length * 26}ms` }}
+        >
+          {hero.subtitle}
+        </p>
         <div className="flex flex-wrap items-center gap-3">
           <Button href={hero.ctaPrimaryHref} className="px-6 py-3">
             {hero.ctaPrimary}

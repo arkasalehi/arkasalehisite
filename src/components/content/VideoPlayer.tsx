@@ -50,9 +50,19 @@ export function VideoPlayer({
         /* ignore */
       }
     };
+    let lastWrite = 0;
+    let raf = 0;
     const onTime = () => {
-      persist();
-      if (el.duration) setProgress(el.currentTime / el.duration);
+      const now = Date.now();
+      if (now - lastWrite > 1000) {
+        lastWrite = now;
+        persist();
+      }
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        if (el.duration) setProgress(el.currentTime / el.duration);
+      });
     };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
@@ -60,6 +70,7 @@ export function VideoPlayer({
     el.addEventListener("play", onPlay);
     el.addEventListener("pause", onPause);
     return () => {
+      cancelAnimationFrame(raf);
       el.removeEventListener("timeupdate", onTime);
       el.removeEventListener("play", onPlay);
       el.removeEventListener("pause", onPause);
@@ -125,7 +136,7 @@ export function VideoPlayer({
       className={cn(
         "group relative",
         (className?.includes("h-full") || className?.includes("absolute")) && "h-full",
-        mini && "fixed bottom-20 left-4 z-40 w-56 shadow-2xl md:bottom-4",
+        mini && "fixed bottom-4 left-4 z-40 w-56 shadow-2xl",
       )}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}

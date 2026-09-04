@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 
 export type Theme = "dark" | "light";
 
@@ -13,13 +13,10 @@ function snapshot(): Theme {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
 
-function serverSnapshot(): Theme {
-  return "light";
-}
-
 export function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
   localStorage.setItem("as_theme", theme);
+  document.cookie = `as_theme=${theme}; Path=/; Max-Age=31536000; SameSite=Lax`;
   window.dispatchEvent(new Event("as-theme"));
 }
 
@@ -32,9 +29,26 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+export function ThemeProvider({
+  children,
+  initialTheme,
+}: {
+  children: React.ReactNode;
+  initialTheme: Theme;
+}) {
+  const theme = useSyncExternalStore(subscribe, snapshot, () => initialTheme);
   const toggle = useCallback(() => applyTheme(theme === "dark" ? "light" : "dark"), [theme]);
   const value = useMemo(() => ({ theme, toggle }), [theme, toggle]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("as_theme");
+      if (stored !== "dark" && stored !== "light") return;
+      applyTheme(stored);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { Textarea } from "@/components/ui/Input";
-import { useToast } from "@/components/ui/Toast";
+import { useToast } from "@/components/ui/Toaster";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 

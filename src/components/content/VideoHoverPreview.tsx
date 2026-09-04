@@ -20,7 +20,7 @@ export function VideoHoverPreview({
   return (
     <div className="absolute inset-0" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       {hover ? (
-        <video src={src} muted playsInline autoPlay loop preload="none" className="h-full w-full object-cover grayscale contrast-[1.08]" />
+        <video src={src} muted playsInline autoPlay loop preload="none" className="h-full w-full object-cover" />
       ) : (
         <CoverImage src={poster} alt="" seed={seed} kind={kind} sizes="33vw" />
       )}

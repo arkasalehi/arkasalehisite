@@ -3,8 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { SessionUser } from "@/lib/auth/session";
 import { CART_KEY, type CartItem } from "@/lib/cart";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { ToastProvider, useToast } from "@/components/ui/Toast";
+import { ThemeProvider, type Theme } from "@/components/theme/ThemeProvider";
+import { ToastProvider, useToast } from "@/components/ui/Toaster";
 
 type AuthCtx = { user: SessionUser | null };
 const AuthContext = createContext<AuthCtx>({ user: null });
@@ -175,12 +175,14 @@ function CartProvider({ children, user }: { children: React.ReactNode; user: Ses
 export function Providers({
   children,
   user,
+  theme,
 }: {
   children: React.ReactNode;
   user: SessionUser | null;
+  theme: Theme;
 }) {
   return (
-    <ThemeProvider>
+    <ThemeProvider initialTheme={theme}>
       <ToastProvider>
         <CartProvider user={user}>{children}</CartProvider>
       </ToastProvider>

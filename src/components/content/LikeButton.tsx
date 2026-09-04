@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { HeartIcon } from "@/components/icons";
 import { formatNumber } from "@/lib/utils";
 import { useAuth } from "@/components/providers";
-import { useToast } from "@/components/ui/Toast";
+import { useToast } from "@/components/ui/Toaster";
 
 export function LikeButton({
   postId,
@@ -22,7 +21,6 @@ export function LikeButton({
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
-  const [pop, setPop] = useState(0);
 
   async function toggle() {
     if (!user) {
@@ -33,7 +31,6 @@ export function LikeButton({
     const next = !liked;
     setLiked(next);
     setCount((c) => c + (next ? 1 : -1));
-    if (next) setPop((n) => n + 1);
 
     try {
       const res = await fetch("/api/like", {
@@ -57,12 +54,10 @@ export function LikeButton({
   }
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={toggle}
-      animate={{ scale: pop ? [1, 1.22, 1] : 1 }}
-      transition={{ duration: 0.28 }}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
         liked
           ? "border-foreground bg-foreground text-background"
           : "border-[var(--border)] bg-foreground/5 text-foreground hover:border-foreground/30"
@@ -70,6 +65,6 @@ export function LikeButton({
     >
       <HeartIcon filled={liked} className="h-4 w-5" />
       {formatNumber(count)}
-    </motion.button>
+    </button>
   );
 }

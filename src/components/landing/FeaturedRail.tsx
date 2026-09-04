@@ -37,7 +37,7 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
                 kind="video"
                 sizes="(max-width: 1024px) 100vw, 70vw"
               />
-              <span className="absolute bottom-4 left-4 z-10 grid h-12 w-12 place-items-center rounded-full bg-black/55 text-white backdrop-blur-sm">
+              <span className="absolute bottom-4 left-4 z-10 grid h-12 w-12 place-items-center rounded-full bg-black/55 text-white">
                 <PlayIcon className="h-4 w-4" />
               </span>
             </Link>

@@ -12,7 +12,7 @@ import { useAuth, useCart } from "@/components/providers";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { SearchBox } from "@/components/layout/SearchBox";
-import { headerBlurClass, useScrolled } from "@/components/layout/ScrollChrome";
+import { headerClass } from "@/components/layout/ScrollChrome";
 import { Button } from "@/components/ui/Button";
 import type { SiteCms } from "@/lib/cms/types";
 
@@ -21,11 +21,10 @@ export function Header({ cms }: { cms: SiteCms }) {
   const { user } = useAuth();
   const { count } = useCart();
   const [open, setOpen] = useState(false);
-  const scrolled = useScrolled();
 
   return (
-    <header className={headerBlurClass(scrolled)}>
-      <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-[var(--border)] bg-[var(--glass)] px-3 shadow-[var(--shadow-nav)] backdrop-blur-xl md:h-16 md:px-5">
+    <header className={headerClass()}>
+      <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 shadow-[var(--shadow-nav)] md:h-16 md:px-5">
         <Link href="/" className="flex shrink-0 items-center gap-2 px-1" aria-label={cms.seo.title || "arkasalehi"}>
           <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
           <span className="font-display text-[17px] font-medium tracking-tight md:text-[18px]">arkasalehi</span>
@@ -105,7 +104,7 @@ export function Header({ cms }: { cms: SiteCms }) {
       </div>
 
       {open ? (
-        <div className="mt-2 overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--glass)] p-3 shadow-[var(--shadow-nav)] backdrop-blur-xl lg:hidden">
+        <div className="mt-2 overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--card)] p-3 shadow-[var(--shadow-nav)] lg:hidden">
           <nav className="flex flex-col">
             {navItems.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -214,30 +213,5 @@ function FooterCol({ title, items }: { title: string; items: Array<{ href: strin
         ))}
       </ul>
     </div>
-  );
-}
-
-export function MobileNav() {
-  const pathname = usePathname();
-  return (
-    <nav className="fixed inset-x-4 bottom-3 z-40 md:hidden">
-      <div className="grid grid-cols-5 rounded-full border border-[var(--border)] bg-[var(--glass)] px-1 py-1.5 shadow-[var(--shadow-nav)] backdrop-blur-xl">
-        {navItems.map((item) => {
-          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-full py-2 text-center text-[11px] transition-colors duration-150",
-                active ? "font-semibold text-foreground" : "font-medium text-muted",
-              )}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
   );
 }

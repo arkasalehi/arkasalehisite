@@ -56,7 +56,7 @@ export function PostCard({ post, featured = false }: { post: PostCardPost; featu
               />
             )}
             {post.type !== "BLOG" ? (
-              <span className="absolute bottom-3 left-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/55 text-white backdrop-blur-sm">
+              <span className="absolute bottom-3 left-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/55 text-white">
                 <PlayIcon className="h-4 w-4" />
               </span>
             ) : null}
