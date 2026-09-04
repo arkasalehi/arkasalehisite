@@ -3,12 +3,7 @@ import { PostDetail } from "@/components/content/PostDetail";
 import { getPublishedPostBySlug } from "@/lib/data/posts";
 import { buildMetadata } from "@/lib/seo";
 
-export const revalidate = 60;
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

@@ -6,7 +6,7 @@ import { getCategoryBySlug, listPublishedPosts } from "@/lib/data/posts";
 import { PageHeader } from "@/components/layout/Page";
 import { buildMetadata } from "@/lib/seo";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

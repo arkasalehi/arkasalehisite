@@ -9,12 +9,7 @@ import { listRelatedProducts } from "@/lib/data/cart";
 import { buildMetadata, productJsonLd } from "@/lib/seo";
 import { formatToman, effectivePrice, isProductAvailable } from "@/lib/utils";
 
-export const revalidate = 60;
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
