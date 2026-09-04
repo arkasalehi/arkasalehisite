@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ProductCard } from "@/components/content/ProductCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { listProducts } from "@/lib/data/products";
+import { PageHeader } from "@/components/layout/Page";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
@@ -16,10 +17,9 @@ export default async function ProductsPage() {
   const products = await listProducts();
   return (
     <section>
-      <h1 className="text-3xl font-semibold">فروشگاه</h1>
-      <p className="mt-2 text-muted">فروش سبک؛ پرداخت در نسخه بعدی به درگاه وصل می‌شود.</p>
+      <PageHeader title="فروشگاه" description="فروش سبک؛ پرداخت در نسخه بعدی به درگاه وصل می‌شود." />
       {products.length ? (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

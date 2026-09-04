@@ -114,7 +114,7 @@ export function CommentThread({
 
   return (
     <section className="mt-12">
-      <h2 className="text-xl font-semibold">نظرها</h2>
+      <h2 className="text-xl font-medium">نظرها</h2>
       <form
         className="mt-4 space-y-3"
         onSubmit={(e) => {
@@ -142,7 +142,7 @@ export function CommentThread({
 
       <div className="mt-8 space-y-4">
         {comments.map((comment) => (
-          <article key={comment.id} className={`glass rounded-2xl p-4 ${comment.pending ? "opacity-60" : ""}`}>
+          <article key={comment.id} className={`surface p-4 ${comment.pending ? "opacity-60" : ""}`}>
             <header className="flex items-center gap-2 text-sm">
               <Avatar name={comment.user.displayName} src={comment.user.avatarUrl} size="sm" />
               <strong>{comment.user.displayName}</strong>

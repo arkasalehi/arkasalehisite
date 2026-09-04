@@ -5,6 +5,7 @@ import { PostCard } from "@/components/content/PostCard";
 import { ContentFilters } from "@/components/content/ContentFilters";
 import { listCategories, listPublishedPosts } from "@/lib/data/posts";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/layout/Page";
 import { formatNumber, postPath } from "@/lib/utils";
 import type { PostType } from "@/lib/types";
 
@@ -35,7 +36,7 @@ export async function ContentGrid({
         <ContentFilters categories={categories} />
       </Suspense>
       {posts.length ? (
-        <Stagger className={`mt-8 grid gap-5 sm:grid-cols-2 ${sidebar ? "" : "lg:grid-cols-3"}`}>
+        <Stagger className={`mt-8 grid gap-6 sm:grid-cols-2 ${sidebar ? "" : "lg:grid-cols-3"}`}>
           {posts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
@@ -50,13 +51,12 @@ export async function ContentGrid({
 
   return (
     <section>
-      <h1 className="text-3xl font-semibold md:text-4xl">{title}</h1>
-      <p className="mt-2 max-w-2xl leading-8 text-muted">{description}</p>
+      <PageHeader title={title} description={description} />
       {sidebar ? (
-        <div className="mt-2 grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem]">
           <div>{feed}</div>
           <aside className="hidden space-y-6 lg:block">
-            <div className="glass sticky top-24 rounded-3xl p-4">
+            <div className="surface sticky top-28 p-5">
               <p className="text-sm font-medium">دسته‌ها</p>
               <ul className="mt-3 space-y-1 text-sm">
                 {categories.map((c) => (

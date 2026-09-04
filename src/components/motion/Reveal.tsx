@@ -16,10 +16,10 @@ export function Reveal({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-48px" }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+      transition={{ duration: 0.35, delay, ease: "easeOut" }}
     >
       {children}
     </motion.div>
@@ -35,7 +35,7 @@ export function Stagger({ children, className }: { children: ReactNode; classNam
       viewport={{ once: true, margin: "-40px" }}
       variants={{
         hidden: {},
-        show: { transition: { staggerChildren: 0.08 } },
+        show: { transition: { staggerChildren: 0.06 } },
       }}
     >
       {children}
@@ -44,8 +44,8 @@ export function Stagger({ children, className }: { children: ReactNode; classNam
 }
 
 export const fadeItem = {
-  hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.3 } },
 };
 
 export function FadeItem({ children, className }: { children: ReactNode; className?: string }) {
@@ -57,9 +57,5 @@ export function FadeItem({ children, className }: { children: ReactNode; classNa
 }
 
 export function HoverLift({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <motion.div className={cn("h-full", className)} whileHover={{ y: -4, scale: 1.03 }} transition={{ duration: 0.2 }}>
-      {children}
-    </motion.div>
-  );
+  return <div className={cn("h-full", className)}>{children}</div>;
 }

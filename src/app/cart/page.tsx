@@ -11,10 +11,10 @@ export default function CartPage() {
 
   return (
     <section>
-      <h1 className="text-3xl font-semibold">سبد خرید</h1>
+      <h1 className="text-3xl font-medium">سبد خرید</h1>
       <div className="mt-6 space-y-4">
         {items.map((item) => (
-          <div key={item.productId} className="glass flex items-center gap-4 rounded-2xl p-4">
+          <div key={item.productId} className="surface flex items-center gap-4 p-4">
             {item.imageUrl ? (
               <Image src={item.imageUrl} alt={item.title} width={72} height={72} className="rounded-xl object-cover" />
             ) : null}

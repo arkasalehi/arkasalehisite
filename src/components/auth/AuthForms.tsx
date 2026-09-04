@@ -35,8 +35,8 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   return (
     <GlassCard className="mx-auto max-w-md p-8">
-      <p className="text-sm text-accent">حساب کاربری</p>
-      <h1 className="mt-1 text-3xl font-semibold">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
+      <p className="text-sm font-medium text-muted">حساب کاربری</p>
+      <h1 className="mt-1 text-4xl">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
       <p className="mt-2 text-sm leading-7 text-muted">
         کاربران می‌توانند تعامل کنند؛ انتشار محتوا فقط با حساب ادمین است.
       </p>

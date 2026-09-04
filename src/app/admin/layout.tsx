@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { DashNav } from "@/components/layout/DashNav";
 
@@ -13,7 +14,7 @@ const items = [
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login?next=/admin");
-  if (session.role !== "ADMIN") redirect("/");
+  if (!isAdminRole(session.role)) redirect("/");
 
   return (
     <div className="flex flex-col gap-6 md:flex-row">

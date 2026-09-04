@@ -143,7 +143,7 @@ export function VideoPlayer({
         className={cn(
           "w-full bg-black object-cover",
           !className?.includes("absolute") &&
-            (vertical ? "aspect-[9/16] max-h-[80vh] rounded-[1.5rem]" : "aspect-video rounded-[1.5rem]"),
+            (vertical ? "aspect-[9/16] max-h-[80vh] rounded-2xl" : "aspect-video rounded-2xl"),
           className,
         )}
       />
@@ -160,7 +160,7 @@ export function VideoPlayer({
               if (!el?.duration) return;
               el.currentTime = Number(e.target.value) * el.duration;
             }}
-            className="w-full accent-[var(--accent)]"
+            className="w-full accent-white"
             aria-label="پیشرفت پخش"
           />
           <div className="mt-1 flex items-center justify-between gap-2 text-xs">
@@ -177,7 +177,7 @@ export function VideoPlayer({
                     <button
                       key={s}
                       type="button"
-                      className={cn("block w-full rounded-lg px-3 py-1 text-right", speed === s && "text-[var(--accent)]")}
+                      className={cn("block w-full rounded-lg px-3 py-1 text-right", speed === s && "text-white")}
                       onClick={() => {
                         setSpeed(s);
                         if (ref.current) ref.current.playbackRate = s;

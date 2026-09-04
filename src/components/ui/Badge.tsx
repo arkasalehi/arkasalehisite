@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
 const tones = {
-  default: "border-[var(--border)] bg-[var(--glass)] text-accent",
-  success: "border-emerald-400/25 bg-emerald-400/10 text-emerald-300",
-  warning: "border-amber-400/25 bg-amber-400/10 text-amber-200",
-  muted: "border-[var(--border)] bg-foreground/5 text-muted",
-  danger: "border-rose-400/25 bg-rose-400/10 text-rose-300",
+  default: "border-[var(--border)] bg-[var(--card)] text-muted",
+  success: "border-[var(--border)] bg-[var(--card)] text-[var(--status)]",
+  warning: "border-[var(--border)] bg-[var(--card)] text-amber-700 dark:text-amber-300",
+  muted: "border-[var(--border)] bg-[var(--card)] text-muted",
+  danger: "border-[var(--border)] bg-[var(--card)] text-rose-600 dark:text-rose-300",
 };
 
 export function Badge({
@@ -20,7 +20,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-xs backdrop-blur",
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium",
         tones[tone],
         className,
       )}

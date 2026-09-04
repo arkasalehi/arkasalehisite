@@ -31,10 +31,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           {items.map((item) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className={`pointer-events-auto glass rounded-2xl px-4 py-3 text-sm ${
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={`pointer-events-auto surface px-4 py-3 text-sm ${
                 item.tone === "error" ? "text-rose-400" : "text-foreground"
               }`}
             >

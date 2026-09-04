@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isAdminRole } from "@/lib/auth/roles";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase";
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   let response = NextResponse.next({ request });
   const url = getSupabaseUrl();
   const key = getSupabaseAnonKey();
+
+  const adminPage = pathname.startsWith("/admin") || pathname.startsWith("/preview");
+  const adminApi = pathname.startsWith("/api/admin");
 
   let authed = false;
   let role: string | null = null;
@@ -30,17 +38,16 @@ export async function proxy(request: NextRequest) {
     } = await supabase.auth.getUser();
     authed = Boolean(user);
 
-    if (user && (pathname.startsWith("/admin") || pathname.startsWith("/preview"))) {
+    if (user && (adminPage || adminApi)) {
       const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
       role = typeof data?.role === "string" ? data.role : null;
     }
   }
 
   const needsAuth =
-    pathname.startsWith("/admin") ||
+    adminPage ||
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/checkout") ||
-    pathname.startsWith("/preview");
+    pathname.startsWith("/checkout");
 
   if (needsAuth && !authed) {
     const login = request.nextUrl.clone();
@@ -49,8 +56,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  if ((pathname.startsWith("/admin") || pathname.startsWith("/preview")) && role !== "ADMIN") {
+  if (adminPage && !isAdminRole(role)) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (adminApi && !authed) {
+    return jsonError("لطفاً وارد شوید", 401);
+  }
+
+  if (adminApi && !isAdminRole(role)) {
+    return jsonError("دسترسی مجاز نیست", 403);
   }
 
   return response;

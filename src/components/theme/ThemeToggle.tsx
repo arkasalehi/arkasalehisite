@@ -8,7 +8,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="rounded-full p-2 text-muted transition hover:bg-foreground/8 hover:text-foreground"
+      className="rounded-full p-2 text-muted transition-colors duration-150 hover:text-foreground"
       aria-label={theme === "dark" ? "حالت روشن" : "حالت تیره"}
     >
       {theme === "dark" ? (

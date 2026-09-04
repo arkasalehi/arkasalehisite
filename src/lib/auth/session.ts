@@ -1,4 +1,5 @@
 import type { Role } from "@/lib/types";
+import { isAdminRole, normalizeRole } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/data/users";
 
@@ -24,7 +25,7 @@ export async function getSession(): Promise<SessionUser | null> {
         email: user.email ?? "",
         username: String(user.user_metadata?.username ?? ""),
         displayName: String(user.user_metadata?.display_name ?? user.email ?? ""),
-        role: "USER",
+        role: "user",
       };
     }
     return {
@@ -32,7 +33,7 @@ export async function getSession(): Promise<SessionUser | null> {
       email: profile.email,
       username: profile.username,
       displayName: profile.displayName,
-      role: profile.role,
+      role: normalizeRole(profile.role),
     };
   } catch (error) {
     console.error("getSession", error);
@@ -52,7 +53,7 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const session = await requireUser();
-  if (session.role !== "ADMIN") {
+  if (!isAdminRole(session.role)) {
     const error = new Error("FORBIDDEN");
     error.name = "FORBIDDEN";
     throw error;

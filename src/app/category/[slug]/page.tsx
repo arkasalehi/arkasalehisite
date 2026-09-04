@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Stagger } from "@/components/motion/Reveal";
 import { PostCard } from "@/components/content/PostCard";
 import { getCategoryBySlug, listPublishedPosts } from "@/lib/data/posts";
+import { PageHeader } from "@/components/layout/Page";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
@@ -33,9 +34,8 @@ export default async function CategoryPage({
 
   return (
     <section>
-      <h1 className="text-3xl font-semibold">{category.name}</h1>
-      {category.description ? <p className="mt-2 text-slate-400">{category.description}</p> : null}
-      <Stagger className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <PageHeader title={category.name} description={category.description ?? undefined} />
+      <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

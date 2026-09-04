@@ -31,13 +31,13 @@ export default function CheckoutPage() {
 
   return (
     <section className="mx-auto max-w-xl">
-      <h1 className="text-3xl font-semibold">تسویه حساب</h1>
+      <h1 className="text-3xl font-medium">تسویه حساب</h1>
       <p className="mt-2 text-muted">درگاه پرداخت هنوز وصل نیست — سفارش به‌صورت پیش‌نویس ثبت می‌شود.</p>
       <p className="mt-6 text-xl text-accent">{formatToman(total)}</p>
       <Button type="button" className="mt-6" disabled={!items.length} onClick={submit}>
         ثبت سفارش آزمایشی
       </Button>
-      {message ? <p className="mt-4 text-slate-300">{message}</p> : null}
+      {message ? <p className="mt-4 text-muted">{message}</p> : null}
     </section>
   );
 }

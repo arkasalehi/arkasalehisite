@@ -4,12 +4,10 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  primary:
-    "bg-[var(--primary)] text-white shadow-[0_0_28px_var(--glow)] hover:brightness-110 disabled:opacity-60",
-  ghost:
-    "border border-[var(--border)] bg-transparent text-foreground hover:border-[color-mix(in_oklab,var(--accent)_45%,var(--border))] hover:bg-foreground/5",
-  subtle: "bg-foreground/6 text-foreground hover:bg-foreground/10",
-  danger: "bg-rose-500/90 text-white hover:bg-rose-400",
+  primary: "bg-foreground text-background hover:opacity-90 disabled:opacity-50",
+  ghost: "border border-[var(--border)] bg-transparent text-foreground hover:bg-[var(--card)]",
+  subtle: "bg-[var(--card)] text-foreground border border-[var(--border)] hover:border-[color-mix(in_oklab,var(--fg)_18%,var(--border))]",
+  danger: "bg-rose-600 text-white hover:opacity-90",
 };
 
 export function Button({
@@ -27,7 +25,7 @@ export function Button({
   loading?: boolean;
 }) {
   const cls = cn(
-    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition duration-200 hover:scale-[1.03] active:scale-[0.97]",
+    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-[color,background-color,border-color,opacity,transform] duration-150",
     variants[variant],
     className,
   );

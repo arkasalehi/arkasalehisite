@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import { DashNav } from "@/components/layout/DashNav";
 
-const items = [
+const baseItems = [
   { href: "/dashboard", label: "پروفایل" },
   { href: "/dashboard/saved", label: "ذخیره‌ها" },
   { href: "/dashboard/notifications", label: "اعلان‌ها" },
@@ -12,6 +13,10 @@ const items = [
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login?next=/dashboard");
+
+  const items = isAdminRole(session.role)
+    ? [...baseItems, { href: "/admin", label: "پنل ادمین" }]
+    : baseItems;
 
   return (
     <div className="flex flex-col gap-6 md:flex-row">

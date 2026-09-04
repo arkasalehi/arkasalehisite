@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
@@ -9,6 +8,7 @@ import { PostCard } from "@/components/content/PostCard";
 import { ProductCard } from "@/components/content/ProductCard";
 import { ArticleBody } from "@/components/content/ArticleBody";
 import { TableOfContents } from "@/components/content/TableOfContents";
+import { CoverImage } from "@/components/content/CoverImage";
 import { Stagger } from "@/components/motion/Reveal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getSession } from "@/lib/auth/session";
@@ -65,7 +65,7 @@ export async function PostDetail({
         <p className="mb-4 rounded-xl bg-amber-400/15 px-3 py-2 text-sm text-amber-200">پیش‌نمایش — هنوز عمومی نیست</p>
       ) : null}
       <JsonLd data={jsonLd} />
-      <p className="text-sm text-accent">
+      <p className="text-sm text-muted">
         <Link href={typeHref}>{typeLabel(post.type)}</Link>
         {post.category ? (
           <>
@@ -74,18 +74,23 @@ export async function PostDetail({
           </>
         ) : null}
       </p>
-      <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.45] md:text-6xl">{post.title}</h1>
+      <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight md:text-5xl">{post.title}</h1>
       <p className="mt-4 text-muted">
         {post.publishedAt ? formatDate(post.publishedAt) : ""}
         {post.readingTime ? ` · ${formatNumber(post.readingTime)} دقیقه مطالعه` : ""}
         {` · ${formatNumber(post.viewCount)} بازدید`}
       </p>
 
-      {post.type === "BLOG" && post.coverImage ? (
-        <div className="relative mt-8 aspect-[16/8] overflow-hidden rounded-[2rem]">
-          <Image src={post.coverImage} alt={post.title} fill className="object-cover" priority sizes="100vw" />
-        </div>
-      ) : null}
+      <div className="editorial-media relative mt-8 aspect-[16/8] overflow-hidden rounded-[24px]">
+        <CoverImage
+          src={post.coverImage}
+          alt={post.title}
+          seed={post.id}
+          kind={post.type === "VIDEO" ? "video" : post.type === "SHORT" ? "short" : "blog"}
+          sizes="100vw"
+          priority
+        />
+      </div>
 
       {post.videoUrl ? (
         <div className="mt-8">
@@ -121,7 +126,7 @@ export async function PostDetail({
 
       {post.products.length ? (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">محصولات داخل این مطلب</h2>
+          <h2 className="text-xl font-medium">محصولات داخل این مطلب</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {post.products.map((row) => (
               <ProductCard key={row.productId} product={row.product} compact />
@@ -146,7 +151,7 @@ export async function PostDetail({
 
       {related.length ? (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">مطالب مرتبط</h2>
+          <h2 className="text-xl font-medium">مطالب مرتبط</h2>
           <Stagger className="mt-4 grid gap-4 md:grid-cols-3">
             {related.map((item) => (
               <PostCard key={item.id} post={item} />

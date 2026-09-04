@@ -75,8 +75,8 @@ export function SettingsEditor({ initial }: { initial: SiteCms }) {
 
   return (
     <form className="space-y-8" onSubmit={onSubmit}>
-      <section className="glass space-y-3 rounded-[var(--radius-md)] p-5">
-        <h2 className="text-lg font-semibold">هیرو</h2>
+      <section className="surface space-y-3 p-6">
+        <h2 className="text-lg font-medium">هیرو</h2>
         <input name="heroTitle" defaultValue={initial.hero.title} className="field" placeholder="عنوان" />
         <textarea name="heroSubtitle" defaultValue={initial.hero.subtitle} className="field min-h-20" placeholder="زیرعنوان" />
         <div className="grid gap-3 md:grid-cols-2">
@@ -87,29 +87,29 @@ export function SettingsEditor({ initial }: { initial: SiteCms }) {
         </div>
       </section>
 
-      <section className="glass space-y-3 rounded-[var(--radius-md)] p-5">
-        <h2 className="text-lg font-semibold">درباره</h2>
+      <section className="surface space-y-3 p-6">
+        <h2 className="text-lg font-medium">درباره</h2>
         <input name="aboutTitle" defaultValue={initial.about.title} className="field" />
         <input name="aboutAvatar" defaultValue={initial.about.avatarUrl} className="field" placeholder="URL آواتار" />
         <textarea name="aboutBio" defaultValue={initial.about.bio} className="field min-h-28" />
       </section>
 
-      <section className="glass space-y-3 rounded-[var(--radius-md)] p-5">
-        <h2 className="text-lg font-semibold">سئو پیش‌فرض</h2>
+      <section className="surface space-y-3 p-6">
+        <h2 className="text-lg font-medium">سئو پیش‌فرض</h2>
         <input name="seoTitle" defaultValue={initial.seo.title} className="field" />
         <textarea name="seoDescription" defaultValue={initial.seo.description} className="field min-h-20" />
         <input name="ogImage" defaultValue={initial.seo.ogImage} className="field" placeholder="OG image URL" />
       </section>
 
-      <section className="glass space-y-3 rounded-[var(--radius-md)] p-5">
-        <h2 className="text-lg font-semibold">فوتر و شبکه‌ها</h2>
+      <section className="surface space-y-3 p-6">
+        <h2 className="text-lg font-medium">فوتر و شبکه‌ها</h2>
         <p className="text-xs text-muted">هر خط: برچسب|آدرس</p>
         <textarea name="footerLinks" defaultValue={linksToText(initial.footer.links)} className="field min-h-24" />
         <textarea name="socials" defaultValue={linksToText(initial.socials)} className="field min-h-24" />
       </section>
 
-      <section className="glass space-y-3 rounded-[var(--radius-md)] p-5">
-        <h2 className="text-lg font-semibold">از اینجا شروع کنید</h2>
+      <section className="surface space-y-3 p-6">
+        <h2 className="text-lg font-medium">از اینجا شروع کنید</h2>
         <input name="startTitle" defaultValue={initial.startHere.title} className="field" />
         <textarea name="startDescription" defaultValue={initial.startHere.description} className="field min-h-16" />
         <input

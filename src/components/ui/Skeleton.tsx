@@ -6,7 +6,7 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function PostCardSkeleton() {
   return (
-    <div className="glass overflow-hidden rounded-3xl">
+    <div className="surface overflow-hidden">
       <Skeleton className="aspect-[16/10] rounded-none" />
       <div className="space-y-2 p-4">
         <Skeleton className="h-4 w-1/3" />
@@ -19,7 +19,7 @@ export function PostCardSkeleton() {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="glass overflow-hidden rounded-3xl p-5">
+    <div className="surface overflow-hidden p-6">
       <Skeleton className="aspect-[4/3]" />
       <Skeleton className="mt-3 h-5 w-2/3" />
       <Skeleton className="mt-2 h-4 w-1/3" />

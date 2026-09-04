@@ -17,11 +17,8 @@ export function ScrollProgress() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent">
-      <div
-        className="h-full origin-right bg-gradient-to-l from-[var(--accent)] to-[var(--primary)]"
-        style={{ transform: `scaleX(${p})` }}
-      />
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 h-px bg-transparent">
+      <div className="h-full origin-right bg-foreground" style={{ transform: `scaleX(${p})` }} />
     </div>
   );
 }
@@ -39,9 +36,7 @@ export function useScrolled(threshold = 12) {
 
 export function headerBlurClass(scrolled: boolean) {
   return cn(
-    "sticky top-0 z-40 border-b transition-[background,backdrop-filter,border-color] duration-[var(--transition-normal)]",
-    scrolled
-      ? "border-[var(--border)] bg-background/75 backdrop-blur-xl"
-      : "border-transparent bg-background/40 backdrop-blur-md",
+    "sticky top-4 z-40 mx-auto w-[calc(100%-1.5rem)] max-w-[1100px] md:w-[calc(100%-5rem)]",
+    scrolled && "[&>div]:shadow-[var(--shadow-nav)]",
   );
 }

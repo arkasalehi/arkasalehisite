@@ -46,18 +46,20 @@ export default async function ProductPage({
     <div>
       <article className="grid gap-8 md:grid-cols-2">
         <JsonLd data={productJsonLd(product)} />
-        <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-foreground/8">
+        <div className="editorial-media relative aspect-square overflow-hidden rounded-[24px] bg-background">
           {product.imageUrl ? (
-            <Image src={product.imageUrl} alt={product.title} fill className="object-cover" priority sizes="50vw" />
-          ) : null}
+            <Image src={product.imageUrl} alt={product.title} fill className="object-cover grayscale contrast-[1.08]" priority sizes="50vw" />
+          ) : (
+            <Image src="/samples/tool-1.jpg" alt={product.title} fill className="object-cover grayscale contrast-[1.08]" priority sizes="50vw" />
+          )}
           {product.discountPercent > 0 || (product.comparePrice && product.comparePrice > product.price) ? (
-            <span className="absolute right-3 top-3 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-slate-950">
+            <span className="absolute right-3 top-3 z-10 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background">
               تخفیف
             </span>
           ) : null}
         </div>
         <div>
-          <h1 className="text-4xl font-semibold leading-[1.35]">{product.title}</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">{product.title}</h1>
           <div className="mt-4 flex items-end gap-3">
             <p className="text-2xl text-accent">{formatToman(effectivePrice(product))}</p>
             {product.discountPercent > 0 || (product.comparePrice && product.comparePrice > product.price) ? (
@@ -75,7 +77,7 @@ export default async function ProductPage({
       </article>
       {related.length ? (
         <section className="mt-14">
-          <h2 className="text-xl font-semibold">محصولات مرتبط</h2>
+          <h2 className="text-xl font-medium">محصولات مرتبط</h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((item) => (
               <ProductCard key={item.id} product={item} />

@@ -24,7 +24,7 @@ export function ShareButton({ title }: { title: string }) {
     <button
       type="button"
       onClick={share}
-      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-foreground/5 px-3 py-1.5 text-sm transition duration-200 hover:border-[var(--accent)]/30"
+      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-foreground/5 px-3 py-1.5 text-sm transition duration-200 hover:border-foreground/30"
     >
       <ShareIcon className="h-4 w-4" />
       اشتراک

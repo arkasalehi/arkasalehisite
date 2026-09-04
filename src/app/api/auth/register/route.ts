@@ -1,4 +1,5 @@
 import { createServerSupabase } from "@/lib/supabase/server";
+import { normalizeRole } from "@/lib/auth/roles";
 import { findUserByEmail, findUserByUsername, getProfile } from "@/lib/data/users";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { registerSchema } from "@/lib/validators";
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
           email: profile?.email ?? email,
           username: profile?.username ?? username,
           displayName: profile?.displayName ?? displayName,
-          role: profile?.role ?? "USER",
+          role: normalizeRole(profile?.role),
         },
       },
       201,

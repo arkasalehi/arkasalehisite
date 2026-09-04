@@ -20,7 +20,7 @@ export default async function EditPostPage({
 
   return (
     <section>
-      <h1 className="text-3xl font-semibold">ویرایش محتوا</h1>
+      <h1 className="text-3xl font-medium">ویرایش محتوا</h1>
       <div className="mt-6">
         <PostEditor
           categories={categories}

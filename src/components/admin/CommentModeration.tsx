@@ -27,13 +27,13 @@ export function CommentModeration({
   return (
     <div className="space-y-3">
       {comments.map((comment) => (
-        <article key={comment.id} className="glass rounded-2xl p-4">
-          <p className="text-sm text-slate-400">
+        <article key={comment.id} className="surface p-4">
+          <p className="text-sm text-muted">
             {comment.user.displayName} · {comment.post.title} · {comment.status}
           </p>
           <p className="mt-2">{comment.body}</p>
           <div className="mt-3 flex gap-3 text-sm">
-            <button type="button" className="text-cyan-300" onClick={() => patch(comment.id, { status: "VISIBLE" })}>
+            <button type="button" className="text-sm font-medium text-muted hover:text-foreground" onClick={() => patch(comment.id, { status: "VISIBLE" })}>
               نمایش
             </button>
             <button type="button" className="text-amber-300" onClick={() => patch(comment.id, { status: "HIDDEN" })}>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { postPath, excerpt } from "@/lib/utils";
 import type { PostType } from "@/lib/types";
+import { SearchIcon } from "@/components/icons";
 
 type Hit = {
   id: string;
@@ -49,16 +50,19 @@ export function SearchBox() {
 
   return (
     <div ref={box} className="relative hidden md:block">
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        onFocus={() => hits.length && setOpen(true)}
-        placeholder="جستجو…"
-        className="field w-44 py-1.5 text-sm lg:w-56"
-        aria-label="جستجوی محتوا"
-      />
+      <label className="flex h-9 items-center gap-2 rounded-full px-3 text-muted">
+        <SearchIcon className="h-4 w-4 shrink-0" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onFocus={() => hits.length && setOpen(true)}
+          placeholder="جستجو"
+          className="w-24 bg-transparent text-sm text-foreground outline-none placeholder:text-muted lg:w-32"
+          aria-label="جستجوی محتوا"
+        />
+      </label>
       {open && hits.length ? (
-        <div className="glass absolute left-0 top-11 z-50 w-80 overflow-hidden rounded-2xl p-0">
+        <div className="surface absolute left-0 top-11 z-50 w-80 overflow-hidden p-0">
           {hits.map((hit) => (
             <Link
               key={hit.id}

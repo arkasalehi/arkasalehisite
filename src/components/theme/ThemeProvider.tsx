@@ -14,7 +14,7 @@ function snapshot(): Theme {
 }
 
 function serverSnapshot(): Theme {
-  return "dark";
+  return "light";
 }
 
 export function applyTheme(theme: Theme) {
@@ -24,7 +24,7 @@ export function applyTheme(theme: Theme) {
 }
 
 const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
-  theme: "dark",
+  theme: "light",
   toggle: () => {},
 });
 

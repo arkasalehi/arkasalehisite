@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth/session";
 import { listUserActivity } from "@/lib/data/interactions";
 import { formatDate, postPath } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { PageHeader } from "@/components/layout/Page";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function ActivityPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-semibold">تاریخچه فعالیت</h1>
+      <PageHeader title="تاریخچه فعالیت" />
       <ActivityBlock title="پسندها" items={likes} />
       <GlassCard>
         <h2 className="text-xl font-medium">نظرها</h2>

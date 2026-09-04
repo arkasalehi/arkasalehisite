@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { CoverImage } from "@/components/content/CoverImage";
 
 export function EmptyState({
   title,
@@ -12,16 +13,21 @@ export function EmptyState({
   action?: string;
 }) {
   return (
-    <div className="glass rounded-[1.5rem] px-6 py-12 text-center">
-      <p className="text-lg font-medium">{title}</p>
-      {description ? <p className="mt-2 text-sm leading-7 text-muted">{description}</p> : null}
-      {href ? (
-        <div className="mt-5">
-          <Button href={href} variant="ghost">
-            {action ?? "مشاهده"}
-          </Button>
-        </div>
-      ) : null}
+    <div className="surface overflow-hidden">
+      <div className="editorial-media relative h-44 w-full">
+        <CoverImage src={null} alt="" seed={title} kind="interior" sizes="100vw" />
+      </div>
+      <div className="px-6 py-10 text-center">
+        <p className="text-xl font-extrabold tracking-tight">{title}</p>
+        {description ? <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-muted">{description}</p> : null}
+        {href ? (
+          <div className="mt-5">
+            <Button href={href} variant="ghost">
+              {action ?? "مشاهده"}
+            </Button>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

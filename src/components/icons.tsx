@@ -60,3 +60,56 @@ export function UserIcon({ className = "w-5 h-5" }: { className?: string }) {
     </svg>
   );
 }
+
+export function ArrowIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M19 12H5M11 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function MenuIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CloseIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l4.5 4.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+      <path d="M4 7l8 6 8-6" />
+    </svg>
+  );
+}
+
+export function ToolIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6">
+      <rect x="4" y="4" width="7" height="7" rx="1.4" />
+      <rect x="13" y="4" width="7" height="7" rx="1.4" />
+      <rect x="4" y="13" width="7" height="7" rx="1.4" />
+      <path d="M16.5 13.5v6.5M13.5 16.8h6.5" strokeLinecap="round" />
+    </svg>
+  );
+}

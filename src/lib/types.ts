@@ -1,4 +1,4 @@
-export type Role = "USER" | "ADMIN";
+export type Role = "user" | "admin";
 export type PostType = "BLOG" | "VIDEO" | "SHORT";
 export type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type CommentStatus = "VISIBLE" | "HIDDEN" | "SPAM";

@@ -19,7 +19,7 @@ export function OnboardingBanner() {
   if (!show) return null;
 
   return (
-    <div className="glass mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
+    <div className="surface mb-8 flex flex-wrap items-center justify-between gap-3 p-4">
       <div>
         <p className="font-medium">خوش آمدید</p>
         <p className="text-sm text-muted">از بخش «از اینجا شروع کنید» مسیر کوتاه را دنبال کنید، یا وبلاگ را باز کنید.</p>

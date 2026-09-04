@@ -1,21 +1,32 @@
 import { Avatar } from "@/components/ui/Avatar";
-import { Reveal } from "@/components/motion/Reveal";
+import { CoverImage } from "@/components/content/CoverImage";
+import { samples } from "@/lib/media";
 import type { SiteCms } from "@/lib/cms/types";
 
 export function About({ cms }: { cms: SiteCms }) {
   return (
-    <Reveal>
-      <section className="glass grid items-center gap-8 rounded-[2rem] p-8 md:grid-cols-[auto_1fr] md:p-12">
-        <div className="relative">
-          <div className="absolute -inset-3 rounded-full bg-[var(--primary)]/20 blur-2xl" />
-          <Avatar name={cms.about.title} src={cms.about.avatarUrl || undefined} size="lg" />
+    <section className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+      <blockquote className="max-w-xl">
+        <p className="text-[28px] font-extrabold leading-[1.35] tracking-tight md:text-[40px]">
+          «{cms.about.bio}»
+        </p>
+        <div className="mt-8 flex items-center gap-3">
+          <Avatar name={cms.about.title} src={cms.about.avatarUrl || samples.portrait} size="md" />
+          <div>
+            <p className="font-semibold">{cms.about.title}</p>
+            <p className="text-sm text-muted">خالق استودیو arkasalehi</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-accent">درباره خالق</p>
-          <h2 className="mt-1 text-3xl font-semibold">{cms.about.title}</h2>
-          <p className="mt-4 max-w-2xl text-lg leading-9 text-muted">{cms.about.bio}</p>
-        </div>
-      </section>
-    </Reveal>
+      </blockquote>
+      <div className="editorial-media relative aspect-[4/5] overflow-hidden rounded-[24px] md:aspect-[4/4.6]">
+        <CoverImage
+          src={cms.about.avatarUrl || samples.studio}
+          alt={cms.about.title}
+          seed="about"
+          kind="studio"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+      </div>
+    </section>
   );
 }

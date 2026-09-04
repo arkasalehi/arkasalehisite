@@ -60,9 +60,9 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm transition duration-200",
+        "whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150",
         active
-          ? "border-[var(--accent)]/40 bg-[var(--accent)]/10 text-accent"
+          ? "border-foreground bg-foreground text-background"
           : "border-[var(--border)] text-muted hover:text-foreground",
       )}
     >

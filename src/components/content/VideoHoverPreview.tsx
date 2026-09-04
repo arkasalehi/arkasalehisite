@@ -1,25 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { CoverImage } from "@/components/content/CoverImage";
+import type { SampleKind } from "@/lib/media";
 
 export function VideoHoverPreview({
   src,
   poster,
+  seed = "video",
+  kind = "video",
 }: {
   src: string;
   poster?: string | null;
+  seed?: string;
+  kind?: SampleKind;
 }) {
   const [hover, setHover] = useState(false);
 
   return (
     <div className="absolute inset-0" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       {hover ? (
-        <video src={src} muted playsInline autoPlay loop preload="none" className="h-full w-full object-cover" />
-      ) : poster ? (
-        <Image src={poster} alt="" fill sizes="33vw" className="object-cover" />
+        <video src={src} muted playsInline autoPlay loop preload="none" className="h-full w-full object-cover grayscale contrast-[1.08]" />
       ) : (
-        <div className="h-full bg-gradient-to-br from-[var(--primary)]/25 to-[var(--accent)]/10" />
+        <CoverImage src={poster} alt="" seed={seed} kind={kind} sizes="33vw" />
       )}
     </div>
   );

@@ -43,8 +43,8 @@ export function BookmarkButton({
       onClick={toggle}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
         saved
-          ? "border-cyan-400/40 bg-cyan-400/10 text-accent"
-          : "border-[var(--border)] bg-foreground/5 text-foreground hover:border-cyan-400/30"
+          ? "border-foreground bg-foreground text-background"
+          : "border-[var(--border)] bg-foreground/5 text-foreground hover:border-foreground/30"
       }`}
     >
       <BookmarkIcon filled={saved} className="h-4 w-5" />

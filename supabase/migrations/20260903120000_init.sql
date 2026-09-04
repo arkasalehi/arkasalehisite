@@ -3,10 +3,6 @@
 create extension if not exists "pgcrypto";
 
 do $$ begin
-  create type public.user_role as enum ('USER', 'ADMIN');
-exception when duplicate_object then null;
-end $$;
-do $$ begin
   create type public.post_type as enum ('BLOG', 'VIDEO', 'SHORT');
 exception when duplicate_object then null;
 end $$;
@@ -32,7 +28,7 @@ create table if not exists public.profiles (
   email text not null unique,
   username text not null unique,
   display_name text not null,
-  role public.user_role not null default 'USER',
+  role text not null default 'user' check (role in ('user', 'admin')),
   avatar_url text,
   bio text,
   created_at timestamptz not null default now(),
@@ -235,7 +231,7 @@ set search_path = public
 as $$
   select exists (
     select 1 from public.profiles
-    where id = auth.uid() and role = 'ADMIN'
+    where id = auth.uid() and lower(role::text) = 'admin'
   );
 $$;
 
@@ -405,7 +401,7 @@ as $$
 declare
   uname text;
   dname text;
-  r public.user_role;
+  r text;
 begin
   uname := coalesce(nullif(new.raw_user_meta_data->>'username', ''), split_part(new.email, '@', 1));
   uname := lower(regexp_replace(uname, '[^a-zA-Z0-9._]', '', 'g'));
@@ -416,13 +412,16 @@ begin
     uname := uname || substr(replace(new.id::text, '-', ''), 1, 6);
   end if;
   dname := coalesce(nullif(new.raw_user_meta_data->>'display_name', ''), uname);
-  r := case when lower(new.email) in ('admin@arkasalehi.ir') then 'ADMIN' else 'USER' end;
+  r := case
+    when lower(new.email) in ('admin@arkasalehi.ir', 'arka.official021@gmail.com') then 'admin'
+    else 'user'
+  end;
 
   insert into public.profiles (id, email, username, display_name, role)
   values (new.id, new.email, uname, dname, r)
   on conflict (id) do nothing;
 
-  if r = 'ADMIN' then
+  if r = 'admin' then
     perform public.seed_demo_content(new.id);
   end if;
   return new;
@@ -468,7 +467,7 @@ declare
   next_title text;
 begin
   gkey := case when p_post_id is not null then p_type::text || ':' || p_post_id::text else null end;
-  for admin_row in select id from public.profiles where role = 'ADMIN' loop
+  for admin_row in select id from public.profiles where lower(role::text) = 'admin' loop
     if gkey is not null and p_type in ('LIKE', 'COMMENT') then
       select * into existing
       from public.notifications

@@ -15,7 +15,7 @@ export default async function EditProductPage({
 
   return (
     <section>
-      <h1 className="text-3xl font-semibold">ویرایش محصول</h1>
+      <h1 className="text-3xl font-medium">ویرایش محصول</h1>
       <div className="mt-6">
         <ProductEditor initial={product} />
       </div>

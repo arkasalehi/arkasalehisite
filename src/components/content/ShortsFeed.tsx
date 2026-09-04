@@ -4,6 +4,7 @@ import Link from "next/link";
 import { VideoPlayer } from "@/components/content/VideoPlayer";
 import { LikeButton } from "@/components/content/LikeButton";
 import { BookmarkButton } from "@/components/content/BookmarkButton";
+import { CoverImage } from "@/components/content/CoverImage";
 import { formatNumber } from "@/lib/utils";
 import type { PostType } from "@/lib/types";
 
@@ -38,11 +39,13 @@ export function ShortsFeed({ posts }: { posts: ShortClip[] }) {
               className="absolute inset-0 h-full max-h-none rounded-none object-cover"
             />
           ) : (
-            <div className="h-full bg-gradient-to-b from-[var(--primary)]/30 to-black" />
+            <div className="editorial-media absolute inset-0">
+              <CoverImage src={post.thumbnailUrl || post.coverImage} alt={post.title} seed={post.id} kind="short" />
+            </div>
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-8 right-4 left-16">
-            <Link href={`/shorts/${post.slug}`} className="text-lg font-semibold leading-8">
+            <Link href={`/shorts/${post.slug}`} className="text-lg font-medium leading-8">
               {post.title}
             </Link>
           </div>

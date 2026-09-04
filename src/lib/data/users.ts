@@ -1,9 +1,11 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { mapProfile } from "./map";
 
+const PROFILE_COLUMNS = "id, email, username, display_name, role, avatar_url, bio, created_at, updated_at";
+
 export async function findUserByEmail(email: string) {
   const db = await createServerSupabase();
-  const { data, error } = await db.from("profiles").select("*").eq("email", email.toLowerCase()).maybeSingle();
+  const { data, error } = await db.from("profiles").select(PROFILE_COLUMNS).eq("email", email.toLowerCase()).maybeSingle();
   if (error) throw error;
   return data ? mapProfile(data as Record<string, unknown>) : null;
 }
@@ -17,7 +19,7 @@ export async function findUserByUsername(username: string) {
 
 export async function getProfile(userId: string) {
   const db = await createServerSupabase();
-  const { data, error } = await db.from("profiles").select("*").eq("id", userId).maybeSingle();
+  const { data, error } = await db.from("profiles").select(PROFILE_COLUMNS).eq("id", userId).maybeSingle();
   if (error) throw error;
   return data ? mapProfile(data as Record<string, unknown>) : null;
 }
@@ -35,7 +37,7 @@ export async function updateProfile(
       avatar_url: data.avatarUrl,
     })
     .eq("id", userId)
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .single();
   if (error) throw error;
   return mapProfile(row as Record<string, unknown>);

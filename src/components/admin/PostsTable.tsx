@@ -62,7 +62,7 @@ export function PostsTable({ posts }: { posts: Row[] }) {
           </button>
         </div>
       ) : null}
-      <div className="glass overflow-x-auto rounded-3xl">
+      <div className="surface overflow-x-auto">
         <table className="w-full text-right text-sm">
           <thead className="text-muted">
             <tr>

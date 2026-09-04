@@ -1,4 +1,5 @@
-import type { Category, CommentStatus, CommentUser, Notification, PostStatus, PostType, Product, Profile, PublicPost, Role } from "@/lib/types";
+import { normalizeRole } from "@/lib/auth/roles";
+import type { Category, CommentStatus, CommentUser, Notification, PostStatus, PostType, Product, Profile, PublicPost } from "@/lib/types";
 
 export function toDate(value: unknown): Date {
   if (value instanceof Date) return value;
@@ -38,7 +39,7 @@ export function mapProfile(row: Record<string, unknown>): Profile {
     email: str(row.email),
     username: str(row.username),
     displayName: str(row.display_name ?? row.displayName),
-    role: row.role === "ADMIN" ? "ADMIN" : "USER",
+    role: normalizeRole(row.role),
     avatarUrl: strOrNull(row.avatar_url ?? row.avatarUrl),
     bio: strOrNull(row.bio),
     createdAt: toDate(row.created_at ?? row.createdAt),
@@ -153,8 +154,8 @@ export function mapNotification(row: Record<string, unknown>): Notification {
   };
 }
 
-export function asRole(value: unknown): Role {
-  return value === "ADMIN" ? "ADMIN" : "USER";
+export function asRole(value: unknown) {
+  return normalizeRole(value);
 }
 
 export function asCommentStatus(value: unknown): CommentStatus {

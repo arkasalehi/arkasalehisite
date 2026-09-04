@@ -64,8 +64,8 @@ export function LikeButton({
       transition={{ duration: 0.28 }}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
         liked
-          ? "border-cyan-400/40 bg-cyan-400/10 text-accent"
-          : "border-[var(--border)] bg-foreground/5 text-foreground hover:border-cyan-400/30"
+          ? "border-foreground bg-foreground text-background"
+          : "border-[var(--border)] bg-foreground/5 text-foreground hover:border-foreground/30"
       }`}
     >
       <HeartIcon filled={liked} className="h-4 w-5" />

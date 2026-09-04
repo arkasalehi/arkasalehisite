@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { normalizeRole } from "@/lib/auth/roles";
 import { getProfile } from "@/lib/data/users";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { loginSchema } from "@/lib/validators";
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
       email: profile?.email ?? data.user.email ?? body.email,
       username: profile?.username ?? String(data.user.user_metadata?.username ?? ""),
       displayName: profile?.displayName ?? String(data.user.user_metadata?.display_name ?? ""),
-      role: profile?.role ?? "USER",
+      role: normalizeRole(profile?.role),
     };
     return json({ user: session });
   } catch (error) {
