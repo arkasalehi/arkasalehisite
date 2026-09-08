@@ -26,7 +26,7 @@ import { formatDate, formatNumber, postPath, typeLabel } from "@/lib/utils";
 
 const VideoPlayer = dynamic(
   () => import("@/components/content/VideoPlayer").then((m) => m.VideoPlayer),
-  { ssr: false, loading: () => <Skeleton className="aspect-video w-full" /> },
+  { loading: () => <Skeleton className="aspect-video w-full" /> },
 );
 
 const CommentThread = dynamic(
