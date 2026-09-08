@@ -26,7 +26,7 @@ import { formatDate, formatNumber, postPath, typeLabel } from "@/lib/utils";
 
 const VideoPlayer = dynamic(
   () => import("@/components/content/VideoPlayer").then((m) => m.VideoPlayer),
-  { loading: () => <Skeleton className="aspect-video w-full" /> },
+  { ssr: false, loading: () => <Skeleton className="aspect-video w-full" /> },
 );
 
 const CommentThread = dynamic(
@@ -100,6 +100,7 @@ export async function PostDetail({
             vertical={post.type === "SHORT"}
             resumeKey={post.id}
             miniPlayer
+            title={post.title}
           />
         </div>
       ) : null}

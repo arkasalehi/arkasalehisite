@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { CoverImage } from "@/components/content/CoverImage";
 import { PlayIcon } from "@/components/icons";
-import { formatDuration, formatNumber, postPath } from "@/lib/utils";
+import { cn, formatDuration, formatNumber, postPath } from "@/lib/utils";
 import type { PostCardPost } from "@/components/content/PostCard";
 
 const VideoPlayer = dynamic(
@@ -21,12 +21,12 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
   return (
     <div className={side.length ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]" : ""}>
       <article>
-        <div className="editorial-media relative aspect-video overflow-hidden rounded-[20px]">
+        <div className={cn("relative aspect-video overflow-hidden rounded-[1.75rem]", !main.videoUrl && "editorial-media")}>
           {main.videoUrl ? (
             <VideoPlayer
               src={main.videoUrl}
               poster={main.thumbnailUrl || main.coverImage}
-              className="absolute inset-0 h-full max-h-none rounded-none"
+              className="absolute inset-0 h-full max-h-none"
             />
           ) : (
             <Link href={mainHref} className="absolute inset-0">

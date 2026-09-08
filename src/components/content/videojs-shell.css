@@ -1,0 +1,24 @@
+.as-vjs-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.as-vjs-shell.is-fill,
+.as-vjs-shell.is-fill .media-default-skin {
+  height: 100%;
+}
+
+.as-vjs-shell.is-fill .media-default-skin {
+  border-radius: inherit;
+}
+
+.as-vjs-shell:not(.is-fill):not(.is-vertical),
+.as-vjs-shell:not(.is-fill):not(.is-vertical) .media-default-skin {
+  aspect-ratio: 16 / 9;
+}
+
+.as-vjs-shell.is-vertical:not(.is-fill),
+.as-vjs-shell.is-vertical:not(.is-fill) .media-default-skin {
+  aspect-ratio: 9 / 16;
+  max-height: 80vh;
+}
