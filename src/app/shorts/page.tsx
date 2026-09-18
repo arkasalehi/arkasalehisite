@@ -21,7 +21,7 @@ export default async function ShortsIndexPage() {
   const map = Object.fromEntries(states);
 
   return (
-    <section className="-mx-4 -mt-8 md:mx-0">
+    <section className="-mt-8">
       <h1 className="sr-only">شورتس</h1>
       <ShortsFeed
         posts={shorts.map((post) => ({

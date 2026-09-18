@@ -22,6 +22,8 @@ export function Header({ cms }: { cms: SiteCms }) {
   const { count } = useCart();
   const [open, setOpen] = useState(false);
 
+  if (pathname === "/") return null;
+
   return (
     <header className={headerClass()}>
       <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 shadow-[var(--shadow-nav)] md:h-16 md:px-5">
