@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    guardMutation(request, "admin-settings", 20);
+    await guardMutation(request, "admin-settings", 20);
     await requireAdmin();
     const patch = siteCmsSchema.parse(await request.json());
     await saveSiteCms(patch);

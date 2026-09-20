@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "notifications", 40);
+    await guardMutation(request, "notifications", 40);
     const session = await requireUser();
     const body = markSchema.parse(await request.json().catch(() => ({})));
     await markNotificationsRead(session.id, body.ids);

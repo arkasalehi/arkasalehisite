@@ -1,7 +1,9 @@
 import { getSession } from "@/lib/auth/session";
-import { isAdminRole } from "@/lib/auth/roles";
+import { canAccessWorkspace, isAdminRole } from "@/lib/auth/roles";
+import { workspaceUrl } from "@/lib/runtime";
 import { getProfile } from "@/lib/data/users";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
+import { PasswordForm } from "@/components/dashboard/PasswordForm";
 import { LogoutButton } from "@/components/dashboard/LogoutButton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/ui/Avatar";
@@ -23,6 +25,7 @@ export default async function DashboardPage() {
         description={user.email}
         actions={
           <>
+            {canAccessWorkspace(user.role) ? <Button href={workspaceUrl()}>ورک‌اسپیس</Button> : null}
             {isAdminRole(user.role) ? <Button href="/admin" variant="ghost">پنل ادمین</Button> : null}
             <LogoutButton />
           </>
@@ -35,6 +38,8 @@ export default async function DashboardPage() {
             <p className="text-lg font-medium">{user.displayName}</p>
             {isAdminRole(user.role) ? (
               <span className="rounded-full border border-[var(--border)] px-2.5 py-0.5 text-xs text-muted">ادمین</span>
+            ) : user.role === "collaborator" ? (
+              <span className="rounded-full border border-[var(--border)] px-2.5 py-0.5 text-xs text-muted">همکار</span>
             ) : null}
           </div>
           <p className="mt-1 text-sm text-muted">{user.email}</p>
@@ -44,6 +49,12 @@ export default async function DashboardPage() {
         <h2 className="text-lg font-medium">اطلاعات پروفایل</h2>
         <div className="mt-4">
           <ProfileForm displayName={user.displayName} bio={user.bio} />
+        </div>
+      </GlassCard>
+      <GlassCard className="mt-6">
+        <h2 className="text-lg font-medium">رمز عبور</h2>
+        <div className="mt-4">
+          <PasswordForm />
         </div>
       </GlassCard>
     </section>

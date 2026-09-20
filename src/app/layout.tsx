@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 import { playfair, vazir } from "@/lib/fonts";
 import { siteConfig } from "@/lib/config";
@@ -33,8 +33,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [user, cms, cookieStore] = await Promise.all([getSession(), getSiteCms(), cookies()]);
+  const [user, cms, cookieStore, headerStore] = await Promise.all([getSession(), getSiteCms(), cookies(), headers()]);
   const theme = cookieStore.get("as_theme")?.value === "dark" ? "dark" : "light";
+  const workspace = headerStore.get("x-arka-app") === "workspace";
 
   return (
     <html
@@ -46,14 +47,20 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans antialiased">
         <ServiceWorkerRegister />
         <Providers user={user} theme={theme}>
-          <Header cms={cms} />
-          <main className="w-full flex-1">
-            <PageContainer className="py-8 md:py-10">
-              <OnboardingBanner />
-              {children}
-            </PageContainer>
-          </main>
-          <Footer cms={cms} />
+          {workspace ? (
+            <main className="w-full">{children}</main>
+          ) : (
+            <>
+              <Header cms={cms} />
+              <main className="w-full flex-1">
+                <PageContainer className="py-8 md:py-10">
+                  <OnboardingBanner />
+                  {children}
+                </PageContainer>
+              </main>
+              <Footer cms={cms} />
+            </>
+          )}
         </Providers>
       </body>
     </html>

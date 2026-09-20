@@ -13,7 +13,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "profile", 20);
+    await guardMutation(request, "profile", 20);
     const session = await requireUser();
     const input = schema.parse(await request.json());
     const user = await updateProfile(session.id, {

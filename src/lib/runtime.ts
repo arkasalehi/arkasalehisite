@@ -22,3 +22,12 @@ export function publicSiteUrl() {
     "http://localhost:3000"
   ).replace(/\/$/, "");
 }
+
+export function workspaceUrl() {
+  return (process.env.NEXT_PUBLIC_WORKSPACE_URL || "https://workspace.arkasalehi.com").replace(/\/$/, "");
+}
+
+export function isWorkspaceHost(host: string | null | undefined) {
+  const h = (host || "").split(":")[0]?.toLowerCase() ?? "";
+  return h === "workspace.arkasalehi.com" || h.startsWith("workspace.");
+}

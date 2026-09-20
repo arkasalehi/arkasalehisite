@@ -7,7 +7,8 @@ import { navItems } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { CartIcon, CloseIcon, MenuIcon, UserIcon } from "@/components/icons";
-import { isAdminRole } from "@/lib/auth/roles";
+import { canAccessWorkspace, isAdminRole } from "@/lib/auth/roles";
+import { workspaceUrl } from "@/lib/runtime";
 import { useAuth, useCart } from "@/components/providers";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -79,6 +80,11 @@ export function Header({ cms }: { cms: SiteCms }) {
                 <Link href="/dashboard" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
                   داشبورد
                 </Link>
+                {canAccessWorkspace(user.role) ? (
+                  <a href={workspaceUrl()} className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
+                    ورک‌اسپیس
+                  </a>
+                ) : null}
                 {isAdminRole(user.role) ? (
                   <Link href="/admin" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
                     پنل ادمین

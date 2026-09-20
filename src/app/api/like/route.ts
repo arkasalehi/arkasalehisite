@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "like", 40);
+    await guardMutation(request, "like", 40);
     const session = await requireUser();
     const { postId } = likeSchema.parse(await request.json());
     const post = await getPostMeta(postId);

@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "admin-products", 40);
+    await guardMutation(request, "admin-products", 40);
     await requireAdmin();
     const input = productInputSchema.parse(await request.json());
     const product = await upsertProduct(input);
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    guardMutation(request, "admin-products", 40);
+    await guardMutation(request, "admin-products", 40);
     await requireAdmin();
     const body = await request.json();
     const input = productInputSchema.parse(body);
@@ -44,7 +44,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    guardMutation(request, "admin-products", 40);
+    await guardMutation(request, "admin-products", 40);
     await requireAdmin();
     const id = new URL(request.url).searchParams.get("id");
     if (!id) return json({ error: "id لازم است" }, 400);

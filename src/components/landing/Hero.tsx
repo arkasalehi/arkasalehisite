@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HeroNameplate } from "@/components/landing/HeroNameplate";
 import { HeroDashboardPreview } from "@/components/landing/HeroDashboardPreview";
+import { workspaceUrl } from "@/lib/runtime";
 import type { SiteCms } from "@/lib/cms/types";
 
 const NAV = [
@@ -39,12 +40,12 @@ export function Hero({ cms: _cms }: { cms: SiteCms }) {
             ))}
           </nav>
 
-          <Link
-            href="/register"
+          <a
+            href={workspaceUrl()}
             className="inline-flex h-10 items-center rounded-full bg-white px-5 text-[13px] font-semibold text-[#1c2430] shadow-[0_8px_20px_rgba(15,40,70,0.12)]"
           >
-            رایگان شروع کنید
-          </Link>
+            ورود به ورک‌اسپیس
+          </a>
         </header>
 
         <div className="mx-auto max-w-[920px] pb-6 pt-14 text-center md:pt-[68px]">
@@ -62,18 +63,17 @@ export function Hero({ cms: _cms }: { cms: SiteCms }) {
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a
-              href="#download"
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-[#2f7de9] px-5 text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(47,125,233,0.35)]"
+              href={workspaceUrl()}
+              className="inline-flex h-11 items-center rounded-full bg-[#2f7de9] px-5 text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(47,125,233,0.35)]"
             >
-              <AppleMark />
-              دانلود برای مک
+              باز کردن ورک‌اسپیس
             </a>
-            <a
-              href="#demo"
+            <Link
+              href="/login"
               className="inline-flex h-11 items-center rounded-full bg-white px-5 text-[14px] font-semibold text-[#1c2430] shadow-[0_8px_22px_rgba(20,50,80,0.12)]"
             >
-              رزرو دمو
-            </a>
+              ورود
+            </Link>
           </div>
         </div>
       </div>
@@ -103,10 +103,3 @@ function Clouds() {
   );
 }
 
-function AppleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
-      <path d="M16.37 12.64c.03-2.54 2.07-3.76 2.16-3.82-1.18-1.72-3.01-1.96-3.66-1.98-1.56-.16-3.04.91-3.82.91-.79 0-2.01-.89-3.3-.87-1.7.03-3.26.99-4.13 2.51-1.76 3.06-.45 7.61 1.26 10.1.84 1.21 1.83 2.58 3.14 2.53 1.27-.05 1.75-.82 3.28-.82 1.52 0 1.95.82 3.29.79 1.36-.02 2.22-1.23 3.05-2.47.96-1.4 1.35-2.76 1.38-2.83-.03-.01-2.65-1.02-2.65-4.05zM13.95 6.19c.69-.84 1.16-2.01 1.03-3.18-1 .04-2.21.67-2.93 1.5-.65.74-1.21 1.93-1.06 3.07 1.12.09 2.26-.57 2.96-1.39z" />
-    </svg>
-  );
-}

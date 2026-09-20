@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    guardMutation(request, "cart", 30);
+    await guardMutation(request, "cart", 30);
     const session = await requireUser();
     const { items } = bodySchema.parse(await request.json());
     return json({ items: await replaceUserCart(session.id, items) });

@@ -18,7 +18,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "admin-posts", 40);
+    await guardMutation(request, "admin-posts", 40);
     const session = await requireAdmin();
     const input = postInputSchema.parse(await request.json());
     const id = await upsertPost(session.id, { ...input, status: input.status ?? "DRAFT" });
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    guardMutation(request, "admin-posts", 40);
+    await guardMutation(request, "admin-posts", 40);
     const session = await requireAdmin();
     const body = await request.json();
     if (body.action && Array.isArray(body.ids)) {
@@ -59,7 +59,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    guardMutation(request, "admin-posts", 40);
+    await guardMutation(request, "admin-posts", 40);
     await requireAdmin();
     const id = new URL(request.url).searchParams.get("id");
     if (!id) return json({ error: "id لازم است" }, 400);

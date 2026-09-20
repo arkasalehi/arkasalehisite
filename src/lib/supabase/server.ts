@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { withAppCookieOptions } from "@/lib/auth/cookies";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase";
 
 export async function createServerSupabase() {
@@ -10,6 +11,7 @@ export async function createServerSupabase() {
   }
 
   const store = await cookies();
+  const host = (await headers()).get("host") ?? undefined;
   return createServerClient(url, key, {
     cookies: {
       getAll() {
@@ -18,7 +20,7 @@ export async function createServerSupabase() {
       setAll(cookiesToSet) {
         try {
           for (const { name, value, options } of cookiesToSet) {
-            store.set(name, value, options);
+            store.set(name, value, withAppCookieOptions(options, host));
           }
         } catch {
           /* Server Components cannot always set cookies; proxy refreshes the session. */

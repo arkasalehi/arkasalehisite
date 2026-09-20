@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { rateLimit, clientKey } from "./rate-limit";
+import { rateLimitDurable, clientKey } from "./rate-limit";
 import { assertSameOrigin } from "./security";
 
 export const publicGetCache = {
@@ -28,9 +28,9 @@ export function errorResponse(error: unknown) {
   return json({ error: "خطای سرور" }, 500);
 }
 
-export function guardMutation(request: Request, scope: string, limit = 30) {
+export async function guardMutation(request: Request, scope: string, limit = 30) {
   assertSameOrigin(request);
-  const limited = rateLimit(clientKey(request, scope), limit);
+  const limited = await rateLimitDurable(clientKey(request, scope), limit);
   if (!limited.ok) {
     const err = new Error("RATE_LIMIT");
     err.name = "RATE_LIMIT";

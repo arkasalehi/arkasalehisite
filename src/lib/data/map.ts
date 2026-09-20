@@ -122,7 +122,7 @@ export function mapPost(row: Record<string, unknown>): PublicPost {
     _count: {
       likes: countOf(row.likes),
       comments: countOf(row.comments),
-      bookmarks: countOf(row.bookmarks),
+      bookmarks: Number(row.bookmark_count ?? countOf(row.bookmarks) ?? 0),
     },
   };
 }
@@ -164,4 +164,4 @@ export function asCommentStatus(value: unknown): CommentStatus {
 }
 
 export const POST_SELECT =
-  "*, category:categories(*), author:profiles!author_id(id, display_name, username, avatar_url), post_products(product:products(*)), likes(count), comments(count), bookmarks(count)";
+  "*, category:categories(*), author:profiles!author_id(id, display_name, username, avatar_url), post_products(product:products(*)), likes(count), comments(count)";

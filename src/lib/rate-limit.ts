@@ -25,3 +25,23 @@ export function clientKey(request: Request, scope: string) {
   const ip = forwarded.split(",")[0]?.trim() || "unknown";
   return `${scope}:${ip}`;
 }
+
+/** Isolate bucket plus durable RPC when the database is available. */
+export async function rateLimitDurable(key: string, limit = 20, windowMs = 60_000) {
+  const mem = rateLimit(key, limit, windowMs);
+  if (!mem.ok) return mem;
+  try {
+    const { createServerSupabase } = await import("@/lib/supabase/server");
+    const db = await createServerSupabase();
+    const { data, error } = await db.rpc("hit_rate_limit", {
+      p_key: key.slice(0, 180),
+      p_limit: limit,
+      p_window_seconds: Math.max(1, Math.ceil(windowMs / 1000)),
+    });
+    if (error) return mem;
+    if (data === false) return { ok: false, remaining: 0 };
+  } catch {
+    /* keep isolate limit */
+  }
+  return mem;
+}

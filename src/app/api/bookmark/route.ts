@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "bookmark", 40);
+    await guardMutation(request, "bookmark", 40);
     const session = await requireUser();
     const { postId } = bookmarkSchema.parse(await request.json());
     const post = await getPostMeta(postId);

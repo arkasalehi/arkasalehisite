@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "comment", 12);
+    await guardMutation(request, "comment", 12);
     const session = await requireUser();
     const input = commentSchema.parse(await request.json());
     const body = sanitizeText(input.body, 2000);

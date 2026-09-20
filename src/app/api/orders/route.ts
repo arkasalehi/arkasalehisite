@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "checkout", 8);
+    await guardMutation(request, "checkout", 8);
     const session = await requireUser();
     const input = checkoutSchema.parse(await request.json());
     const products = await getProductsByIds(input.items.map((i) => i.productId));

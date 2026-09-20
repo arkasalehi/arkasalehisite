@@ -13,7 +13,7 @@ const patchSchema = z.object({
 
 export async function PATCH(request: Request) {
   try {
-    guardMutation(request, "admin-comments", 40);
+    await guardMutation(request, "admin-comments", 40);
     await requireAdmin();
     const input = patchSchema.parse(await request.json());
     if (input.delete) {

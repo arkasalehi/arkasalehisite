@@ -8,6 +8,7 @@ const items = [
   { href: "/admin/posts", label: "محتوا" },
   { href: "/admin/products", label: "محصولات" },
   { href: "/admin/comments", label: "نظرها" },
+  { href: "/admin/team", label: "تیم" },
   { href: "/admin/settings", label: "تنظیمات سایت" },
 ];
 

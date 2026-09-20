@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    guardMutation(request, "login", 8);
+    await guardMutation(request, "login", 8);
     const body = loginSchema.parse(await request.json());
     const supabase = await createServerSupabase();
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -19,13 +19,18 @@ export async function POST(request: Request) {
     if (error || !data.user) {
       return json({ error: "ایمیل یا رمز عبور نادرست است" }, 401);
     }
-    const profile = await getProfile(data.user.id);
+    let profile = null;
+    try {
+      profile = await getProfile(data.user.id);
+    } catch (profileError) {
+      console.error("login getProfile", profileError);
+    }
     const session = {
       id: data.user.id,
       email: profile?.email ?? data.user.email ?? body.email,
       username: profile?.username ?? String(data.user.user_metadata?.username ?? ""),
       displayName: profile?.displayName ?? String(data.user.user_metadata?.display_name ?? ""),
-      role: normalizeRole(profile?.role),
+      role: normalizeRole(profile?.role ?? data.user.user_metadata?.role),
     };
     return json({ user: session });
   } catch (error) {
