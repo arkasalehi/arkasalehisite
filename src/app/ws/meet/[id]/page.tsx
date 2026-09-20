@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getMeeting } from "@/lib/data/workspace";
-import { JitsiRoom } from "@/components/workspace/JitsiRoom";
+import { MeetingStage } from "@/components/workspace/MeetingStage";
 
 export const dynamic = "force-dynamic";
 
@@ -11,12 +11,11 @@ export default async function MeetingRoomPage({ params }: { params: Promise<{ id
   const meeting = await getMeeting(id);
   if (!meeting || !session) notFound();
   return (
-    <div className="space-y-3">
-      <div>
-        <h1 className="text-xl font-semibold">{meeting.title}</h1>
-        <p className="text-xs text-[#8b938d]">{new Date(meeting.startsAt).toLocaleString("fa-IR")}</p>
-      </div>
-      <JitsiRoom roomName={meeting.roomName} displayName={session.displayName} />
-    </div>
+    <MeetingStage
+      title={meeting.title}
+      subtitle={new Date(meeting.startsAt).toLocaleString("en-US")}
+      roomName={meeting.roomName}
+      displayName={session.displayName}
+    />
   );
 }

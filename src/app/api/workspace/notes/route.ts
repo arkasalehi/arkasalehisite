@@ -18,31 +18,23 @@ async function requireWorkspace() {
 }
 
 const schema = z.object({
-  title: z.string().min(2).max(120),
-  startsAt: z.string().min(8),
-  endsAt: z.string().optional().nullable(),
+  title: z.string().min(1).max(80),
+  color: z.enum(["lilac", "cream", "mint", "sky"]).optional(),
 });
 
 export async function POST(request: Request) {
   try {
-    await guardMutation(request, "workspace-meet", 20);
+    await guardMutation(request, "workspace-notes", 30);
     const session = await requireWorkspace();
     const input = schema.parse(await request.json());
-    const room = `arka-${crypto.randomUUID().slice(0, 8)}`;
     const db = await createServerSupabase();
     const { data, error } = await db
-      .from("workspace_meetings")
-      .insert({
-        title: sanitizeText(input.title, 120),
-        starts_at: input.startsAt,
-        ends_at: input.endsAt || null,
-        room_name: room,
-        created_by: session.id,
-      })
-      .select("id, room_name")
+      .from("workspace_notes")
+      .insert({ title: sanitizeText(input.title, 80), color: input.color ?? "lilac", created_by: session.id })
+      .select("id")
       .single();
     if (error) throw error;
-    return json({ id: data.id, roomName: data.room_name });
+    return json({ id: data.id });
   } catch (error) {
     return errorResponse(error, "en");
   }

@@ -15,6 +15,7 @@ export function Button({
   variant = "primary",
   href,
   loading = false,
+  loadingLabel,
   children,
   disabled,
   type = "button",
@@ -23,13 +24,14 @@ export function Button({
   variant?: keyof typeof variants;
   href?: string;
   loading?: boolean;
+  loadingLabel?: string;
 }) {
   const cls = cn(
     "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-[color,background-color,border-color,opacity,transform] duration-150",
     variants[variant],
     className,
   );
-  const inner = loading ? "در حال انجام…" : children;
+  const inner = loading ? loadingLabel ?? "در حال انجام…" : children;
 
   if (href) {
     return (

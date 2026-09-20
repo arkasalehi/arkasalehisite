@@ -11,6 +11,6 @@ export default async function ChatChannelPage({ params }: { params: Promise<{ ch
   const channels = await listChannels();
   const channel = channels.find((c) => c.id === channelId);
   if (!channel || !session) notFound();
-  const messages = await listMessages(channelId);
+  const messages = await listMessages(channelId, session.id);
   return <ChatPanel channelId={channel.id} channelName={channel.name} initial={messages} userId={session.id} />;
 }

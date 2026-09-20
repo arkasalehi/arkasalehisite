@@ -81,7 +81,7 @@ export async function proxy(request: NextRequest) {
 
   if (workspaceGate && !isCollaborator) {
     if (pathname.startsWith("/api/workspace")) {
-      return jsonError("دسترسی مجاز نیست", 403);
+      return jsonError("Access denied", 403);
     }
     return NextResponse.redirect(new URL("/", publicSiteUrl()));
   }

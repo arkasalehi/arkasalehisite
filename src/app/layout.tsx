@@ -39,8 +39,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html
-      lang="fa"
-      dir="rtl"
+      lang={workspace ? "en" : "fa"}
+      dir={workspace ? "ltr" : "rtl"}
       className={`${vazir.variable} ${playfair.variable} h-full${theme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning
     >

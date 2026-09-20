@@ -305,6 +305,37 @@ select.field {
   }
 }
 
+.ws-app {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", var(--font-vazir), Tahoma, sans-serif;
+  color: #1e2a24;
+}
+
+.ws-app-sky {
+  background:
+    radial-gradient(90% 55% at 50% 0%, rgba(255, 255, 255, 0.45) 0%, transparent 62%),
+    linear-gradient(180deg, #4aa0de 0%, #7ec0ea 28%, #d4edf9 58%, #eef4f0 78%, #f4f6f2 100%);
+}
+
+.ws-window {
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 28px 70px rgba(20, 60, 100, 0.16);
+  backdrop-filter: blur(22px);
+}
+
+.ws-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cdd5ce transparent;
+}
+
+.ws-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ws-scroll::-webkit-scrollbar-thumb {
+  background: #cdd5ce;
+  border-radius: 999px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .type-reveal-ghost {
     visibility: visible;

@@ -7,7 +7,11 @@ export type WorkspaceMessage = {
   userId: string;
   body: string;
   createdAt: string;
+  kind: "text" | "file" | "voice";
+  fileName: string | null;
+  replyTo: string | null;
   author?: { displayName: string; username: string; avatarUrl: string | null };
+  reactions: Array<{ emoji: string; count: number; mine: boolean }>;
 };
 export type WorkspaceMeeting = {
   id: string;
@@ -25,24 +29,58 @@ export type WorkspaceTask = {
   dueAt: string | null;
   sort: number;
   createdBy: string;
+  description: string | null;
+  parentId: string | null;
 };
+export type WorkspaceNote = { id: string; title: string; color: string; createdAt: string };
+export type InboxItem = {
+  channelId: string;
+  channelName: string;
+  preview: string;
+  createdAt: string;
+  authorName: string;
+  kind: WorkspaceMessage["kind"];
+};
+
+const CHANNEL_LABELS: Record<string, string> = {
+  general: "General",
+  "meeting-space": "Meeting Space",
+  design: "Design",
+};
+
+function englishChannelName(slug: string, name: string) {
+  if (CHANNEL_LABELS[slug]) return CHANNEL_LABELS[slug];
+  if (/[\u0600-\u06FF]/.test(name)) {
+    return slug
+      .split("-")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+  return name;
+}
 
 export async function listChannels() {
   const db = await createServerSupabase();
   const { data, error } = await db.from("workspace_channels").select("id, slug, name, kind").order("created_at");
   if (error) throw error;
-  return (data ?? []) as WorkspaceChannel[];
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    slug: String(row.slug),
+    name: englishChannelName(String(row.slug), String(row.name)),
+    kind: String(row.kind),
+  })) as WorkspaceChannel[];
 }
 
-export async function listMessages(channelId: string, limit = 80) {
+export async function listMessages(channelId: string, userId?: string, limit = 80) {
   const db = await createServerSupabase();
-  let query = db
+  const selectFull =
+    "id, channel_id, user_id, body, created_at, kind, file_name, reply_to, author:profiles!user_id(display_name, username, avatar_url)";
+  let { data, error } = await db
     .from("workspace_messages")
-    .select("id, channel_id, user_id, body, created_at, author:profiles!user_id(display_name, username, avatar_url)")
+    .select(selectFull)
     .eq("channel_id", channelId)
     .order("created_at", { ascending: true })
     .limit(limit);
-  let { data, error } = await query;
   if (error) {
     const fallback = await db
       .from("workspace_messages")
@@ -54,22 +92,99 @@ export async function listMessages(channelId: string, limit = 80) {
     data = fallback.data as typeof data;
     error = null;
   }
-  return (data ?? []).map((row) => {
-    const rec = row as Record<string, unknown>;
-    const author = rec.author as { display_name?: string; username?: string; avatar_url?: string | null } | null;
-    return {
-      id: String(rec.id),
-      channelId: String(rec.channel_id),
-      userId: String(rec.user_id),
-      body: String(rec.body),
-      createdAt: String(rec.created_at),
-      author: {
-        displayName: author?.display_name ?? "",
-        username: author?.username ?? "",
-        avatarUrl: author?.avatar_url ?? null,
-      },
-    } satisfies WorkspaceMessage;
-  });
+  const rows = (data ?? []).map((row) => mapMessage(row as Record<string, unknown>));
+  const ids = rows.map((m) => m.id);
+  const reactionMap = await loadReactions(ids, userId);
+  return rows.map((m) => ({ ...m, reactions: reactionMap.get(m.id) ?? [] }));
+}
+
+function mapMessage(rec: Record<string, unknown>): WorkspaceMessage {
+  const author = rec.author as { display_name?: string; username?: string; avatar_url?: string | null } | null;
+  const kind = rec.kind === "file" || rec.kind === "voice" ? rec.kind : "text";
+  return {
+    id: String(rec.id),
+    channelId: String(rec.channel_id),
+    userId: String(rec.user_id),
+    body: String(rec.body),
+    createdAt: String(rec.created_at),
+    kind,
+    fileName: rec.file_name ? String(rec.file_name) : null,
+    replyTo: rec.reply_to ? String(rec.reply_to) : null,
+    author: {
+      displayName: author?.display_name ?? "",
+      username: author?.username ?? "",
+      avatarUrl: author?.avatar_url ?? null,
+    },
+    reactions: [],
+  };
+}
+
+async function loadReactions(messageIds: string[], userId?: string) {
+  const map = new Map<string, WorkspaceMessage["reactions"]>();
+  if (messageIds.length === 0) return map;
+  const db = await createServerSupabase();
+  const { data, error } = await db.from("workspace_reactions").select("message_id, user_id, emoji").in("message_id", messageIds);
+  if (error || !data) return map;
+  const grouped = new Map<string, Map<string, { count: number; mine: boolean }>>();
+  for (const row of data) {
+    const mid = String(row.message_id);
+    const emoji = String(row.emoji);
+    if (!grouped.has(mid)) grouped.set(mid, new Map());
+    const em = grouped.get(mid)!;
+    const cur = em.get(emoji) ?? { count: 0, mine: false };
+    cur.count += 1;
+    if (userId && String(row.user_id) === userId) cur.mine = true;
+    em.set(emoji, cur);
+  }
+  for (const [mid, em] of grouped) {
+    map.set(
+      mid,
+      [...em.entries()].map(([emoji, v]) => ({ emoji, count: v.count, mine: v.mine })),
+    );
+  }
+  return map;
+}
+
+export async function listInbox(userId?: string) {
+  const channels = await listChannels();
+  const db = await createServerSupabase();
+  const { data } = await db
+    .from("workspace_messages")
+    .select("id, channel_id, user_id, body, created_at, kind, file_name, author:profiles!user_id(display_name)")
+    .order("created_at", { ascending: false })
+    .limit(120);
+  const seen = new Set<string>();
+  const items: InboxItem[] = [];
+  for (const row of data ?? []) {
+    const channelId = String(row.channel_id);
+    if (seen.has(channelId)) continue;
+    seen.add(channelId);
+    const channel = channels.find((c) => c.id === channelId);
+    if (!channel) continue;
+    const author = row.author as { display_name?: string } | null;
+    const kind = row.kind === "file" || row.kind === "voice" ? row.kind : "text";
+    items.push({
+      channelId,
+      channelName: channel.name,
+      preview: kind === "file" ? String(row.file_name ?? "Shared a file") : String(row.body),
+      createdAt: String(row.created_at),
+      authorName: author?.display_name || (String(row.user_id) === userId ? "You" : "Teammate"),
+      kind,
+    });
+  }
+  for (const ch of channels) {
+    if (!seen.has(ch.id)) {
+      items.push({
+        channelId: ch.id,
+        channelName: ch.name,
+        preview: "No messages yet",
+        createdAt: "",
+        authorName: "",
+        kind: "text",
+      });
+    }
+  }
+  return items;
 }
 
 export async function listMeetings() {
@@ -113,7 +228,41 @@ export async function listTasks() {
     dueAt: row.due_at ? String(row.due_at) : null,
     sort: Number(row.sort ?? 0),
     createdBy: String(row.created_by),
+    description: row.description ? String(row.description) : null,
+    parentId: row.parent_id ? String(row.parent_id) : null,
   })) satisfies WorkspaceTask[];
+}
+
+export async function listNotes() {
+  const db = await createServerSupabase();
+  const { data, error } = await db.from("workspace_notes").select("id, title, color, created_at").order("created_at", { ascending: false });
+  if (error) return [];
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    title: String(row.title),
+    color: String(row.color ?? "lilac"),
+    createdAt: String(row.created_at),
+  })) satisfies WorkspaceNote[];
+}
+
+export async function listTaskComments(taskId: string) {
+  const db = await createServerSupabase();
+  const { data, error } = await db
+    .from("workspace_task_comments")
+    .select("id, body, created_at, user_id, author:profiles!user_id(display_name)")
+    .eq("task_id", taskId)
+    .order("created_at", { ascending: true });
+  if (error) return [];
+  return (data ?? []).map((row) => {
+    const author = row.author as { display_name?: string } | null;
+    return {
+      id: String(row.id),
+      body: String(row.body),
+      createdAt: String(row.created_at),
+      userId: String(row.user_id),
+      authorName: author?.display_name ?? "Teammate",
+    };
+  });
 }
 
 export async function listCollaboratorDirectory() {

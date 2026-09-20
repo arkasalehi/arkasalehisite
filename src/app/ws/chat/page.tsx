@@ -1,12 +1,11 @@
-import { redirect } from "next/navigation";
-import { listChannels } from "@/lib/data/workspace";
+import { getSession } from "@/lib/auth/session";
+import { listInbox } from "@/lib/data/workspace";
+import { ChatInbox } from "@/components/workspace/ChatInbox";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChatIndexPage() {
-  const channels = await listChannels();
-  if (!channels[0]) {
-    return <p className="text-sm text-[#8b938d]">کانالی ساخته نشده.</p>;
-  }
-  redirect(`/ws/chat/${channels[0].id}`);
+  const session = await getSession();
+  const items = await listInbox(session?.id).catch(() => []);
+  return <ChatInbox items={items} username={session?.username ?? ""} />;
 }

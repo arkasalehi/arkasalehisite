@@ -7,7 +7,7 @@ export default async function TasksPage() {
   const tasks = await listTasks();
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold">بورد کارها</h1>
+      <h1 className="mb-4 text-[22px] font-semibold tracking-tight">Task board</h1>
       <TaskBoard initial={tasks} />
     </div>
   );
