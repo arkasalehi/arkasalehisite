@@ -12,6 +12,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host");
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-arka-path", pathname);
   const onWorkspaceHost = isWorkspaceHost(host);
   const onWorkspacePath = pathname.startsWith("/ws") || pathname.startsWith("/api/workspace");
   if (onWorkspaceHost || onWorkspacePath) {

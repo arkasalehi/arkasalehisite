@@ -19,9 +19,9 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
   const mainHref = postPath(main.type, main.slug);
 
   return (
-    <div className={side.length ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]" : ""}>
-      <article>
-        <div className={cn("relative aspect-video overflow-hidden rounded-[1.75rem]", !main.videoUrl && "editorial-media")}>
+    <div className={side.length ? "grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-6" : ""}>
+      <article className="overflow-hidden rounded-[24px] border border-[#e8ece6] bg-white/85 p-3 shadow-[0_16px_40px_rgba(20,60,100,0.08)] backdrop-blur-md md:p-4">
+        <div className={cn("relative aspect-video overflow-hidden rounded-[18px]", !main.videoUrl && "editorial-media")}>
           {main.videoUrl ? (
             <VideoPlayer
               src={main.videoUrl}
@@ -43,17 +43,21 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
             </Link>
           )}
         </div>
-        <Link href={mainHref} className="mt-4 block">
-          <h3 className="text-2xl font-extrabold tracking-tight md:text-[28px]">{main.title}</h3>
-          <p className="mt-1 text-sm text-muted">{formatNumber(main.viewCount)} بازدید</p>
+        <Link href={mainHref} className="mt-4 block px-1 pb-1">
+          <h3 className="text-[18px] font-semibold tracking-tight text-[#1e2a24] md:text-[22px]">{main.title}</h3>
+          <p className="mt-1 text-sm text-[#8b938d]">{formatNumber(main.viewCount)} بازدید</p>
         </Link>
       </article>
 
       {side.length ? (
-        <div className="flex flex-col justify-between gap-4">
+        <div className="flex flex-col justify-between gap-3">
           {side.map((post) => (
-            <Link key={post.id} href={postPath(post.type, post.slug)} className="flex gap-3">
-              <div className="editorial-media relative h-20 w-[120px] shrink-0 overflow-hidden rounded-xl">
+            <Link
+              key={post.id}
+              href={postPath(post.type, post.slug)}
+              className="flex gap-3 rounded-[20px] border border-[#e8ece6] bg-white/85 p-2.5 shadow-[0_10px_28px_rgba(20,60,100,0.06)]"
+            >
+              <div className="editorial-media relative h-20 w-[112px] shrink-0 overflow-hidden rounded-[14px]">
                 <CoverImage
                   src={post.thumbnailUrl || post.coverImage}
                   alt={post.title}
@@ -63,8 +67,8 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
                 />
               </div>
               <div className="min-w-0 py-0.5">
-                <p className="line-clamp-2 text-sm font-semibold leading-6">{post.title}</p>
-                <p className="mt-1 text-xs text-muted">
+                <p className="line-clamp-2 text-sm font-semibold leading-6 text-[#1e2a24]">{post.title}</p>
+                <p className="mt-1 text-xs text-[#8b938d]">
                   {formatNumber(post.viewCount)} بازدید
                   {post.duration ? ` · ${formatDuration(post.duration)}` : ""}
                 </p>

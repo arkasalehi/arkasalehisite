@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import type { SiteCms } from "@/lib/cms/types";
+import { HERO_WEATHERS, resolveHeroWeather } from "@/lib/cms/heroWeather";
 
 function linksToText(links: Array<{ label: string; href: string }>) {
   return links.map((l) => `${l.label}|${l.href}`).join("\n");
@@ -37,6 +38,7 @@ export function SettingsEditor({ initial }: { initial: SiteCms }) {
         ctaPrimaryHref: String(form.get("ctaPrimaryHref")),
         ctaSecondary: String(form.get("ctaSecondary")),
         ctaSecondaryHref: String(form.get("ctaSecondaryHref")),
+        weather: resolveHeroWeather(form.get("heroWeather")),
       },
       about: {
         title: String(form.get("aboutTitle")),
@@ -77,6 +79,23 @@ export function SettingsEditor({ initial }: { initial: SiteCms }) {
     <form className="space-y-8" onSubmit={onSubmit}>
       <section className="surface space-y-3 p-6">
         <h2 className="text-lg font-medium">هیرو</h2>
+        <p className="text-sm text-muted">آسمان صفحه اصلی — بعد از ذخیره در خانه دیده می‌شود.</p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {HERO_WEATHERS.map((item) => {
+            const selected = resolveHeroWeather(initial.hero.weather) === item.id;
+            return (
+              <label
+                key={item.id}
+                className="cursor-pointer rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 has-[:checked]:border-foreground has-[:checked]:ring-2 has-[:checked]:ring-foreground/15"
+              >
+                <input type="radio" name="heroWeather" value={item.id} defaultChecked={selected} className="sr-only" />
+                <span className="block h-10 rounded-xl" style={{ background: item.swatch }} />
+                <span className="mt-2 block text-sm font-medium">{item.label}</span>
+                <span className="block text-xs text-muted">{item.hint}</span>
+              </label>
+            );
+          })}
+        </div>
         <input name="heroTitle" defaultValue={initial.hero.title} className="field" placeholder="عنوان" />
         <textarea name="heroSubtitle" defaultValue={initial.hero.subtitle} className="field min-h-20" placeholder="زیرعنوان" />
         <div className="grid gap-3 md:grid-cols-2">

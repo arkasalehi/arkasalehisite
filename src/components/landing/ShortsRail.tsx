@@ -12,9 +12,9 @@ export function ShortsRail({ posts }: { posts: PostCardPost[] }) {
         <Link
           key={post.id}
           href={postPath(post.type, post.slug)}
-          className="w-[168px] shrink-0 md:w-[200px]"
+          className="w-[168px] shrink-0 md:w-[188px]"
         >
-          <article className="editorial-media relative aspect-[9/16] overflow-hidden rounded-[20px]">
+          <article className="editorial-media relative aspect-[9/16] overflow-hidden rounded-[22px] shadow-[0_14px_32px_rgba(20,60,100,0.12)]">
             <CoverImage
               src={post.thumbnailUrl || post.coverImage}
               alt={post.title}
@@ -26,7 +26,7 @@ export function ShortsRail({ posts }: { posts: PostCardPost[] }) {
               {formatNumber(post.viewCount)} بازدید
             </span>
           </article>
-          <p className="mt-2 line-clamp-2 text-sm font-medium leading-6">{post.title}</p>
+          <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-[#1e2a24]">{post.title}</p>
         </Link>
       ))}
     </div>

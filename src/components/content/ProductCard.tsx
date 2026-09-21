@@ -38,15 +38,15 @@ export function ProductCard({
 
   if (variant === "tool") {
     return (
-      <Link href={`/product/${product.slug}`} className="surface glow-hover block p-6">
-        <span className="grid h-12 w-12 place-items-center rounded-xl border border-[var(--border)] bg-background">
+      <Link href={`/product/${product.slug}`} className="surface glow-hover block rounded-[24px] p-6">
+        <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#e8ece6] bg-[#f4f6f2] text-[#1b6754]">
           <ToolIcon />
         </span>
-        <h3 className="mt-5 text-lg font-extrabold tracking-tight">{product.title}</h3>
-        <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted">
+        <h3 className="mt-5 text-lg font-semibold tracking-tight text-[#1e2a24]">{product.title}</h3>
+        <p className="mt-2 line-clamp-2 text-sm leading-7 text-[#8b938d]">
           {product.description || "ابزار محدود استودیو برای ساخت و انتشار دقیق‌تر."}
         </p>
-        <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium">
+        <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#1b6754]">
           بیشتر
           <ArrowIcon className="h-3.5 w-3.5" />
         </span>
@@ -64,7 +64,7 @@ export function ProductCard({
               alt={product.title}
               fill
               sizes="(max-width: 768px) 100vw, 33vw"
-              className="object-cover grayscale contrast-[1.08]"
+              className="object-cover"
             />
           ) : (
             <CoverImage src={null} alt={product.title} seed={product.id} kind="product" sizes="33vw" />
@@ -79,7 +79,7 @@ export function ProductCard({
             </span>
           ) : null}
         </div>
-        <h3 className="mt-3 font-extrabold tracking-tight">{product.title}</h3>
+        <h3 className="mt-3 font-semibold tracking-tight">{product.title}</h3>
       </Link>
       <div className="mt-2 flex items-end justify-between gap-3">
         <div>

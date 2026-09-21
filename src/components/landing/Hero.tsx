@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { HeroNameplate } from "@/components/landing/HeroNameplate";
 import { HeroDashboardPreview } from "@/components/landing/HeroDashboardPreview";
+import { HeroAtmosphere } from "@/components/landing/HeroAtmosphere";
 import { workspaceUrl } from "@/lib/runtime";
+import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import type { SiteCms } from "@/lib/cms/types";
 
 const NAV = [
@@ -12,12 +14,14 @@ const NAV = [
   { href: "#enterprise", label: "سازمانی" },
 ];
 
-export function Hero({ cms: _cms }: { cms: SiteCms }) {
+export function Hero({ cms }: { cms: SiteCms }) {
+  const weather = resolveHeroWeather(cms.hero.weather);
+
   return (
-    <section dir="rtl" className="hero-saas-shell full-bleed relative -mt-8 min-h-svh overflow-hidden font-sans md:-mt-10">
+    <section dir="rtl" data-weather={weather} className="hero-saas-shell full-bleed relative overflow-hidden font-sans">
       <div className="hero-saas-sky absolute inset-0" />
-      <Clouds />
-      <div className="hero-saas-bottom-fade pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-40 md:h-52" aria-hidden />
+      <HeroAtmosphere weather={weather} />
+      <div className="hero-saas-bottom-fade pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-16 md:h-20" aria-hidden />
 
       <div className="relative z-10 px-5 pt-5 sm:px-8 md:px-12 md:pt-7">
         <header className="flex items-center justify-between gap-4">
@@ -78,28 +82,9 @@ export function Hero({ cms: _cms }: { cms: SiteCms }) {
         </div>
       </div>
 
-      <div dir="ltr" className="hero-saas relative z-10 px-3 pb-24 pt-2 md:px-8 md:pb-32">
+      <div dir="ltr" className="hero-saas relative z-10 px-3 pb-3 pt-2 md:px-8 md:pb-4">
         <HeroDashboardPreview />
       </div>
     </section>
   );
 }
-
-function Clouds() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="hero-cloud-layer absolute inset-0">
-        <div className="absolute left-[-12%] top-[12%] h-52 w-[50%] rounded-full bg-white/35 blur-3xl" />
-        <div className="absolute right-[-14%] top-[4%] h-56 w-[48%] rounded-full bg-white/30 blur-3xl" />
-        <div className="absolute left-[8%] top-[22%] h-16 w-40 rounded-full bg-white/40 blur-xl" />
-      </div>
-      <div className="hero-cloud-layer-b absolute inset-0">
-        <div className="absolute bottom-[30%] left-[6%] h-40 w-[42%] rounded-full bg-white/50 blur-[64px]" />
-        <div className="absolute bottom-[24%] right-[4%] h-44 w-[40%] rounded-full bg-white/55 blur-[70px]" />
-        <div className="absolute left-[28%] top-[42%] h-28 w-72 rounded-full bg-white/25 blur-2xl" />
-        <div className="absolute right-[12%] top-[26%] h-14 w-48 rounded-full bg-white/35 blur-xl" />
-      </div>
-    </div>
-  );
-}
-

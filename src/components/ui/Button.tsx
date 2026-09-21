@@ -4,9 +4,9 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  primary: "bg-foreground text-background hover:opacity-90 disabled:opacity-50",
-  ghost: "border border-[var(--border)] bg-transparent text-foreground hover:bg-[var(--card)]",
-  subtle: "bg-[var(--card)] text-foreground border border-[var(--border)] hover:border-[color-mix(in_oklab,var(--fg)_18%,var(--border))]",
+  primary: "bg-[#2f7de9] text-white shadow-[0_10px_24px_rgba(47,125,233,0.28)] hover:opacity-90 disabled:opacity-50",
+  ghost: "border border-[var(--border)] bg-white/70 text-foreground hover:bg-white disabled:opacity-50",
+  subtle: "bg-white/80 text-foreground border border-[var(--border)] hover:border-[#1b6754]/30",
   danger: "bg-rose-600 text-white hover:opacity-90",
 };
 
@@ -27,7 +27,7 @@ export function Button({
   loadingLabel?: string;
 }) {
   const cls = cn(
-    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-[color,background-color,border-color,opacity,transform] duration-150",
+    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-[color,background-color,border-color,opacity,transform] duration-150",
     variants[variant],
     className,
   );

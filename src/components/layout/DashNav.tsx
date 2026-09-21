@@ -13,7 +13,7 @@ export function DashNav({
 }) {
   const pathname = usePathname();
   return (
-      <aside className="surface h-fit p-2 md:sticky md:top-28 md:w-56">
+      <aside className="surface h-fit rounded-[24px] p-2 md:sticky md:top-28 md:w-56">
       {title ? <p className="mb-1 hidden px-3 pt-2 text-xs font-medium text-muted md:block">{title}</p> : null}
       <nav className="flex flex-row gap-1 overflow-x-auto md:flex-col">
         {items.map((item) => {
@@ -23,8 +23,8 @@ export function DashNav({
               key={item.href}
               href={item.href}
               className={cn(
-                "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150",
-                active ? "bg-foreground/5 text-foreground" : "text-muted hover:text-foreground",
+                "whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors duration-150",
+                active ? "bg-[#1b6754]/10 text-[#1b6754]" : "text-muted hover:text-foreground",
               )}
             >
               {item.label}

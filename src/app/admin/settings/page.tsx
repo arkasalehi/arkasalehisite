@@ -8,7 +8,7 @@ export default async function AdminSettingsPage() {
   const cms = await getSiteCms();
   return (
     <section>
-      <PageHeader title="تنظیمات سایت" description="محتوای صفحه نخست، سئو، فوتر و مسیر شروع از اینجا می‌آید." />
+      <PageHeader title="تنظیمات سایت" description="آسمان هیرو، محتوای صفحه نخست، سئو، فوتر و مسیر شروع از اینجا می‌آید." />
       <div className="mt-6">
         <SettingsEditor initial={cms} />
       </div>

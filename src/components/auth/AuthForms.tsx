@@ -54,7 +54,7 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
   return (
     <GlassCard className="mx-auto max-w-md p-8">
       <p className="text-sm font-medium text-muted">حساب کاربری</p>
-      <h1 className="mt-1 text-4xl">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
+      <h1 className="mt-1 text-[28px] font-semibold tracking-tight">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
       <p className="mt-2 text-sm leading-7 text-muted">
         کاربران می‌توانند تعامل کنند؛ انتشار محتوا فقط با حساب ادمین است.
       </p>
@@ -137,7 +137,7 @@ export function ForgotPasswordPage() {
 
   return (
     <GlassCard className="mx-auto max-w-md p-8">
-      <h1 className="text-4xl">بازیابی رمز</h1>
+      <h1 className="text-[28px] font-semibold tracking-tight">بازیابی رمز</h1>
       <p className="mt-2 text-sm leading-7 text-muted">ایمیل حساب را وارد کنید تا لینک بازنشانی ارسال شود.</p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <Input name="email" type="email" required placeholder="ایمیل" />
@@ -190,7 +190,7 @@ export function UpdatePasswordPage() {
 
   return (
     <GlassCard className="mx-auto max-w-md p-8">
-      <h1 className="text-4xl">رمز تازه</h1>
+      <h1 className="text-[28px] font-semibold tracking-tight">رمز تازه</h1>
       <p className="mt-2 text-sm leading-7 text-muted">پس از باز کردن لینک ایمیل، رمز جدید را تنظیم کنید.</p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <Input name="password" type="password" required minLength={8} placeholder="رمز جدید" />

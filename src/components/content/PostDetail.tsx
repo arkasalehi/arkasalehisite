@@ -74,7 +74,7 @@ export async function PostDetail({
           </>
         ) : null}
       </p>
-      <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight md:text-5xl">{post.title}</h1>
+      <h1 className="mt-3 max-w-3xl text-[28px] font-semibold leading-[1.25] tracking-tight md:text-[36px]">{post.title}</h1>
       <p className="mt-4 text-muted">
         {post.publishedAt ? formatDate(post.publishedAt) : ""}
         {post.readingTime ? ` · ${formatNumber(post.readingTime)} دقیقه مطالعه` : ""}

@@ -6,9 +6,7 @@ import { siteConfig } from "@/lib/config";
 import { getSession } from "@/lib/auth/session";
 import { getSiteCms } from "@/lib/data/settings";
 import { Providers } from "@/components/providers";
-import { Header, Footer } from "@/components/layout/Shell";
-import { PageContainer } from "@/components/layout/Page";
-import { OnboardingBanner } from "@/components/layout/OnboardingBanner";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,20 +45,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans antialiased">
         <ServiceWorkerRegister />
         <Providers user={user} theme={theme}>
-          {workspace ? (
-            <main className="w-full">{children}</main>
-          ) : (
-            <>
-              <Header cms={cms} />
-              <main className="w-full flex-1">
-                <PageContainer className="py-8 md:py-10">
-                  <OnboardingBanner />
-                  {children}
-                </PageContainer>
-              </main>
-              <Footer cms={cms} />
-            </>
-          )}
+          {workspace ? <main className="w-full">{children}</main> : <SiteChrome cms={cms}>{children}</SiteChrome>}
         </Providers>
       </body>
     </html>

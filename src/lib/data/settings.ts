@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { canQueryDatabase } from "./client";
 import { cached, invalidateCache } from "@/lib/cache";
+import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -8,7 +9,11 @@ const KEYS: Array<keyof SiteCms> = ["hero", "about", "footer", "seo", "socials",
 
 function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
   return {
-    hero: { ...base.hero, ...raw.hero },
+    hero: {
+      ...base.hero,
+      ...raw.hero,
+      weather: resolveHeroWeather(raw.hero?.weather ?? base.hero.weather),
+    },
     about: { ...base.about, ...raw.about },
     footer: { links: raw.footer?.links?.length ? raw.footer.links : base.footer.links },
     seo: { ...base.seo, ...raw.seo },

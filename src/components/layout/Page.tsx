@@ -7,7 +7,7 @@ export function PageContainer({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn("mx-auto w-full max-w-[1280px] px-5 md:px-20", className)}>{children}</div>;
+  return <div className={cn("mx-auto w-full max-w-[1280px] px-5 md:px-12", className)}>{children}</div>;
 }
 
 export function PageHeader({
@@ -24,11 +24,11 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header className={cn("mb-10 flex flex-wrap items-end justify-between gap-4", className)}>
+    <header className={cn("mb-8 flex flex-wrap items-end justify-between gap-4", className)}>
       <div>
         {eyebrow ? <p className="mb-2 text-sm text-muted">{eyebrow}</p> : null}
-        <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">{title}</h1>
-        {description ? <p className="mt-3 max-w-2xl text-[15px] leading-8 text-muted">{description}</p> : null}
+        <h1 className="text-[28px] font-semibold tracking-tight md:text-[34px]">{title}</h1>
+        {description ? <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
@@ -38,9 +38,15 @@ export function PageHeader({
 export function PageSection({
   children,
   className,
+  id,
 }: {
   children: React.ReactNode;
   className?: string;
+  id?: string;
 }) {
-  return <section className={cn("mt-24 first:mt-0", className)}>{children}</section>;
+  return (
+    <section id={id} className={className ?? "mt-8 md:mt-10"}>
+      {children}
+    </section>
+  );
 }

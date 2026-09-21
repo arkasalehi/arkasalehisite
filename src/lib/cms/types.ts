@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/config";
+import { DEFAULT_HERO_WEATHER, type HeroWeatherId } from "@/lib/cms/heroWeather";
 
 export type CmsLink = { label: string; href: string };
 
@@ -10,6 +11,7 @@ export type SiteCms = {
     ctaPrimaryHref: string;
     ctaSecondary: string;
     ctaSecondaryHref: string;
+    weather: HeroWeatherId;
   };
   about: { title: string; bio: string; avatarUrl: string };
   footer: { links: CmsLink[] };
@@ -26,6 +28,7 @@ export const defaultCms = (): SiteCms => ({
     ctaPrimaryHref: "/blog",
     ctaSecondary: "آخرین ویدیوها",
     ctaSecondaryHref: "/video",
+    weather: DEFAULT_HERO_WEATHER,
   },
   about: { title: siteConfig.creator, bio: siteConfig.bio, avatarUrl: "" },
   footer: {

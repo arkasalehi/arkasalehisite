@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HERO_WEATHER_IDS } from "@/lib/cms/heroWeather";
 
 const optionalUrl = z.union([z.url(), z.literal(""), z.null()]).optional();
 
@@ -95,6 +96,7 @@ export const siteCmsSchema = z.object({
       ctaPrimaryHref: z.string().max(200),
       ctaSecondary: z.string().max(80),
       ctaSecondaryHref: z.string().max(200),
+      weather: z.enum(HERO_WEATHER_IDS).optional(),
     })
     .optional(),
   about: z

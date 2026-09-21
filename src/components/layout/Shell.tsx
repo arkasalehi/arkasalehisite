@@ -27,10 +27,12 @@ export function Header({ cms }: { cms: SiteCms }) {
 
   return (
     <header className={headerClass()}>
-      <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 shadow-[var(--shadow-nav)] md:h-16 md:px-5">
+      <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-white/70 bg-white/80 px-3 shadow-[var(--shadow-nav)] backdrop-blur-xl md:h-16 md:px-5">
         <Link href="/" className="flex shrink-0 items-center gap-2 px-1" aria-label={cms.seo.title || "arkasalehi"}>
-          <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
-          <span className="font-display text-[17px] font-medium tracking-tight md:text-[18px]">arkasalehi</span>
+          <span className="grid h-8 w-8 place-items-center rounded-[9px] border border-[#1b6754]/30 text-[15px] font-semibold text-[#1b6754]">
+            ×
+          </span>
+          <span className="text-[16px] font-semibold tracking-tight text-[#1e2a24]">آرکا صالحی</span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex">
@@ -42,7 +44,7 @@ export function Header({ cms }: { cms: SiteCms }) {
                 href={item.href}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-sm transition-colors duration-150",
-                  active ? "font-semibold text-foreground" : "font-medium text-muted hover:text-foreground",
+                  active ? "font-semibold text-[#1b6754]" : "font-medium text-muted hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -61,7 +63,7 @@ export function Header({ cms }: { cms: SiteCms }) {
           >
             <CartIcon />
             {count > 0 ? (
-              <span className="absolute -left-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-foreground px-1 text-[10px] font-medium text-background">
+              <span className="absolute -left-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#2f7de9] px-1 text-[10px] font-medium text-white">
                 {count}
               </span>
             ) : null}
@@ -112,7 +114,7 @@ export function Header({ cms }: { cms: SiteCms }) {
       </div>
 
       {open ? (
-        <div className="mt-2 overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--card)] p-3 shadow-[var(--shadow-nav)] lg:hidden">
+        <div className="mt-2 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-3 shadow-[var(--shadow-nav)] backdrop-blur-xl lg:hidden">
           <nav className="flex flex-col">
             {navItems.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -121,10 +123,7 @@ export function Header({ cms }: { cms: SiteCms }) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={cn(
-                    "rounded-xl px-3 py-2.5 text-sm",
-                    active ? "font-semibold text-foreground" : "text-muted",
-                  )}
+                  className={cn("rounded-xl px-3 py-2.5 text-sm", active ? "font-semibold text-[#1b6754]" : "text-muted")}
                 >
                   {item.label}
                 </Link>
@@ -152,26 +151,23 @@ export function Footer({ cms }: { cms: SiteCms }) {
   const legal = cms.footer.links.filter((item) => !navItems.some((n) => n.href === item.href));
 
   return (
-    <footer className="mt-24 bg-[var(--footer)] text-[#fafafa]">
-      <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-5 py-16 md:grid-cols-12 md:px-20">
+    <footer className="mt-10 border-t border-[#e8ece6] bg-[#f4f6f2] text-[#1e2a24] md:mt-12">
+      <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-5 py-14 md:grid-cols-12 md:px-12">
         <div className="md:col-span-5">
-          <p className="font-display text-2xl font-medium tracking-tight">arkasalehi</p>
-          <p className="mt-3 max-w-sm text-sm leading-7 text-white/60">{cms.about.bio}</p>
+          <p className="text-[22px] font-semibold tracking-tight text-[#1e2a24]">آرکا صالحی</p>
+          <p className="mt-3 max-w-sm text-sm leading-7 text-[#8b938d]">{cms.about.bio}</p>
           <form
-            className="mt-6 flex max-w-sm items-center gap-2 rounded-full border border-white/15 bg-white/5 p-1"
+            className="mt-6 flex max-w-sm items-center gap-2 rounded-full border border-[#e8ece6] bg-white p-1 shadow-[0_10px_28px_rgba(20,60,100,0.08)]"
             onSubmit={(e) => e.preventDefault()}
           >
             <input
               type="email"
               required
               placeholder="ایمیل برای خبرنامه"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2 text-sm text-white outline-none placeholder:text-white/40"
+              className="min-w-0 flex-1 bg-transparent px-4 py-2 text-sm text-[#1e2a24] outline-none placeholder:text-[#8b938d]"
               aria-label="ایمیل خبرنامه"
             />
-            <button
-              type="submit"
-              className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-medium text-black"
-            >
+            <button type="submit" className="shrink-0 rounded-full bg-[#2f7de9] px-4 py-2 text-sm font-semibold text-white">
               عضویت
             </button>
           </form>
@@ -179,18 +175,15 @@ export function Footer({ cms }: { cms: SiteCms }) {
         <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3 md:col-span-7">
           <FooterCol title="پلتفرم" items={platform} />
           <FooterCol title="محتوا" items={content} />
-          <FooterCol
-            title="قانونی"
-            items={legal.length ? legal : [{ href: "mailto:hello@arkasalehi.ir", label: "تماس" }]}
-          />
+          <FooterCol title="قانونی" items={legal.length ? legal : [{ href: "mailto:hello@arkasalehi.ir", label: "تماس" }]} />
         </div>
       </div>
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-20">
-          <p className="text-xs text-white/45">© {new Date().getFullYear()} arkasalehi</p>
-          <div className="flex items-center gap-4 text-white/55">
+      <div className="border-t border-[#e8ece6]">
+        <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-12">
+          <p className="text-xs text-[#8b938d]">© {new Date().getFullYear()} آرکا صالحی</p>
+          <div className="flex items-center gap-4 text-[#8b938d]">
             {cms.socials.map((s) => (
-              <a key={`${s.href}-${s.label}`} href={s.href} className="text-xs transition-colors hover:text-white" rel="noreferrer">
+              <a key={`${s.href}-${s.label}`} href={s.href} className="text-xs transition-colors hover:text-[#1b6754]" rel="noreferrer">
                 {s.label}
               </a>
             ))}
@@ -204,21 +197,24 @@ export function Footer({ cms }: { cms: SiteCms }) {
 function FooterCol({ title, items }: { title: string; items: Array<{ href: string; label: string }> }) {
   return (
     <div>
-      <p className="text-xs font-medium text-white/40">{title}</p>
+      <p className="text-xs font-semibold text-[#8b938d]">{title}</p>
       <ul className="mt-4 space-y-2.5">
-        {items.map((item) => (
-          <li key={`${item.href}-${item.label}`}>
-            {item.href.startsWith("http") || item.href.startsWith("mailto:") ? (
-              <a href={item.href} className="text-sm text-white/70 transition-colors hover:text-white" rel="noreferrer">
-                {item.label}
-              </a>
-            ) : (
-              <Link href={item.href} className="text-sm text-white/70 transition-colors hover:text-white">
-                {item.label}
-              </Link>
-            )}
-          </li>
-        ))}
+        {items.map((item) => {
+          const cls = "text-sm text-[#1e2a24] transition-colors hover:text-[#1b6754]";
+          return (
+            <li key={`${item.href}-${item.label}`}>
+              {item.href.startsWith("http") || item.href.startsWith("mailto:") ? (
+                <a href={item.href} className={cls} rel="noreferrer">
+                  {item.label}
+                </a>
+              ) : (
+                <Link href={item.href} className={cls}>
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

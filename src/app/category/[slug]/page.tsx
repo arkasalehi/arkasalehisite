@@ -35,7 +35,7 @@ export default async function CategoryPage({
   return (
     <section>
       <PageHeader title={category.name} description={category.description ?? undefined} />
-      <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <Stagger className="grid gap-5 lg:grid-cols-2">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

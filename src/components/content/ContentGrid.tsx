@@ -36,7 +36,7 @@ export async function ContentGrid({
         <ContentFilters categories={categories} />
       </Suspense>
       {posts.length ? (
-        <Stagger className={`mt-8 grid gap-6 sm:grid-cols-2 ${sidebar ? "" : "lg:grid-cols-3"}`}>
+        <Stagger className={`mt-8 grid gap-5 ${type === "BLOG" ? "lg:grid-cols-2" : `sm:grid-cols-2 ${sidebar ? "" : "lg:grid-cols-3"}`}`}>
           {posts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
