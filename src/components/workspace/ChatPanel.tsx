@@ -165,7 +165,7 @@ export function ChatPanel({
               key={m.id}
               m={m}
               userId={userId}
-              quoted={m.replyTo ? byId.get(m.replyTo) : null}
+              quoted={m.replyTo ? (byId.get(m.replyTo) ?? null) : null}
               replies={messages.filter((x) => x.replyTo === m.id).length}
               onReply={() => setReplyTo(m)}
               onThread={() => setThreadOf(m.id)}
