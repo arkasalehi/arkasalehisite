@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Video } from "lucide-react";
 import type { WorkspaceMeeting } from "@/lib/data/workspace";
+import { EmptyState } from "@/components/workspace/EmptyState";
 import { useOfficePresence } from "@/components/workspace/useOfficePresence";
 
 export function MeetingList({ meetings, displayName }: { meetings: WorkspaceMeeting[]; displayName: string }) {
@@ -26,29 +28,32 @@ export function MeetingList({ meetings, displayName }: { meetings: WorkspaceMeet
   }
 
   return (
-    <div className="ws-scroll h-full overflow-auto p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="ws-scroll h-full overflow-auto p-[var(--ws-space-4)] sm:p-[var(--ws-space-6)]">
+      <div className="mb-[var(--ws-space-6)] flex items-center justify-between">
         <div>
-          <h1 className="text-[18px] font-medium">Office</h1>
-          <p className="text-[12px] text-[var(--theme-darker-color)]">{peers.length ? peers.join(", ") : "No one in lobby"}</p>
+          <h1 className="text-[length:var(--ws-type-xl)]">Office</h1>
+          <p className="text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">{peers.length ? peers.join(", ") : "No one in lobby"}</p>
         </div>
       </div>
-      <form onSubmit={(e) => void create(e)} className="mb-6 flex flex-wrap gap-2">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 rounded-md bg-[var(--input-BackgroundColor)] px-3 text-[13px] outline-none" />
-        <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className="h-8 rounded-md bg-[var(--input-BackgroundColor)] px-3 text-[13px] outline-none" />
-        <button type="submit" disabled={loading} className="h-8 rounded-md bg-[var(--button-primary-BackgroundColor)] px-3 text-[12px] font-medium text-white">
-          Create room
+      <form onSubmit={(e) => void create(e)} className="mb-[var(--ws-space-6)] flex flex-wrap gap-[var(--ws-space-2)]">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} className="ws-input min-w-0 flex-1" />
+        <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className="ws-input min-w-0 w-full sm:w-auto" />
+        <button type="submit" disabled={loading} className="ws-btn ws-btn-primary">
+          {loading ? <span className="ws-spinner" /> : "Create room"}
         </button>
       </form>
-      <div className="divide-y divide-[var(--theme-divider-color)] border-y border-[var(--theme-divider-color)]">
-        {meetings.map((m) => (
-          <a key={m.id} href={`/ws/meet/${m.id}`} className="flex items-center justify-between py-3 text-[13px] hover:bg-[var(--theme-navpanel-hovered)]">
-            <span>{m.title}</span>
-            <span className="text-[11px] text-[var(--theme-darker-color)]">{new Date(m.startsAt).toLocaleString("en-US")}</span>
-          </a>
-        ))}
-        {meetings.length === 0 ? <p className="py-8 text-[13px] text-[var(--theme-darker-color)]">No rooms yet.</p> : null}
-      </div>
+      {meetings.length === 0 ? (
+        <EmptyState icon={<Video className="h-5 w-5" strokeWidth={1.75} />} title="No rooms" body="Create a room for dailies, client review, or a quick standup." />
+      ) : (
+        <div className="divide-y divide-[var(--theme-divider-color)] border-y border-[var(--theme-divider-color)]">
+          {meetings.map((m) => (
+            <a key={m.id} href={`/ws/meet/${m.id}`} className="ws-row flex items-center justify-between py-[var(--ws-space-3)] text-[length:var(--ws-type-sm)] hover:bg-[var(--theme-navpanel-hovered)]">
+              <span>{m.title}</span>
+              <span className="text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">{new Date(m.startsAt).toLocaleString("en-US")}</span>
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

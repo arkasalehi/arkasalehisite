@@ -47,7 +47,12 @@ export function ChatPanel({
   }, [messages.length]);
 
   useEffect(() => {
-    const supabase = createBrowserSupabase();
+    let supabase: ReturnType<typeof createBrowserSupabase>;
+    try {
+      supabase = createBrowserSupabase();
+    } catch {
+      return;
+    }
     const channel = supabase
       .channel(`workspace-chat:${channelId}`)
       .on(
@@ -111,10 +116,10 @@ export function ChatPanel({
   }
 
   async function toIssue(m: WorkspaceMessage) {
-    await fetch("/api/workspace/tasks", {
+      await fetch("/api/workspace/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: m.body.slice(0, 160) }),
+      body: JSON.stringify({ title: (m.body ?? "Chat note").slice(0, 160) }),
     });
   }
 
@@ -122,8 +127,12 @@ export function ChatPanel({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    const up = await uploadFile(file);
-    await send({ body: up.name, kind: "file", fileName: up.name, fileUrl: up.url });
+    try {
+      const up = await uploadFile(file);
+      await send({ body: up.name, kind: "file", fileName: up.name, fileUrl: up.url });
+    } catch {
+      return;
+    }
   }
 
   async function toggleVoice() {
@@ -154,7 +163,7 @@ export function ChatPanel({
   const thread = threadOf ? messages.filter((m) => m.id === threadOf || m.replyTo === threadOf) : [];
 
   return (
-    <div className="flex h-full min-h-0">
+    <div className="relative flex h-full min-h-0">
       <div className="flex min-w-0 flex-1 flex-col bg-[var(--theme-bg-color)]">
         <div className="flex h-10 items-center border-b border-[var(--theme-divider-color)] px-4 text-[13px]">
           <span className="font-medium text-[var(--theme-caption-color)]"># {channelName}</span>
@@ -173,7 +182,9 @@ export function ChatPanel({
               onIssue={() => void toIssue(m)}
             />
           ))}
-          {roots.length === 0 ? <p className="py-16 text-center text-[13px] text-[var(--theme-darker-color)]">No messages yet.</p> : null}
+          {roots.length === 0 ? (
+            <p className="py-16 text-center text-[length:var(--ws-type-sm)] text-[var(--theme-darker-color)]">No messages yet. Say what you are cutting, blocking, or waiting on.</p>
+          ) : null}
           <div ref={bottom} />
         </div>
         <form
@@ -185,13 +196,13 @@ export function ChatPanel({
         >
           {replyTo ? (
             <div className="mb-2 flex justify-between text-[12px] text-[var(--theme-dark-color)]">
-              <span className="truncate">Reply: {replyTo.body.slice(0, 80)}</span>
+              <span className="truncate">Reply: {(replyTo.body ?? "").slice(0, 80)}</span>
               <button type="button" onClick={() => setReplyTo(null)}>
                 ×
               </button>
             </div>
           ) : null}
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <input
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -203,14 +214,14 @@ export function ChatPanel({
             <button type="button" className="h-10 rounded-md px-2 text-[12px] text-[var(--theme-dark-color)]" onClick={() => fileRef.current?.click()}>
               File
             </button>
-            <button type="button" className={cn("h-10 rounded-md px-2 text-[12px]", recording ? "text-[#ff6359]" : "text-[var(--theme-dark-color)]")} onClick={() => void toggleVoice()}>
+            <button type="button" className={cn("h-10 rounded-[var(--ws-radius)] px-2 text-[length:var(--ws-type-xs)]", recording ? "text-[var(--ws-status-cancelled)]" : "text-[var(--theme-dark-color)]")} onClick={() => void toggleVoice()}>
               {recording ? "Stop" : "Voice"}
             </button>
           </div>
         </form>
       </div>
       {threadOf ? (
-        <aside className="hidden w-[320px] shrink-0 flex-col border-l border-[var(--theme-divider-color)] bg-[var(--theme-navpanel-color)] md:flex">
+        <aside className="absolute inset-0 z-30 flex w-full flex-col border-[var(--theme-divider-color)] bg-[var(--theme-navpanel-color)] md:static md:flex md:w-[min(320px,40vw)] md:border-s">
           <div className="flex h-10 items-center justify-between px-3 text-[13px]">
             <span>Thread</span>
             <button type="button" onClick={() => setThreadOf(null)}>
@@ -250,13 +261,13 @@ function MessageRow({
   const name = m.userId === userId ? "You" : m.author?.displayName || "Teammate";
   return (
     <article className="group mb-3 flex gap-3">
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#205dc2] text-[11px] font-semibold">{name.slice(0, 1).toUpperCase()}</span>
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--ws-radius)] bg-[var(--ws-gray-4)] text-[11px] font-semibold">{name.slice(0, 1).toUpperCase()}</span>
       <div className="min-w-0 flex-1">
         <p className="text-[13px]">
           <span className="font-medium text-[var(--theme-caption-color)]">{name}</span>
           <span className="ml-2 text-[11px] text-[var(--theme-darker-color)]">{formatTime(m.createdAt)}</span>
         </p>
-        {quoted ? <p className="mt-1 border-l-2 border-[#3364e2] pl-2 text-[12px] text-[var(--theme-dark-color)]">{quoted.body.slice(0, 140)}</p> : null}
+        {quoted ? <p className="mt-1 border-s-2 border-[var(--ws-accent)] ps-2 text-[length:var(--ws-type-xs)] text-[var(--theme-dark-color)]">{(quoted.body ?? "").slice(0, 140)}</p> : null}
         {m.kind === "voice" && m.fileUrl ? (
           <audio className="mt-1 w-full max-w-sm" controls src={m.fileUrl} />
         ) : m.kind === "file" && m.fileUrl ? (
@@ -266,7 +277,7 @@ function MessageRow({
         ) : (
           <p className="mt-0.5 whitespace-pre-wrap text-[13.5px] leading-6 text-[var(--theme-content-color)]">{m.body}</p>
         )}
-        <div className="mt-1 flex flex-wrap gap-1 opacity-0 group-hover:opacity-100">
+        <div className="mt-1 flex flex-wrap gap-1 sm:opacity-0 sm:group-hover:opacity-100">
           {EMOJIS.map((e) => (
             <button key={e} type="button" className="rounded px-1 text-[12px] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => onReact(e)}>
               {e}
@@ -282,10 +293,10 @@ function MessageRow({
             Create issue
           </button>
         </div>
-        {m.reactions.length ? (
+        {m.reactions?.length ? (
           <div className="mt-1 flex gap-1">
             {m.reactions.map((r) => (
-              <button key={r.emoji} type="button" className={cn("rounded-full px-2 py-0.5 text-[11px]", r.mine ? "bg-[#3364e233]" : "bg-[var(--input-BackgroundColor)]")} onClick={() => onReact(r.emoji)}>
+              <button key={r.emoji} type="button" className={cn("rounded-full px-2 py-0.5 text-[11px]", r.mine ? "bg-[var(--ws-accent-muted)]" : "bg-[var(--input-BackgroundColor)]")} onClick={() => onReact(r.emoji)}>
                 {r.emoji} {r.count}
               </button>
             ))}

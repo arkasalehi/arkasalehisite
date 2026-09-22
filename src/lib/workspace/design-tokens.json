@@ -1,32 +1,38 @@
 {
   "name": "Arka Workspace",
-  "inspiredBy": "Huly (hcengineering/platform) visual density — reimplemented, not copied",
-  "color": {
-    "primary": "#2F6BFF",
-    "primarySoft": "#EEF3FF",
-    "accent": "#22C55E",
-    "danger": "#EF4444",
-    "warning": "#F59E0B",
-    "surface": "#FFFFFF",
-    "canvas": "#F7F8FB",
-    "sky": "#EEF2F6",
-    "border": "#EEF1F6",
-    "text": "#1E293B",
-    "muted": "#8B95A5",
-    "icon": "#B4BCC8",
-    "todo": "#efe8ff",
-    "doing": "#fff4d6",
-    "done": "#e7f8ee"
+  "brand": {
+    "accent": "#D4784A",
+    "accentHover": "#E08A5E",
+    "accentMuted": "rgba(212, 120, 74, 0.16)",
+    "onAccent": "#0C0D10"
   },
-  "spacing": [4, 8, 12, 16, 24, 32, 48],
-  "radius": { "sm": 8, "md": 14, "lg": 18, "xl": 22, "window": 22 },
+  "gray": {
+    "dark": ["#090A0C", "#0E1013", "#14171C", "#1B1F26", "#242933", "#323845", "#4A5160"],
+    "light": ["#F4F2EE", "#EBE8E2", "#E0DCD4", "#D2CDC4", "#B9B3A8", "#8A847A", "#5C574F"]
+  },
+  "semantic": {
+    "backlog": "#8B919C",
+    "progress": "#D4B45A",
+    "done": "#5EA882",
+    "cancelled": "#C97B78",
+    "priority": {
+      "none": "#6B7280",
+      "low": "#7A9BB8",
+      "medium": "#D4B45A",
+      "high": "#D4784A",
+      "urgent": "#C45C5A"
+    }
+  },
   "type": {
-    "ui": "ui-sans-serif, system-ui, Segoe UI, Vazirmatn",
-    "scale": { "xs": 11, "sm": 12, "md": 13.5, "lg": 15, "xl": 22, "display": 26 }
+    "en": "Inter",
+    "fa": "Vazirmatn",
+    "scale": { "xs": 12, "sm": 13, "md": 14, "lg": 16, "xl": 20, "display": 24 },
+    "bodyLineHeight": 1.55,
+    "headingLineHeight": 1.25,
+    "headingTracking": "-0.02em",
+    "labelTracking": "0.06em"
   },
-  "motion": { "fast": "120ms", "base": "180ms", "slow": "280ms" },
-  "elevation": {
-    "card": "0 6px 18px rgba(15,23,42,0.04)",
-    "window": "0 24px 64px rgba(15,23,42,0.1)"
-  }
+  "space": [4, 8, 12, 16, 24, 32, 48],
+  "radius": 6,
+  "motion": "180ms ease-in-out"
 }

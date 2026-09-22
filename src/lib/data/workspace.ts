@@ -120,7 +120,7 @@ export async function listChannels(userId?: string) {
   let q = db.from("workspace_channels").select("id, slug, name, kind").order("created_at");
   if (tenantId) q = q.eq("tenant_id", tenantId);
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) return [];
   let rows = data ?? [];
   if (userId) {
     const members = await db.from("workspace_channel_members").select("channel_id").eq("user_id", userId);
@@ -152,7 +152,7 @@ export async function listMessages(channelId: string, userId?: string, limit = 8
       .eq("channel_id", channelId)
       .order("created_at", { ascending: true })
       .limit(limit);
-    if (fallback.error) throw fallback.error;
+    if (fallback.error) return [];
     data = fallback.data as typeof data;
     error = null;
   }

@@ -15,6 +15,7 @@ export default async function MeetingRoomPage({ params }: { params: Promise<{ id
       title={meeting.title}
       subtitle={new Date(meeting.startsAt).toLocaleString("en-US")}
       roomName={meeting.roomName}
+      userId={session.id}
       displayName={session.displayName}
     />
   );

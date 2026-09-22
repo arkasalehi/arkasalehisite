@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { Hash, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InboxItem, WorkspaceMeeting, WorkspaceNote, WorkspaceProject, WorkspaceTask } from "@/lib/data/workspace";
+import { ArkaMark } from "@/components/workspace/ArkaMark";
 import { wsCopy, type WsLocale } from "@/lib/workspace/copy";
 
 type Person = { id: string; displayName: string };
@@ -82,15 +84,15 @@ export function HulyNavigator({
   const dms = channels.filter((ch) => ch.kind === "dm");
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[var(--theme-navpanel-color)] text-[13px]">
-      <div className="flex h-10 items-center gap-2 border-b border-[var(--theme-divider-color)] px-3">
-        <span className="grid h-6 w-6 place-items-center rounded bg-[#3364e2] text-[11px] font-bold text-white">A</span>
+    <div className="flex h-full min-h-0 w-full flex-col bg-[var(--theme-navpanel-color)] text-[length:var(--ws-type-sm)]">
+      <div className="flex h-10 items-center gap-[var(--ws-space-2)] border-b border-[var(--theme-divider-color)] px-[var(--ws-space-3)]">
+        <ArkaMark className="h-6 w-6" />
         <div className="min-w-0">
-          <p className="truncate text-[13px] font-medium text-[var(--theme-caption-color)]">Arka</p>
-          <p className="truncate text-[10px] text-[var(--theme-darker-color)]">{t.workspace}</p>
+          <p className="truncate font-medium tracking-[var(--ws-tracking-heading)]">Arka</p>
+          <p className="truncate text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">{t.workspace}</p>
         </div>
       </div>
-      <div className="ws-scroll min-h-0 flex-1 overflow-auto px-2 py-3">
+      <div className="ws-scroll min-h-0 flex-1 overflow-auto px-[var(--ws-space-2)] py-[var(--ws-space-3)]">
         <Section title={t.tracker}>
           <Nav href="/ws/tasks" on={pathname.startsWith("/ws/tasks") && view !== "board" && !projectFilter} label={t.issues} count={open} />
           <Nav href="/ws/tasks?view=todo" on={view === "todo"} label={t.backlog} />
@@ -99,22 +101,22 @@ export function HulyNavigator({
           {projects.map((project) => (
             <Nav key={project.id} href={`/ws/tasks?project=${project.id}`} on={projectFilter === project.id} label={`${project.identifier} ${project.name}`} />
           ))}
-          <form onSubmit={(e) => void createProject(e)} className="mt-1 flex gap-1 px-1">
-            <input name="name" className="h-7 min-w-0 flex-1 rounded bg-[var(--input-BackgroundColor)] px-2 text-[12px] outline-none" placeholder="New project" />
+          <form onSubmit={(e) => void createProject(e)} className="mt-[var(--ws-space-1)] flex gap-[var(--ws-space-1)] px-[var(--ws-space-1)]">
+            <input name="name" className="ws-input min-w-0 flex-1" placeholder="New project" />
           </form>
         </Section>
         <Section title={t.chat}>
           {spaces.map((ch) => (
-            <Nav key={ch.id} href={`/ws/chat/${ch.id}`} on={pathname.includes(ch.id)} label={`# ${ch.name}`} unread={inbox.find((i) => i.channelId === ch.id)?.unread} />
+            <Nav key={ch.id} href={`/ws/chat/${ch.id}`} on={pathname.includes(ch.id)} label={ch.name} unread={inbox.find((i) => i.channelId === ch.id)?.unread} hash />
           ))}
           {dms.map((ch) => (
             <Nav key={ch.id} href={`/ws/chat/${ch.id}`} on={pathname.includes(ch.id)} label={ch.name} unread={inbox.find((i) => i.channelId === ch.id)?.unread} />
           ))}
-          <form onSubmit={(e) => void createChannel(e)} className="mt-1 flex gap-1 px-1">
-            <input value={channelName} onChange={(e) => setChannelName(e.target.value)} className="h-7 min-w-0 flex-1 rounded bg-[var(--input-BackgroundColor)] px-2 text-[12px] outline-none" placeholder={t.newChannel} />
+          <form onSubmit={(e) => void createChannel(e)} className="mt-[var(--ws-space-1)] flex gap-[var(--ws-space-1)] px-[var(--ws-space-1)]">
+            <input value={channelName} onChange={(e) => setChannelName(e.target.value)} className="ws-input min-w-0 flex-1" placeholder={t.newChannel} />
           </form>
-          <form onSubmit={(e) => void createDm(e)} className="mt-1 flex gap-1 px-1">
-            <select value={dmUser} onChange={(e) => setDmUser(e.target.value)} className="h-7 min-w-0 flex-1 rounded bg-[var(--input-BackgroundColor)] px-1 text-[12px]">
+          <form onSubmit={(e) => void createDm(e)} className="mt-[var(--ws-space-1)] flex gap-[var(--ws-space-1)] px-[var(--ws-space-1)]">
+            <select value={dmUser} onChange={(e) => setDmUser(e.target.value)} className="ws-input min-w-0 flex-1">
               <option value="">{t.newDm}</option>
               {people.map((person) => (
                 <option key={person.id} value={person.id}>
@@ -122,8 +124,8 @@ export function HulyNavigator({
                 </option>
               ))}
             </select>
-            <button type="submit" className="text-[11px] text-[var(--theme-link-color)]">
-              Go
+            <button type="submit" className="ws-btn ws-btn-ghost text-[var(--ws-accent)]">
+              <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
             </button>
           </form>
         </Section>
@@ -147,9 +149,9 @@ export function HulyNavigator({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-4">
-      <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--theme-darker-color)]">{title}</p>
-      <div className="flex flex-col gap-0.5">{children}</div>
+    <div className="mb-[var(--ws-space-4)]">
+      <p className="px-[var(--ws-space-2)] pb-[var(--ws-space-2)] text-[length:var(--ws-type-xs)] font-semibold uppercase tracking-[var(--ws-tracking-label)] text-[var(--theme-darker-color)]">{title}</p>
+      <div className="flex flex-col gap-[var(--ws-space-1)]">{children}</div>
     </div>
   );
 }
@@ -160,24 +162,29 @@ function Nav({
   on,
   count,
   unread,
+  hash,
 }: {
   href: string;
   label: string;
   on?: boolean;
   count?: number;
   unread?: boolean;
+  hash?: boolean;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center justify-between rounded px-2 py-[5px] text-[var(--theme-content-color)]",
-        on ? "bg-[var(--theme-navpanel-selected)] text-[var(--theme-caption-color)]" : "hover:bg-[var(--theme-navpanel-hovered)]",
+        "flex items-center justify-between rounded-[var(--ws-radius)] px-[var(--ws-space-2)] py-[var(--ws-space-2)] text-[var(--theme-content-color)]",
+        on ? "bg-[var(--theme-navpanel-selected)] font-medium text-[var(--theme-caption-color)]" : "hover:bg-[var(--theme-navpanel-hovered)]",
       )}
     >
-      <span className="truncate">{label}</span>
-      {typeof count === "number" ? <span className="text-[10px] text-[var(--theme-darker-color)]">{count}</span> : null}
-      {unread ? <span className="h-1.5 w-1.5 rounded-full bg-[#3364e2]" /> : null}
+      <span className="flex min-w-0 items-center gap-[var(--ws-space-2)] truncate">
+        {hash ? <Hash className="h-3.5 w-3.5 shrink-0 text-[var(--theme-darker-color)]" strokeWidth={1.75} /> : null}
+        <span className="truncate">{label}</span>
+      </span>
+      {typeof count === "number" ? <span className="text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">{count}</span> : null}
+      {unread ? <span className="h-1.5 w-1.5 rounded-full bg-[var(--ws-accent)]" /> : null}
     </Link>
   );
 }

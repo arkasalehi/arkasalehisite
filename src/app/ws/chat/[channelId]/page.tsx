@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function ChatChannelPage({ params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params;
   const session = await getSession();
-  const channels = await listChannels(session?.id);
+  const channels = await listChannels(session?.id).catch(() => []);
   const channel = channels.find((c) => c.id === channelId);
   if (!channel || !session) notFound();
-  const messages = await listMessages(channelId, session.id);
+  const messages = await listMessages(channelId, session.id).catch(() => []);
   return <ChatPanel channelId={channel.id} channelName={channel.name} initial={messages} userId={session.id} />;
 }

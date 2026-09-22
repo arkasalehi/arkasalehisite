@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconBell } from "@/components/workspace/ws-icons";
+import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Item = { id: string; title: string; body?: string | null; link?: string | null; read: boolean };
@@ -39,24 +39,24 @@ export function WsNotifications() {
 
   return (
     <div className="relative">
-      <button type="button" className="relative grid h-7 w-7 place-items-center rounded text-[var(--theme-dark-color)] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => void toggle()} aria-label="Inbox">
-        <IconBell className="h-4 w-4" />
-        {unread > 0 ? <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#3364e2]" /> : null}
+      <button type="button" className="relative grid h-7 w-7 place-items-center rounded-[var(--ws-radius)] text-[var(--theme-dark-color)] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => void toggle()} aria-label="Inbox">
+        <Bell className="h-4 w-4" strokeWidth={1.75} />
+        {unread > 0 ? <span className="absolute end-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--ws-accent)]" /> : null}
       </button>
       {open ? (
-        <div className="absolute end-0 z-50 mt-2 w-80 overflow-hidden rounded-md border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)]">
-          <div className="flex items-center justify-between px-3 py-2">
-            <p className="text-[13px] font-medium">Inbox</p>
-            <button type="button" className="text-[11px] text-[var(--theme-link-color)]" onClick={() => void markAll()}>
+        <div className="absolute end-0 z-50 mt-2 w-80 overflow-hidden rounded-[var(--ws-radius)] border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)]">
+          <div className="flex items-center justify-between px-[var(--ws-space-3)] py-[var(--ws-space-2)]">
+            <p className="text-[length:var(--ws-type-sm)] font-medium">Inbox</p>
+            <button type="button" className="text-[length:var(--ws-type-xs)] text-[var(--ws-accent)]" onClick={() => void markAll()}>
               Mark all read
             </button>
           </div>
           {items.map((item) => (
-            <Link key={item.id} href={item.link || "/ws"} onClick={() => setOpen(false)} className={cn("block px-3 py-2 text-[13px] hover:bg-[var(--theme-navpanel-hovered)]", item.read ? "text-[var(--theme-dark-color)]" : "text-white")}>
+            <Link key={item.id} href={item.link || "/ws"} onClick={() => setOpen(false)} className={cn("block px-[var(--ws-space-3)] py-[var(--ws-space-2)] text-[length:var(--ws-type-sm)] hover:bg-[var(--theme-navpanel-hovered)]", item.read ? "text-[var(--theme-dark-color)]" : "text-[var(--theme-caption-color)]")}>
               {item.title}
             </Link>
           ))}
-          {items.length === 0 ? <p className="px-3 py-8 text-center text-[13px] text-[var(--theme-darker-color)]">No notifications</p> : null}
+          {items.length === 0 ? <p className="px-[var(--ws-space-3)] py-[var(--ws-space-6)] text-center text-[length:var(--ws-type-sm)] text-[var(--theme-darker-color)]">No notifications</p> : null}
         </div>
       ) : null}
     </div>

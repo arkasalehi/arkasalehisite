@@ -2,12 +2,28 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { CircleDot, ListTodo } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import type { WorkspaceProject, WorkspaceTask } from "@/lib/data/workspace";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/workspace/EmptyState";
+import { wsCopy } from "@/lib/workspace/copy";
 
 type Person = { id: string; displayName: string };
 type Comment = { id: string; body: string; createdAt: string; authorName: string };
+
+const STATUS_COLOR: Record<WorkspaceTask["status"], string> = {
+  todo: "var(--ws-status-backlog)",
+  doing: "var(--ws-status-progress)",
+  done: "var(--ws-status-done)",
+};
+const PRIORITY_COLOR: Record<WorkspaceTask["priority"], string> = {
+  none: "var(--ws-priority-none)",
+  low: "var(--ws-priority-low)",
+  medium: "var(--ws-priority-medium)",
+  high: "var(--ws-priority-high)",
+  urgent: "var(--ws-priority-urgent)",
+};
 
 export function TaskBoard({ initial, people, projects = [] }: { initial: WorkspaceTask[]; people: Person[]; projects?: WorkspaceProject[] }) {
   const view = useSearchParams().get("view");
@@ -17,7 +33,14 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
   const [comments, setComments] = useState<Comment[]>([]);
   const [subTitle, setSubTitle] = useState("");
   const [comment, setComment] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [locale, setLocale] = useState<"en" | "fa">("en");
   const projectFilter = useSearchParams().get("project");
+  const t = wsCopy(locale);
+
+  useEffect(() => {
+    setLocale(localStorage.getItem("ws-locale") === "fa" ? "fa" : "en");
+  }, []);
 
   useEffect(() => {
     const supabase = createBrowserSupabase();
@@ -27,7 +50,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
         if (payload.eventType === "INSERT") {
           const row = payload.new as Record<string, unknown>;
           setTasks((prev) => {
-            if (prev.some((t) => t.id === String(row.id))) return prev;
+            if (prev.some((item) => item.id === String(row.id))) return prev;
             return [
               ...prev,
               {
@@ -50,26 +73,26 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
         if (payload.eventType === "UPDATE") {
           const row = payload.new as Record<string, unknown>;
           setTasks((prev) =>
-            prev.map((t) =>
-              t.id === String(row.id)
+            prev.map((item) =>
+              item.id === String(row.id)
                 ? {
-                    ...t,
+                    ...item,
                     title: String(row.title),
-                    status: (row.status as WorkspaceTask["status"]) ?? t.status,
-                    description: row.description ? String(row.description) : t.description,
-                    dueAt: row.due_at ? String(row.due_at) : t.dueAt,
+                    status: (row.status as WorkspaceTask["status"]) ?? item.status,
+                    description: row.description ? String(row.description) : item.description,
+                    dueAt: row.due_at ? String(row.due_at) : item.dueAt,
                     assigneeId: row.assignee_id ? String(row.assignee_id) : null,
-                    priority: (row.priority as WorkspaceTask["priority"]) ?? t.priority,
-                    labels: Array.isArray(row.labels) ? row.labels.map(String) : t.labels,
-                    projectId: row.project_id ? String(row.project_id) : t.projectId,
+                    priority: (row.priority as WorkspaceTask["priority"]) ?? item.priority,
+                    labels: Array.isArray(row.labels) ? row.labels.map(String) : item.labels,
+                    projectId: row.project_id ? String(row.project_id) : item.projectId,
                   }
-                : t,
+                : item,
             ),
           );
         }
         if (payload.eventType === "DELETE") {
           const row = payload.old as Record<string, unknown>;
-          setTasks((prev) => prev.filter((t) => t.id !== String(row.id)));
+          setTasks((prev) => prev.filter((item) => item.id !== String(row.id)));
         }
       })
       .subscribe();
@@ -78,15 +101,15 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
     };
   }, []);
 
-  const roots = useMemo(() => tasks.filter((t) => !t.parentId), [tasks]);
-  const filtered = roots.filter((t) => {
-    if (view === "todo") return t.status === "todo";
-    if (view === "doing") return t.status === "doing";
-    if (view === "done") return t.status === "done";
-    if (projectFilter) return t.projectId === projectFilter;
+  const roots = useMemo(() => tasks.filter((item) => !item.parentId), [tasks]);
+  const filtered = roots.filter((item) => {
+    if (view === "todo") return item.status === "todo";
+    if (view === "doing") return item.status === "doing";
+    if (view === "done") return item.status === "done";
+    if (projectFilter) return item.projectId === projectFilter;
     return true;
   });
-  const selected = tasks.find((t) => t.id === active) ?? null;
+  const selected = tasks.find((item) => item.id === active) ?? null;
 
   useEffect(() => {
     if (!active) return;
@@ -97,30 +120,32 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || creating) return;
     const value = title.trim();
     setTitle("");
+    setCreating(true);
     await fetch("/api/workspace/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: value }),
     });
+    setCreating(false);
   }
 
   async function patch(id: string, body: Record<string, unknown>) {
     setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id
+      prev.map((item) =>
+        item.id === id
           ? {
-              ...t,
-              status: typeof body.status === "string" ? (body.status as WorkspaceTask["status"]) : t.status,
-              assigneeId: body.assigneeId === undefined ? t.assigneeId : body.assigneeId ? String(body.assigneeId) : null,
-              description: body.description === undefined ? t.description : body.description ? String(body.description) : null,
-              priority: typeof body.priority === "string" ? (body.priority as WorkspaceTask["priority"]) : t.priority,
-              projectId: body.projectId === undefined ? t.projectId : body.projectId ? String(body.projectId) : null,
-              labels: Array.isArray(body.labels) ? body.labels.map(String) : t.labels,
+              ...item,
+              status: typeof body.status === "string" ? (body.status as WorkspaceTask["status"]) : item.status,
+              assigneeId: body.assigneeId === undefined ? item.assigneeId : body.assigneeId ? String(body.assigneeId) : null,
+              description: body.description === undefined ? item.description : body.description ? String(body.description) : null,
+              priority: typeof body.priority === "string" ? (body.priority as WorkspaceTask["priority"]) : item.priority,
+              projectId: body.projectId === undefined ? item.projectId : body.projectId ? String(body.projectId) : null,
+              labels: Array.isArray(body.labels) ? body.labels.map(String) : item.labels,
             }
-          : t,
+          : item,
       ),
     );
     await fetch("/api/workspace/tasks", {
@@ -130,54 +155,106 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
     });
   }
 
+  const emptyCopy =
+    view === "todo"
+      ? { title: t.emptyBacklogTitle, body: t.emptyBacklogBody }
+      : view === "doing"
+        ? { title: t.emptyActiveTitle, body: t.emptyActiveBody }
+        : { title: t.emptyIssuesTitle, body: t.emptyIssuesBody };
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-2 border-b border-[var(--theme-divider-color)] px-4 py-2">
-        <form onSubmit={(e) => void add(e)} className="flex flex-1 gap-2">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 flex-1 rounded-md bg-[var(--input-BackgroundColor)] px-3 text-[13px] outline-none placeholder:text-[var(--input-PlaceholderColor)]" placeholder="New issue" />
-          <button type="submit" className="h-8 rounded-md bg-[var(--button-primary-BackgroundColor)] px-3 text-[12px] font-medium text-white">
-            Create issue
+    <div className="relative flex h-full min-h-0 flex-col">
+      <div className="flex items-center gap-[var(--ws-space-2)] border-b border-[var(--theme-divider-color)] px-[var(--ws-space-4)] py-[var(--ws-space-2)]">
+        <form onSubmit={(e) => void add(e)} className="flex flex-1 gap-[var(--ws-space-2)]">
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="ws-input flex-1" placeholder="New issue" />
+          <button type="submit" disabled={creating} className="ws-btn ws-btn-primary">
+            {creating ? <span className="ws-spinner" /> : t.createIssue}
           </button>
         </form>
       </div>
       {view === "board" ? (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-auto p-4 md:grid-cols-3">
-          {(["todo", "doing", "done"] as const).map((status) => (
-            <section key={status} className="rounded-md bg-[var(--theme-navpanel-color)] p-2" onDragOver={(e) => e.preventDefault()} onDrop={(e) => {
-              const id = e.dataTransfer.getData("text/task-id");
-              if (id) void patch(id, { status });
-            }}>
-              <p className="px-2 py-1 text-[11px] uppercase tracking-wide text-[var(--theme-darker-color)]">{status === "todo" ? "Backlog" : status === "doing" ? "Active" : "Done"}</p>
-              {roots.filter((t) => t.status === status).map((t, i) => (
-                <article key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/task-id", t.id)} className="mb-1 cursor-grab rounded px-2 py-2 hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => setActive(t.id)}>
-                  <p className="text-[12px] text-[var(--theme-darker-color)]">ARKA-{i + 1}</p>
-                  <p className="text-[13px] text-[var(--theme-caption-color)]">{t.title}</p>
-                </article>
-              ))}
-            </section>
-          ))}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-[var(--ws-space-3)] overflow-auto p-[var(--ws-space-4)] md:grid-cols-3">
+          {(["todo", "doing", "done"] as const).map((status) => {
+            const column = roots.filter((item) => item.status === status);
+            return (
+              <section
+                key={status}
+                className="rounded-[var(--ws-radius)] bg-[var(--theme-navpanel-color)] p-[var(--ws-space-2)]"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  const id = e.dataTransfer.getData("text/task-id");
+                  if (id) void patch(id, { status });
+                }}
+              >
+                <p className="flex items-center gap-[var(--ws-space-2)] px-[var(--ws-space-2)] py-[var(--ws-space-1)] text-[length:var(--ws-type-xs)] font-semibold uppercase tracking-[var(--ws-tracking-label)]" style={{ color: STATUS_COLOR[status] }}>
+                  <span className="ws-dot" />
+                  {status === "todo" ? t.backlog : status === "doing" ? t.active : "Done"}
+                </p>
+                {column.length === 0 ? (
+                  <p className="px-[var(--ws-space-2)] py-[var(--ws-space-4)] text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">Drop an issue here.</p>
+                ) : (
+                  column.map((item, i) => (
+                    <article
+                      key={item.id}
+                      draggable
+                      data-row
+                      onDragStart={(e) => e.dataTransfer.setData("text/task-id", item.id)}
+                      className={cn("mb-[var(--ws-space-1)] cursor-grab rounded-[var(--ws-radius)] px-[var(--ws-space-2)] py-[var(--ws-space-2)] hover:bg-[var(--theme-navpanel-hovered)]", active === item.id && "bg-[var(--theme-navpanel-selected)]")}
+                      onClick={() => setActive(item.id)}
+                    >
+                      <p className="text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">ARKA-{i + 1}</p>
+                      <p className="text-[length:var(--ws-type-sm)] font-medium">{item.title}</p>
+                    </article>
+                  ))
+                )}
+              </section>
+            );
+          })}
         </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={view === "doing" ? <CircleDot className="h-5 w-5" strokeWidth={1.75} /> : <ListTodo className="h-5 w-5" strokeWidth={1.75} />}
+          title={emptyCopy.title}
+          body={emptyCopy.body}
+          action={
+            <button type="button" className="ws-btn ws-btn-primary" onClick={() => document.querySelector<HTMLInputElement>(".ws-input")?.focus()}>
+              {t.createIssue}
+            </button>
+          }
+        />
       ) : (
-        <div className="ws-scroll min-h-0 flex-1 overflow-auto">
-          <table className="w-full text-left text-[13px]">
-            <thead className="sticky top-0 bg-[var(--theme-comp-header-color)] text-[11px] uppercase tracking-wide text-[var(--theme-darker-color)]">
+        <div className="ws-scroll min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+          <table className="w-full text-start text-[length:var(--ws-type-sm)]">
+            <thead className="sticky top-0 bg-[var(--theme-comp-header-color)] text-[length:var(--ws-type-xs)] uppercase tracking-[var(--ws-tracking-label)] text-[var(--theme-darker-color)]">
               <tr>
-                <th className="px-4 py-2 font-medium">Issue</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Priority</th>
-                <th className="px-4 py-2 font-medium">Assignee</th>
+                <th className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] font-medium">Issue</th>
+                <th className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] font-medium">Status</th>
+                <th className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] font-medium">Priority</th>
+                <th className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] font-medium">Assignee</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((t, i) => (
-                <tr key={t.id} className="cursor-pointer border-t border-[var(--theme-divider-color)] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => setActive(t.id)}>
-                  <td className="px-4 py-2">
-                    <span className="mr-2 text-[var(--theme-darker-color)]">ARKA-{i + 1}</span>
-                    {t.title}
+              {filtered.map((item, i) => (
+                <tr
+                  key={item.id}
+                  data-row
+                  className={cn("cursor-pointer border-t border-[var(--theme-divider-color)] hover:bg-[var(--theme-navpanel-hovered)]", active === item.id && "bg-[var(--theme-navpanel-selected)]")}
+                  onClick={() => setActive(item.id)}
+                >
+                  <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)]">
+                    <span className="me-[var(--ws-space-2)] text-[var(--theme-darker-color)]">ARKA-{i + 1}</span>
+                    {item.title}
                   </td>
-                  <td className="px-4 py-2 capitalize text-[var(--theme-dark-color)]">{t.status === "todo" ? "Backlog" : t.status === "doing" ? "Active" : "Done"}</td>
-                  <td className="px-4 py-2 text-[var(--theme-dark-color)]">{t.priority}</td>
-                  <td className="px-4 py-2 text-[var(--theme-dark-color)]">{people.find((p) => p.id === t.assigneeId)?.displayName || "Unassigned"}</td>
+                  <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)]">
+                    <span className="ws-chip" style={{ color: STATUS_COLOR[item.status], background: "var(--input-BackgroundColor)" }}>
+                      <span className="ws-dot" />
+                      {item.status === "todo" ? t.backlog : item.status === "doing" ? t.active : "Done"}
+                    </span>
+                  </td>
+                  <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)]" style={{ color: PRIORITY_COLOR[item.priority] }}>
+                    {item.priority}
+                  </td>
+                  <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] text-[var(--theme-dark-color)]">{people.find((p) => p.id === item.assigneeId)?.displayName || "Unassigned"}</td>
                 </tr>
               ))}
             </tbody>
@@ -185,19 +262,19 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
         </div>
       )}
       {selected ? (
-        <div className="absolute inset-y-10 right-0 z-20 w-full max-w-md overflow-auto border-l border-[var(--theme-divider-color)] bg-[var(--theme-bg-color)] p-4">
-          <button type="button" className="text-[12px] text-[var(--theme-darker-color)]" onClick={() => setActive(null)}>
+        <div className="absolute inset-y-10 end-0 z-20 w-full max-w-md overflow-auto border-s border-[var(--theme-divider-color)] bg-[var(--theme-bg-color)] p-[var(--ws-space-4)] max-md:inset-0 max-md:max-w-none">
+          <button type="button" className="ws-btn ws-btn-ghost text-[var(--theme-darker-color)]" onClick={() => setActive(null)}>
             Close
           </button>
-          <h2 className="mt-2 text-[18px] font-medium">{selected.title}</h2>
-          <div className="mt-3 flex gap-2">
+          <h2 className="mt-[var(--ws-space-2)] text-[length:var(--ws-type-xl)]">{selected.title}</h2>
+          <div className="mt-[var(--ws-space-3)] flex gap-[var(--ws-space-2)]">
             {(["todo", "doing", "done"] as const).map((s) => (
-              <button key={s} type="button" onClick={() => void patch(selected.id, { status: s })} className={cn("rounded px-2 py-1 text-[12px]", selected.status === s ? "bg-[var(--button-primary-BackgroundColor)]" : "bg-[var(--input-BackgroundColor)]")}>
-                {s === "todo" ? "Backlog" : s === "doing" ? "Active" : "Done"}
+              <button key={s} type="button" onClick={() => void patch(selected.id, { status: s })} className={cn("ws-btn", selected.status === s ? "text-[var(--ws-on-accent)]" : "ws-btn-ghost")} style={selected.status === s ? { background: STATUS_COLOR[s] } : undefined}>
+                {s === "todo" ? t.backlog : s === "doing" ? t.active : "Done"}
               </button>
             ))}
           </div>
-          <select className="mt-3 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" value={selected.assigneeId ?? ""} onChange={(e) => void patch(selected.id, { assigneeId: e.target.value || null })}>
+          <select className="ws-input mt-[var(--ws-space-3)] w-full" value={selected.assigneeId ?? ""} onChange={(e) => void patch(selected.id, { assigneeId: e.target.value || null })}>
             <option value="">Unassigned</option>
             {people.map((p) => (
               <option key={p.id} value={p.id}>
@@ -205,7 +282,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
               </option>
             ))}
           </select>
-          <select className="mt-2 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" value={selected.projectId ?? ""} onChange={(e) => void patch(selected.id, { projectId: e.target.value || null })}>
+          <select className="ws-input mt-[var(--ws-space-2)] w-full" value={selected.projectId ?? ""} onChange={(e) => void patch(selected.id, { projectId: e.target.value || null })}>
             <option value="">No project</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -213,7 +290,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
               </option>
             ))}
           </select>
-          <select className="mt-2 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" value={selected.priority} onChange={(e) => void patch(selected.id, { priority: e.target.value })}>
+          <select className="ws-input mt-[var(--ws-space-2)] w-full" value={selected.priority} onChange={(e) => void patch(selected.id, { priority: e.target.value })}>
             {["none", "low", "medium", "high", "urgent"].map((p) => (
               <option key={p} value={p}>
                 {p}
@@ -221,23 +298,25 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
             ))}
           </select>
           <input
-            className="mt-2 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]"
+            className="ws-input mt-[var(--ws-space-2)] w-full"
             defaultValue={selected.labels.join(", ")}
             placeholder="labels, comma separated"
             onBlur={(e) => void patch(selected.id, { labels: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
           />
-          <textarea defaultValue={selected.description ?? ""} className="mt-3 min-h-32 w-full rounded bg-[var(--input-BackgroundColor)] p-2 text-[13px] outline-none" placeholder="Description" onBlur={(e) => void patch(selected.id, { description: e.target.value })} />
-          <h3 className="mt-4 text-[13px] font-medium">Sub-issues</h3>
-          <ul className="mt-1 space-y-1 text-[13px]">
-            {tasks.filter((t) => t.parentId === selected.id).map((s) => (
-              <li key={s.id} className="flex items-center justify-between rounded bg-[var(--input-BackgroundColor)] px-2 py-1">
-                <span>{s.title}</span>
-                <input type="checkbox" checked={s.status === "done"} onChange={() => void patch(s.id, { status: s.status === "done" ? "todo" : "done" })} />
-              </li>
-            ))}
+          <textarea defaultValue={selected.description ?? ""} className="mt-[var(--ws-space-3)] min-h-32 w-full rounded-[var(--ws-radius)] bg-[var(--input-BackgroundColor)] p-[var(--ws-space-2)] text-[length:var(--ws-type-sm)] outline-none" placeholder="Description" onBlur={(e) => void patch(selected.id, { description: e.target.value })} />
+          <h3 className="mt-[var(--ws-space-4)] text-[length:var(--ws-type-sm)] font-medium">Sub-issues</h3>
+          <ul className="mt-[var(--ws-space-1)] space-y-[var(--ws-space-1)] text-[length:var(--ws-type-sm)]">
+            {tasks
+              .filter((item) => item.parentId === selected.id)
+              .map((sub) => (
+                <li key={sub.id} className="flex items-center justify-between rounded-[var(--ws-radius)] bg-[var(--input-BackgroundColor)] px-[var(--ws-space-2)] py-[var(--ws-space-1)]">
+                  <span>{sub.title}</span>
+                  <input type="checkbox" checked={sub.status === "done"} onChange={() => void patch(sub.id, { status: sub.status === "done" ? "todo" : "done" })} />
+                </li>
+              ))}
           </ul>
           <form
-            className="mt-2 flex gap-2"
+            className="mt-[var(--ws-space-2)] flex gap-[var(--ws-space-2)]"
             onSubmit={(e) => {
               e.preventDefault();
               if (!subTitle.trim()) return;
@@ -246,21 +325,21 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
               void fetch("/api/workspace/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: value, parentId: selected.id }) });
             }}
           >
-            <input value={subTitle} onChange={(e) => setSubTitle(e.target.value)} className="h-8 flex-1 rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" placeholder="Add sub-issue" />
-            <button type="submit" className="text-[12px] text-[var(--theme-link-color)]">
+            <input value={subTitle} onChange={(e) => setSubTitle(e.target.value)} className="ws-input flex-1" placeholder="Add sub-issue" />
+            <button type="submit" className="ws-btn ws-btn-ghost text-[var(--ws-accent)]">
               Add
             </button>
           </form>
-          <ul className="mt-4 space-y-2 text-[13px]">
+          <ul className="mt-[var(--ws-space-4)] space-y-[var(--ws-space-2)] text-[length:var(--ws-type-sm)]">
             {comments.map((c) => (
-              <li key={c.id} className="rounded bg-[var(--input-BackgroundColor)] px-2 py-2">
-                <p className="text-[11px] text-[var(--theme-darker-color)]">{c.authorName}</p>
+              <li key={c.id} className="rounded-[var(--ws-radius)] bg-[var(--input-BackgroundColor)] px-[var(--ws-space-2)] py-[var(--ws-space-2)]">
+                <p className="text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">{c.authorName}</p>
                 {c.body}
               </li>
             ))}
           </ul>
           <form
-            className="mt-2 flex gap-2"
+            className="mt-[var(--ws-space-2)] flex gap-[var(--ws-space-2)]"
             onSubmit={(e) => {
               e.preventDefault();
               if (!comment.trim() || !active) return;
@@ -270,8 +349,8 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
               setComments((prev) => [...prev, { id: crypto.randomUUID(), body, createdAt: new Date().toISOString(), authorName: "You" }]);
             }}
           >
-            <input value={comment} onChange={(e) => setComment(e.target.value)} className="h-8 flex-1 rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" placeholder="Comment" />
-            <button type="submit" className="text-[12px] text-[var(--theme-link-color)]">
+            <input value={comment} onChange={(e) => setComment(e.target.value)} className="ws-input flex-1" placeholder="Comment" />
+            <button type="submit" className="ws-btn ws-btn-ghost text-[var(--ws-accent)]">
               Send
             </button>
           </form>

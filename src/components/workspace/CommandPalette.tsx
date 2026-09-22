@@ -60,14 +60,14 @@ export function CommandPalette({
 
   return (
     <div className="fixed inset-0 z-[80] grid place-items-start bg-black/50 p-4 pt-[12vh]" onClick={() => setOpen(false)}>
-      <div className="mx-auto w-full max-w-lg overflow-hidden rounded-lg border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)]" onClick={(e) => e.stopPropagation()}>
-        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-12 w-full border-b border-[var(--theme-divider-color)] bg-transparent px-4 text-[14px] outline-none" />
-        <ul className="max-h-80 overflow-auto p-1">
+      <div className="mx-auto w-full max-w-lg overflow-hidden rounded-[var(--ws-radius)] border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)]" onClick={(e) => e.stopPropagation()}>
+        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-12 w-full border-b border-[var(--theme-divider-color)] bg-transparent px-4 text-[length:var(--ws-type-md)] outline-none" />
+        <ul className="ws-scroll max-h-80 overflow-auto p-1">
           {hits.map((hit) => (
             <li key={`${hit.href}-${hit.label}`}>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded px-3 py-2 text-left text-[13px] hover:bg-[var(--theme-navpanel-hovered)]"
+                className="flex w-full items-center justify-between rounded-[var(--ws-radius)] px-3 py-2 text-start text-[length:var(--ws-type-sm)] hover:bg-[var(--theme-navpanel-hovered)]"
                 onClick={() => {
                   setOpen(false);
                   setQ("");

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import "./globals.css";
-import { playfair, vazir } from "@/lib/fonts";
+import { inter, playfair, vazir } from "@/lib/fonts";
 import { siteConfig } from "@/lib/config";
 import { getSession } from "@/lib/auth/session";
 import { getSiteCms } from "@/lib/data/settings";
@@ -39,13 +39,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang={workspace ? "en" : "fa"}
       dir={workspace ? "ltr" : "rtl"}
-      className={`${vazir.variable} ${playfair.variable} h-full${workspace || theme === "dark" ? " dark" : ""}`}
+      className={`${vazir.variable} ${inter.variable} ${playfair.variable} h-full${workspace || theme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans antialiased">
         <ServiceWorkerRegister />
         <Providers user={user} theme={theme}>
-          {workspace ? <main className="h-full min-h-svh w-full bg-[#0E0F10]">{children}</main> : <SiteChrome cms={cms}>{children}</SiteChrome>}
+          {workspace ? <main className="h-full min-h-svh w-full bg-[var(--ws-gray-1,#0E1013)]">{children}</main> : <SiteChrome cms={cms}>{children}</SiteChrome>}
         </Providers>
       </body>
     </html>
