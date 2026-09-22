@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 import type { WorkspaceMeeting } from "@/lib/data/workspace";
+import { useOfficePresence } from "@/components/workspace/useOfficePresence";
 
-export function MeetingList({ meetings }: { meetings: WorkspaceMeeting[] }) {
+export function MeetingList({ meetings, displayName }: { meetings: WorkspaceMeeting[]; displayName: string }) {
   const router = useRouter();
-  const [title, setTitle] = useState("Team meeting");
+  const peers = useOfficePresence("lobby", displayName);
+  const [title, setTitle] = useState("Office room");
   const [startsAt, setStartsAt] = useState(() => new Date().toISOString().slice(0, 16));
   const [loading, setLoading] = useState(false);
 
@@ -25,27 +26,29 @@ export function MeetingList({ meetings }: { meetings: WorkspaceMeeting[] }) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-      <section className="space-y-3">
-        {meetings.length === 0 ? <p className="text-sm text-[#8b938d]">No meetings yet. Create one and jump in.</p> : null}
+    <div className="ws-scroll h-full overflow-auto p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] font-medium">Office</h1>
+          <p className="text-[12px] text-[var(--theme-darker-color)]">{peers.length ? peers.join(", ") : "No one in lobby"}</p>
+        </div>
+      </div>
+      <form onSubmit={(e) => void create(e)} className="mb-6 flex flex-wrap gap-2">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 rounded-md bg-[var(--input-BackgroundColor)] px-3 text-[13px] outline-none" />
+        <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className="h-8 rounded-md bg-[var(--input-BackgroundColor)] px-3 text-[13px] outline-none" />
+        <button type="submit" disabled={loading} className="h-8 rounded-md bg-[var(--button-primary-BackgroundColor)] px-3 text-[12px] font-medium text-white">
+          Create room
+        </button>
+      </form>
+      <div className="divide-y divide-[var(--theme-divider-color)] border-y border-[var(--theme-divider-color)]">
         {meetings.map((m) => (
-          <a key={m.id} href={`/ws/meet/${m.id}`} className="block rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-[#eef1ea]">
-            <p className="font-medium">{m.title}</p>
-            <p className="mt-1 text-xs text-[#8b938d]">
-              {new Date(m.startsAt).toLocaleString("en-US")} · Jitsi
-            </p>
+          <a key={m.id} href={`/ws/meet/${m.id}`} className="flex items-center justify-between py-3 text-[13px] hover:bg-[var(--theme-navpanel-hovered)]">
+            <span>{m.title}</span>
+            <span className="text-[11px] text-[var(--theme-darker-color)]">{new Date(m.startsAt).toLocaleString("en-US")}</span>
           </a>
         ))}
-      </section>
-      <form onSubmit={create} className="space-y-3 rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-[#eef1ea]">
-        <h2 className="text-sm font-semibold">New meeting</h2>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="field" placeholder="Title" />
-        <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className="field" />
-        <Button type="submit" loading={loading} loadingLabel="Creating…" className="w-full bg-[#1b6754] text-white hover:opacity-90">
-          Create and join
-        </Button>
-        <p className="text-[11px] leading-5 text-[#8b938d]">Video calls run on Jitsi Meet (free camera and screen share).</p>
-      </form>
+        {meetings.length === 0 ? <p className="py-8 text-[13px] text-[var(--theme-darker-color)]">No rooms yet.</p> : null}
+      </div>
     </div>
   );
 }

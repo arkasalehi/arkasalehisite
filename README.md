@@ -23,6 +23,8 @@ Apply `supabase/migrations/20260903120000_init.sql` in the Supabase SQL editor o
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Workspace app (collaborators): `NEXT_PUBLIC_WORKSPACE_URL` (production [https://workspace.arkasalehi.com](https://workspace.arkasalehi.com)). Docs: `LICENSE-AUDIT.md`, `docs/ARCHITECTURE.md`, `docs/THEMING.md`.
+
 Register `admin@arkasalehi.ir` to get the admin role (and demo content). Disable **Confirm email** in Supabase Auth if you want instant login.
 
 ## Deploy (Cloudflare / OpenNext)

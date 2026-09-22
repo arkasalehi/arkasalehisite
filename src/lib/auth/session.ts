@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import type { Role } from "@/lib/types";
 import { isAdminRole, normalizeRole } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/fetch";
 import { getProfile } from "@/lib/data/users";
 
 export type SessionUser = {
@@ -13,6 +15,8 @@ export type SessionUser = {
 
 export async function getSession(): Promise<SessionUser | null> {
   try {
+    const jar = await cookies();
+    if (!hasSupabaseAuthCookie(jar.getAll())) return null;
     const supabase = await createServerSupabase();
     const {
       data: { user },

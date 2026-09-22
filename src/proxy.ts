@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { withAppCookieOptions } from "@/lib/auth/cookies";
 import { isWorkspaceHost, publicSiteUrl } from "@/lib/runtime";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase";
+import { fetchWithTimeout } from "@/lib/supabase/fetch";
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -26,13 +27,19 @@ export async function proxy(request: NextRequest) {
   const adminPage = pathname.startsWith("/admin") || pathname.startsWith("/preview");
   const adminApi = pathname.startsWith("/api/admin");
   const workspaceGate = onWorkspaceHost || pathname.startsWith("/ws") || pathname.startsWith("/api/workspace");
+  const needsAuth =
+    adminPage ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/checkout") ||
+    workspaceGate;
 
   let authed = false;
   let isAdmin = false;
   let isCollaborator = false;
 
-  if (url && key) {
+  if (url && key && needsAuth) {
     const supabase = createServerClient(url, key, {
+      global: { fetch: fetchWithTimeout(5000) },
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -47,26 +54,24 @@ export async function proxy(request: NextRequest) {
       },
     });
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    authed = Boolean(user);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      authed = Boolean(user);
 
-    if (user && (adminPage || adminApi)) {
-      const { data } = await supabase.rpc("is_admin");
-      isAdmin = data === true;
-    }
-    if (user && workspaceGate) {
-      const { data } = await supabase.rpc("is_collaborator");
-      isCollaborator = data === true;
+      if (user && (adminPage || adminApi)) {
+        const { data } = await supabase.rpc("is_admin");
+        isAdmin = data === true;
+      }
+      if (user && workspaceGate) {
+        const { data } = await supabase.rpc("is_collaborator");
+        isCollaborator = data === true;
+      }
+    } catch (error) {
+      console.error("proxy auth", error);
     }
   }
-
-  const needsAuth =
-    adminPage ||
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/checkout") ||
-    workspaceGate;
 
   if (needsAuth && !authed) {
     if (onWorkspaceHost) {
@@ -111,5 +116,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  matcher: ["/((?!_next/|favicon.ico|sw.js|manifest.webmanifest|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };

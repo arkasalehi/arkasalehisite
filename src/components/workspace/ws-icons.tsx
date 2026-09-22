@@ -69,8 +69,74 @@ export function IconSearch({ className }: { className?: string }) {
 
 export function IconSend({ className }: { className?: string }) {
   return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M3.2 20.8 21.4 12 3.2 3.2l.2 7.2L14 12 3.4 13.6z" />
+    </svg>
+  );
+}
+
+export function IconGrid({ className }: { className?: string }) {
+  return (
     <WsIcon className={className}>
-      <P d="M5 12h12M14 7l6 5-6 5" />
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.4" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.4" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.4" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.4" />
+    </WsIcon>
+  );
+}
+
+export function IconPeople({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <circle cx="9" cy="8" r="3" />
+      <circle cx="16" cy="9" r="2.4" />
+      <P d="M4 19c.6-3.2 2.8-5 5-5s4.4 1.8 5 5M14 19c.4-2 1.6-3.2 3.2-3.2 1.5 0 2.6 1 3 3.2" />
+    </WsIcon>
+  );
+}
+
+export function IconSettings({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <circle cx="12" cy="12" r="3.2" />
+      <P d="M12 3.5v2.2M12 18.3v2.2M4.9 6.6l1.6 1.6M17.5 15.8l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.9 17.4l1.6-1.6M17.5 8.2l1.6-1.6" />
+    </WsIcon>
+  );
+}
+
+export function IconPin({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <P d="M15 4.5 19.5 9c-2.2.9-3.6 2.5-4.1 4.6L9.8 8.9C11.9 8.4 13.6 6.8 15 4.5z" />
+      <P d="M9.6 9.1 4 20l10.9-5.6" />
+    </WsIcon>
+  );
+}
+
+export function IconCompose({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <P d="M14 5.5 18.5 10 9 19.5H4.5V15z" />
+      <P d="M12.5 7 17 11.5" />
+    </WsIcon>
+  );
+}
+
+export function IconPhone({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <rect x="8" y="3" width="8" height="18" rx="2.2" />
+      <P d="M11 18.5h2" />
+    </WsIcon>
+  );
+}
+
+export function IconPlay({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <rect x="4" y="6" width="16" height="12" rx="2.4" />
+      <P d="M10 9.5 15.5 12 10 14.5z" />
     </WsIcon>
   );
 }
@@ -150,6 +216,15 @@ export function IconFolder({ className }: { className?: string }) {
   return (
     <WsIcon className={className}>
       <P d="M4 7h5l2 2h9v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+    </WsIcon>
+  );
+}
+
+export function IconDoc({ className }: { className?: string }) {
+  return (
+    <WsIcon className={className}>
+      <P d="M7 4h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+      <P d="M14 4v5h5" />
     </WsIcon>
   );
 }

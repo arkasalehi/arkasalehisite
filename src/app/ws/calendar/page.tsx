@@ -14,25 +14,25 @@ export default async function CalendarPage() {
   }
 
   return (
-    <div>
-      <h1 className="mb-4 text-[22px] font-semibold tracking-tight">Meeting calendar</h1>
-      <div className="space-y-4">
+    <div className="ws-scroll h-full overflow-auto p-6">
+      <h1 className="mb-4 text-[18px] font-medium">Calendar</h1>
+      <div className="space-y-6">
         {[...byDay.entries()].map(([day, items]) => (
-          <section key={day} className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-[#eef1ea]">
-            <h2 className="text-sm font-semibold">{day}</h2>
-            <ul className="mt-2 space-y-2">
+          <section key={day}>
+            <h2 className="text-[12px] font-semibold uppercase tracking-wide text-[var(--theme-darker-color)]">{day}</h2>
+            <ul className="mt-2 divide-y divide-[var(--theme-divider-color)] border-y border-[var(--theme-divider-color)]">
               {items.map((m) => (
                 <li key={m.id}>
-                  <Link href={`/ws/meet/${m.id}`} className="flex justify-between rounded-xl bg-[#f6f7f4] px-3 py-2 text-sm">
+                  <Link href={`/ws/meet/${m.id}`} className="flex justify-between py-2 text-[13px] hover:bg-[var(--theme-navpanel-hovered)]">
                     <span>{m.title}</span>
-                    <span className="text-[#8b938d]">{new Date(m.startsAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span className="text-[var(--theme-darker-color)]">{new Date(m.startsAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           </section>
         ))}
-        {byDay.size === 0 ? <p className="text-sm text-[#8b938d]">No meetings on the calendar.</p> : null}
+        {byDay.size === 0 ? <p className="text-[13px] text-[var(--theme-darker-color)]">Nothing scheduled.</p> : null}
       </div>
     </div>
   );

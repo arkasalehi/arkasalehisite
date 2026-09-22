@@ -3,6 +3,7 @@ import { canAccessWorkspace } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { sanitizeText } from "@/lib/security";
+import { getActiveTenantId } from "@/lib/data/workspace";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -20,6 +21,9 @@ async function requireWorkspace() {
 const createSchema = z.object({
   title: z.string().min(1).max(160),
   parentId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
+  priority: z.enum(["none", "low", "medium", "high", "urgent"]).optional(),
+  labels: z.array(z.string().max(24)).optional(),
 });
 
 const patchSchema = z.object({
@@ -30,6 +34,10 @@ const patchSchema = z.object({
   description: z.string().max(4000).optional().nullable(),
   dueAt: z.string().optional().nullable(),
   parentId: z.string().uuid().optional().nullable(),
+  assigneeId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
+  priority: z.enum(["none", "low", "medium", "high", "urgent"]).optional(),
+  labels: z.array(z.string().max(24)).optional(),
 });
 
 export async function POST(request: Request) {
@@ -38,12 +46,17 @@ export async function POST(request: Request) {
     const session = await requireWorkspace();
     const input = createSchema.parse(await request.json());
     const db = await createServerSupabase();
+    const tenantId = await getActiveTenantId();
     const { data, error } = await db
       .from("workspace_tasks")
       .insert({
         title: sanitizeText(input.title, 160),
         created_by: session.id,
         parent_id: input.parentId || null,
+        tenant_id: tenantId,
+        project_id: input.projectId || null,
+        priority: input.priority ?? "none",
+        labels: input.labels ?? [],
       })
       .select("id")
       .single();
@@ -67,6 +80,10 @@ export async function PATCH(request: Request) {
     if (input.description !== undefined) patch.description = input.description ? sanitizeText(input.description, 4000) : null;
     if (input.dueAt !== undefined) patch.due_at = input.dueAt || null;
     if (input.parentId !== undefined) patch.parent_id = input.parentId;
+    if (input.assigneeId !== undefined) patch.assignee_id = input.assigneeId;
+    if (input.projectId !== undefined) patch.project_id = input.projectId;
+    if (input.priority) patch.priority = input.priority;
+    if (input.labels) patch.labels = input.labels;
     const { error } = await db.from("workspace_tasks").update(patch).eq("id", input.id);
     if (error) throw error;
     return json({ ok: true });

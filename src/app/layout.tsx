@@ -39,13 +39,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang={workspace ? "en" : "fa"}
       dir={workspace ? "ltr" : "rtl"}
-      className={`${vazir.variable} ${playfair.variable} h-full${theme === "dark" ? " dark" : ""}`}
+      className={`${vazir.variable} ${playfair.variable} h-full${workspace || theme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans antialiased">
         <ServiceWorkerRegister />
         <Providers user={user} theme={theme}>
-          {workspace ? <main className="w-full">{children}</main> : <SiteChrome cms={cms}>{children}</SiteChrome>}
+          {workspace ? <main className="h-full min-h-svh w-full bg-[#0E0F10]">{children}</main> : <SiteChrome cms={cms}>{children}</SiteChrome>}
         </Providers>
       </body>
     </html>

@@ -22,6 +22,7 @@ const messageSchema = z.object({
   body: z.string().min(1).max(4000),
   kind: z.enum(["text", "file", "voice"]).optional(),
   fileName: z.string().max(180).optional().nullable(),
+  fileUrl: z.string().max(2000).optional().nullable(),
   replyTo: z.string().uuid().optional().nullable(),
 });
 
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
       body: sanitizeText(input.body, 4000),
       kind: input.kind ?? "text",
       file_name: input.fileName ? sanitizeText(input.fileName, 180) : null,
+      file_url: input.fileUrl || null,
       reply_to: input.replyTo || null,
     };
     const { data, error } = await db.from("workspace_messages").insert(row).select("id").single();

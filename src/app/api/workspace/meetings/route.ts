@@ -3,6 +3,7 @@ import { canAccessWorkspace } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { sanitizeText } from "@/lib/security";
+import { getActiveTenantId } from "@/lib/data/workspace";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     const input = schema.parse(await request.json());
     const room = `arka-${crypto.randomUUID().slice(0, 8)}`;
     const db = await createServerSupabase();
+    const tenantId = await getActiveTenantId();
     const { data, error } = await db
       .from("workspace_meetings")
       .insert({
@@ -38,6 +40,7 @@ export async function POST(request: Request) {
         ends_at: input.endsAt || null,
         room_name: room,
         created_by: session.id,
+        tenant_id: tenantId,
       })
       .select("id, room_name")
       .single();

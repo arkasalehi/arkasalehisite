@@ -548,24 +548,63 @@ select.field {
 
 .ws-app {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", var(--font-vazir), Tahoma, sans-serif;
-  color: #1e2a24;
+  color: var(--theme-caption-color);
 }
 
-.ws-app-sky {
-  background:
-    radial-gradient(90% 55% at 50% 0%, rgba(255, 255, 255, 0.45) 0%, transparent 62%),
-    linear-gradient(180deg, #4aa0de 0%, #7ec0ea 28%, #d4edf9 58%, #eef4f0 78%, #f4f6f2 100%);
+/* Huly workbench tokens — derived from hcengineering/platform packages/theme/styles (EPL-2.0, reimplemented) */
+.ws-app {
+  --app-panel-width: 4rem;
+  --theme-bg-color: #161719;
+  --theme-back-color: #0e0f10;
+  --theme-navpanel-color: #0e0f10;
+  --theme-navpanel-hovered: rgba(255, 255, 255, 0.04);
+  --theme-navpanel-selected: rgba(255, 255, 255, 0.08);
+  --theme-navpanel-divider: rgba(255, 255, 255, 0.1);
+  --theme-navpanel-icons-color: #7f7f7f;
+  --theme-navpanel-icons-divider: rgba(255, 255, 255, 0.11);
+  --theme-comp-header-color: #1e2024;
+  --theme-divider-color: rgba(255, 255, 255, 0.06);
+  --theme-caption-color: #fff;
+  --theme-content-color: rgba(255, 255, 255, 0.8);
+  --theme-dark-color: rgba(255, 255, 255, 0.6);
+  --theme-halfcontent-color: rgba(255, 255, 255, 0.5);
+  --theme-darker-color: rgba(255, 255, 255, 0.4);
+  --theme-link-color: #377ae6;
+  --theme-button-primary: #3364e2;
+  --theme-button-primary-hover: #6191fe;
+  --global-online-color: #05a05c;
+  --global-accent-IconColor: #6796ff;
+  --input-BackgroundColor: #a5bdff0d;
+  --input-PlaceholderColor: #8b97ad;
+  --button-primary-BackgroundColor: #3364e2;
+  background: var(--theme-back-color);
+  color: var(--theme-caption-color);
 }
 
-.ws-window {
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 28px 70px rgba(20, 60, 100, 0.16);
-  backdrop-filter: blur(22px);
+.ws-app.ws-theme-light {
+  --theme-bg-color: #f4f5f8;
+  --theme-back-color: #eceef3;
+  --theme-navpanel-color: #f7f8fb;
+  --theme-navpanel-hovered: rgba(16, 18, 22, 0.05);
+  --theme-navpanel-selected: rgba(16, 18, 22, 0.09);
+  --theme-navpanel-divider: rgba(16, 18, 22, 0.1);
+  --theme-navpanel-icons-color: #5b6270;
+  --theme-navpanel-icons-divider: rgba(16, 18, 22, 0.08);
+  --theme-comp-header-color: #ffffff;
+  --theme-divider-color: rgba(16, 18, 22, 0.08);
+  --theme-caption-color: #111318;
+  --theme-content-color: rgba(17, 19, 24, 0.82);
+  --theme-dark-color: rgba(17, 19, 24, 0.62);
+  --theme-halfcontent-color: rgba(17, 19, 24, 0.5);
+  --theme-darker-color: rgba(17, 19, 24, 0.42);
+  --theme-link-color: #205dc2;
+  --input-BackgroundColor: rgba(32, 93, 194, 0.08);
+  --input-PlaceholderColor: #6b7385;
 }
 
 .ws-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #cdd5ce transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
 }
 
 .ws-scroll::-webkit-scrollbar {
@@ -573,7 +612,7 @@ select.field {
 }
 
 .ws-scroll::-webkit-scrollbar-thumb {
-  background: #cdd5ce;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
 }
 

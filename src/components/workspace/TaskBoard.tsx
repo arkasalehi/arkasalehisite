@@ -1,28 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
-import { Button } from "@/components/ui/Button";
-import type { WorkspaceTask } from "@/lib/data/workspace";
+import type { WorkspaceProject, WorkspaceTask } from "@/lib/data/workspace";
 import { cn } from "@/lib/utils";
 
-const COLUMNS: Array<{ id: WorkspaceTask["status"]; label: string; tint: string }> = [
-  { id: "todo", label: "To do", tint: "bg-[#efe8ff]" },
-  { id: "doing", label: "In progress", tint: "bg-[#fff4d6]" },
-  { id: "done", label: "Done", tint: "bg-[#e7f8ee]" },
-];
-
+type Person = { id: string; displayName: string };
 type Comment = { id: string; body: string; createdAt: string; authorName: string };
 
-export function TaskBoard({ initial }: { initial: WorkspaceTask[] }) {
+export function TaskBoard({ initial, people, projects = [] }: { initial: WorkspaceTask[]; people: Person[]; projects?: WorkspaceProject[] }) {
+  const view = useSearchParams().get("view");
   const [tasks, setTasks] = useState(initial);
   const [title, setTitle] = useState("");
-  const [filter, setFilter] = useState<"all" | "open" | "done">("all");
   const [active, setActive] = useState<string | null>(null);
-  const [menu, setMenu] = useState<string | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [comment, setComment] = useState("");
   const [subTitle, setSubTitle] = useState("");
+  const [comment, setComment] = useState("");
+  const projectFilter = useSearchParams().get("project");
 
   useEffect(() => {
     const supabase = createBrowserSupabase();
@@ -31,20 +26,26 @@ export function TaskBoard({ initial }: { initial: WorkspaceTask[] }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "workspace_tasks" }, (payload) => {
         if (payload.eventType === "INSERT") {
           const row = payload.new as Record<string, unknown>;
-          setTasks((prev) => [
-            ...prev,
-            {
-              id: String(row.id),
-              title: String(row.title),
-              status: (row.status as WorkspaceTask["status"]) ?? "todo",
-              assigneeId: row.assignee_id ? String(row.assignee_id) : null,
-              dueAt: row.due_at ? String(row.due_at) : null,
-              sort: Number(row.sort ?? 0),
-              createdBy: String(row.created_by),
-              description: row.description ? String(row.description) : null,
-              parentId: row.parent_id ? String(row.parent_id) : null,
-            },
-          ]);
+          setTasks((prev) => {
+            if (prev.some((t) => t.id === String(row.id))) return prev;
+            return [
+              ...prev,
+              {
+                id: String(row.id),
+                title: String(row.title),
+                status: (row.status as WorkspaceTask["status"]) ?? "todo",
+                assigneeId: row.assignee_id ? String(row.assignee_id) : null,
+                dueAt: row.due_at ? String(row.due_at) : null,
+                sort: Number(row.sort ?? 0),
+                createdBy: String(row.created_by),
+                description: row.description ? String(row.description) : null,
+                parentId: row.parent_id ? String(row.parent_id) : null,
+                projectId: row.project_id ? String(row.project_id) : null,
+                priority: (row.priority as WorkspaceTask["priority"]) ?? "none",
+                labels: Array.isArray(row.labels) ? row.labels.map(String) : [],
+              },
+            ];
+          });
         }
         if (payload.eventType === "UPDATE") {
           const row = payload.new as Record<string, unknown>;
@@ -57,6 +58,10 @@ export function TaskBoard({ initial }: { initial: WorkspaceTask[] }) {
                     status: (row.status as WorkspaceTask["status"]) ?? t.status,
                     description: row.description ? String(row.description) : t.description,
                     dueAt: row.due_at ? String(row.due_at) : t.dueAt,
+                    assigneeId: row.assignee_id ? String(row.assignee_id) : null,
+                    priority: (row.priority as WorkspaceTask["priority"]) ?? t.priority,
+                    labels: Array.isArray(row.labels) ? row.labels.map(String) : t.labels,
+                    projectId: row.project_id ? String(row.project_id) : t.projectId,
                   }
                 : t,
             ),
@@ -74,9 +79,14 @@ export function TaskBoard({ initial }: { initial: WorkspaceTask[] }) {
   }, []);
 
   const roots = useMemo(() => tasks.filter((t) => !t.parentId), [tasks]);
-  const visible = roots.filter((t) => (filter === "done" ? t.status === "done" : filter === "open" ? t.status !== "done" : true));
+  const filtered = roots.filter((t) => {
+    if (view === "todo") return t.status === "todo";
+    if (view === "doing") return t.status === "doing";
+    if (view === "done") return t.status === "done";
+    if (projectFilter) return t.projectId === projectFilter;
+    return true;
+  });
   const selected = tasks.find((t) => t.id === active) ?? null;
-  const subs = tasks.filter((t) => t.parentId === active);
 
   useEffect(() => {
     if (!active) return;
@@ -85,21 +95,34 @@ export function TaskBoard({ initial }: { initial: WorkspaceTask[] }) {
       .then((d) => setComments(d.comments ?? []));
   }, [active]);
 
-  async function add(e: React.FormEvent, parentId?: string | null) {
+  async function add(e: React.FormEvent) {
     e.preventDefault();
-    const value = (parentId ? subTitle : title).trim();
-    if (!value) return;
-    if (parentId) setSubTitle("");
-    else setTitle("");
+    if (!title.trim()) return;
+    const value = title.trim();
+    setTitle("");
     await fetch("/api/workspace/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: value, parentId: parentId || undefined }),
+      body: JSON.stringify({ title: value }),
     });
   }
 
   async function patch(id: string, body: Record<string, unknown>) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...mapPatch(body, t) } : t)));
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              status: typeof body.status === "string" ? (body.status as WorkspaceTask["status"]) : t.status,
+              assigneeId: body.assigneeId === undefined ? t.assigneeId : body.assigneeId ? String(body.assigneeId) : null,
+              description: body.description === undefined ? t.description : body.description ? String(body.description) : null,
+              priority: typeof body.priority === "string" ? (body.priority as WorkspaceTask["priority"]) : t.priority,
+              projectId: body.projectId === undefined ? t.projectId : body.projectId ? String(body.projectId) : null,
+              labels: Array.isArray(body.labels) ? body.labels.map(String) : t.labels,
+            }
+          : t,
+      ),
+    );
     await fetch("/api/workspace/tasks", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -107,156 +130,153 @@ export function TaskBoard({ initial }: { initial: WorkspaceTask[] }) {
     });
   }
 
-  async function remove(id: string) {
-    setMenu(null);
-    setActive(null);
-    await fetch(`/api/workspace/tasks?id=${id}`, { method: "DELETE" });
-  }
-
-  async function postComment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!active || !comment.trim()) return;
-    const body = comment.trim();
-    setComment("");
-    await fetch("/api/workspace/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ taskId: active, body }),
-    });
-    setComments((prev) => [...prev, { id: crypto.randomUUID(), body, createdAt: new Date().toISOString(), authorName: "You" }]);
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {[
-          ["all", "All"],
-          ["open", "Ongoing"],
-          ["done", "Completed"],
-        ].map(([id, label]) => (
-          <button key={id} type="button" onClick={() => setFilter(id as typeof filter)} className={cn("rounded-full px-4 py-1.5 text-[12px]", filter === id ? "bg-[#7c5cfc] text-white" : "bg-white ring-1 ring-[#e8ece6]")}>
-            {label}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex items-center gap-2 border-b border-[var(--theme-divider-color)] px-4 py-2">
+        <form onSubmit={(e) => void add(e)} className="flex flex-1 gap-2">
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 flex-1 rounded-md bg-[var(--input-BackgroundColor)] px-3 text-[13px] outline-none placeholder:text-[var(--input-PlaceholderColor)]" placeholder="New issue" />
+          <button type="submit" className="h-8 rounded-md bg-[var(--button-primary-BackgroundColor)] px-3 text-[12px] font-medium text-white">
+            Create issue
           </button>
-        ))}
+        </form>
       </div>
-      <form onSubmit={(e) => void add(e)} className="flex gap-2">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="h-11 flex-1 rounded-full border border-[#e8ece6] bg-white px-4 text-sm outline-none" placeholder="Search or add a task…" />
-        <Button type="submit" className="bg-[#7c5cfc] text-white hover:opacity-90">
-          Add
-        </Button>
-      </form>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {visible.map((task) => {
-          const tint = COLUMNS.find((c) => c.id === task.status)?.tint ?? "bg-white";
-          return (
-            <article key={task.id} className={cn("relative rounded-[24px] p-4 shadow-sm", tint)}>
-              <button type="button" className="absolute right-3 top-3 text-[#8b938d]" onClick={() => setMenu(menu === task.id ? null : task.id)}>
-                ⋯
-              </button>
-              {menu === task.id ? (
-                <div className="absolute right-3 top-10 z-10 w-36 rounded-2xl bg-white p-2 text-[12px] shadow-lg">
-                  <button type="button" className="block w-full rounded-xl px-2 py-2 text-left" onClick={() => void patch(task.id, { status: "done" })}>
-                    Done task
-                  </button>
-                  <button type="button" className="block w-full rounded-xl px-2 py-2 text-left" onClick={() => { setActive(task.id); setMenu(null); }}>
-                    Edit
-                  </button>
-                  <button type="button" className="block w-full rounded-xl px-2 py-2 text-left text-rose-600" onClick={() => void remove(task.id)}>
-                    Delete
-                  </button>
-                </div>
-              ) : null}
-              <button type="button" className="w-full text-left" onClick={() => setActive(task.id)}>
-                <p className="pr-6 text-[15px] font-semibold">{task.title}</p>
-                <p className="mt-2 text-[12px] text-[#6d7871]">{task.dueAt ? new Date(task.dueAt).toLocaleDateString("en-US") : "No due date"}</p>
-                <p className="mt-3 text-[11px] font-medium uppercase tracking-wide text-[#8b938d]">{task.status}</p>
-              </button>
-            </article>
-          );
-        })}
-      </div>
-
+      {view === "board" ? (
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-auto p-4 md:grid-cols-3">
+          {(["todo", "doing", "done"] as const).map((status) => (
+            <section key={status} className="rounded-md bg-[var(--theme-navpanel-color)] p-2" onDragOver={(e) => e.preventDefault()} onDrop={(e) => {
+              const id = e.dataTransfer.getData("text/task-id");
+              if (id) void patch(id, { status });
+            }}>
+              <p className="px-2 py-1 text-[11px] uppercase tracking-wide text-[var(--theme-darker-color)]">{status === "todo" ? "Backlog" : status === "doing" ? "Active" : "Done"}</p>
+              {roots.filter((t) => t.status === status).map((t, i) => (
+                <article key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/task-id", t.id)} className="mb-1 cursor-grab rounded px-2 py-2 hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => setActive(t.id)}>
+                  <p className="text-[12px] text-[var(--theme-darker-color)]">ARKA-{i + 1}</p>
+                  <p className="text-[13px] text-[var(--theme-caption-color)]">{t.title}</p>
+                </article>
+              ))}
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="ws-scroll min-h-0 flex-1 overflow-auto">
+          <table className="w-full text-left text-[13px]">
+            <thead className="sticky top-0 bg-[var(--theme-comp-header-color)] text-[11px] uppercase tracking-wide text-[var(--theme-darker-color)]">
+              <tr>
+                <th className="px-4 py-2 font-medium">Issue</th>
+                <th className="px-4 py-2 font-medium">Status</th>
+                <th className="px-4 py-2 font-medium">Priority</th>
+                <th className="px-4 py-2 font-medium">Assignee</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((t, i) => (
+                <tr key={t.id} className="cursor-pointer border-t border-[var(--theme-divider-color)] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => setActive(t.id)}>
+                  <td className="px-4 py-2">
+                    <span className="mr-2 text-[var(--theme-darker-color)]">ARKA-{i + 1}</span>
+                    {t.title}
+                  </td>
+                  <td className="px-4 py-2 capitalize text-[var(--theme-dark-color)]">{t.status === "todo" ? "Backlog" : t.status === "doing" ? "Active" : "Done"}</td>
+                  <td className="px-4 py-2 text-[var(--theme-dark-color)]">{t.priority}</td>
+                  <td className="px-4 py-2 text-[var(--theme-dark-color)]">{people.find((p) => p.id === t.assigneeId)?.displayName || "Unassigned"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {selected ? (
-        <div className="fixed inset-0 z-50 overflow-auto bg-[#f7f8fb] p-4">
-          <div className="mx-auto max-w-lg pb-16">
-            <div className="flex items-center gap-3">
-              <button type="button" className="grid h-10 w-10 place-items-center rounded-full bg-white" onClick={() => setActive(null)}>
-                ‹
+        <div className="absolute inset-y-10 right-0 z-20 w-full max-w-md overflow-auto border-l border-[var(--theme-divider-color)] bg-[var(--theme-bg-color)] p-4">
+          <button type="button" className="text-[12px] text-[var(--theme-darker-color)]" onClick={() => setActive(null)}>
+            Close
+          </button>
+          <h2 className="mt-2 text-[18px] font-medium">{selected.title}</h2>
+          <div className="mt-3 flex gap-2">
+            {(["todo", "doing", "done"] as const).map((s) => (
+              <button key={s} type="button" onClick={() => void patch(selected.id, { status: s })} className={cn("rounded px-2 py-1 text-[12px]", selected.status === s ? "bg-[var(--button-primary-BackgroundColor)]" : "bg-[var(--input-BackgroundColor)]")}>
+                {s === "todo" ? "Backlog" : s === "doing" ? "Active" : "Done"}
               </button>
-              <h2 className="flex-1 text-center text-[16px] font-semibold">Task Details</h2>
-              <span className="w-10" />
-            </div>
-            <h1 className="mt-5 text-[26px] font-semibold tracking-tight">{selected.title}</h1>
-            <dl className="mt-5 space-y-3 text-[13px]">
-              <Row label="Status" value={selected.status} />
-              <Row label="Due date" value={selected.dueAt ? new Date(selected.dueAt).toLocaleDateString("en-US") : "Empty"} />
-            </dl>
-            <textarea
-              defaultValue={selected.description ?? ""}
-              placeholder="Add a description"
-              className="mt-4 min-h-24 w-full rounded-[20px] bg-white p-3 text-sm outline-none ring-1 ring-[#e8ece6]"
-              onBlur={(e) => void patch(selected.id, { description: e.target.value })}
-            />
-            <input type="date" className="mt-3 h-11 w-full rounded-full bg-white px-4 text-sm ring-1 ring-[#e8ece6]" onChange={(e) => void patch(selected.id, { dueAt: e.target.value ? new Date(e.target.value).toISOString() : null })} />
-            <div className="mt-3 flex gap-2">
-              {COLUMNS.map((c) => (
-                <button key={c.id} type="button" onClick={() => void patch(selected.id, { status: c.id })} className={cn("rounded-full px-3 py-1.5 text-[12px]", selected.status === c.id ? "bg-[#1e2a24] text-white" : "bg-white")}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            <h3 className="mt-6 text-[14px] font-semibold">Sub task</h3>
-            <ul className="mt-2 space-y-2">
-              {subs.map((s) => (
-                <li key={s.id} className="flex items-center justify-between rounded-2xl bg-white px-3 py-3 text-sm">
-                  <span>{s.title}</span>
-                  <input type="checkbox" checked={s.status === "done"} onChange={() => void patch(s.id, { status: s.status === "done" ? "todo" : "done" })} />
-                </li>
-              ))}
-            </ul>
-            <form onSubmit={(e) => void add(e, selected.id)} className="mt-2 flex gap-2">
-              <input value={subTitle} onChange={(e) => setSubTitle(e.target.value)} className="h-11 flex-1 rounded-full bg-white px-4 text-sm ring-1 ring-[#e8ece6]" placeholder="Add subtask" />
-              <Button type="submit" className="bg-[#7c5cfc] text-white">
-                Add
-              </Button>
-            </form>
-            <h3 className="mt-6 text-[14px] font-semibold">Comments</h3>
-            <ul className="mt-2 space-y-2 text-[13px]">
-              {comments.map((c) => (
-                <li key={c.id} className="rounded-2xl bg-white px-3 py-2">
-                  <p className="text-[11px] text-[#8b938d]">{c.authorName}</p>
-                  {c.body}
-                </li>
-              ))}
-            </ul>
-            <form onSubmit={(e) => void postComment(e)} className="mt-3 flex gap-2">
-              <input value={comment} onChange={(e) => setComment(e.target.value)} className="h-11 flex-1 rounded-full bg-white px-4 text-sm ring-1 ring-[#e8ece6]" placeholder="Post a comment" />
-              <Button type="submit" className="bg-[#7c5cfc] text-white">
-                Send
-              </Button>
-            </form>
+            ))}
           </div>
+          <select className="mt-3 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" value={selected.assigneeId ?? ""} onChange={(e) => void patch(selected.id, { assigneeId: e.target.value || null })}>
+            <option value="">Unassigned</option>
+            {people.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.displayName}
+              </option>
+            ))}
+          </select>
+          <select className="mt-2 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" value={selected.projectId ?? ""} onChange={(e) => void patch(selected.id, { projectId: e.target.value || null })}>
+            <option value="">No project</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.identifier} · {p.name}
+              </option>
+            ))}
+          </select>
+          <select className="mt-2 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" value={selected.priority} onChange={(e) => void patch(selected.id, { priority: e.target.value })}>
+            {["none", "low", "medium", "high", "urgent"].map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <input
+            className="mt-2 h-8 w-full rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]"
+            defaultValue={selected.labels.join(", ")}
+            placeholder="labels, comma separated"
+            onBlur={(e) => void patch(selected.id, { labels: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+          />
+          <textarea defaultValue={selected.description ?? ""} className="mt-3 min-h-32 w-full rounded bg-[var(--input-BackgroundColor)] p-2 text-[13px] outline-none" placeholder="Description" onBlur={(e) => void patch(selected.id, { description: e.target.value })} />
+          <h3 className="mt-4 text-[13px] font-medium">Sub-issues</h3>
+          <ul className="mt-1 space-y-1 text-[13px]">
+            {tasks.filter((t) => t.parentId === selected.id).map((s) => (
+              <li key={s.id} className="flex items-center justify-between rounded bg-[var(--input-BackgroundColor)] px-2 py-1">
+                <span>{s.title}</span>
+                <input type="checkbox" checked={s.status === "done"} onChange={() => void patch(s.id, { status: s.status === "done" ? "todo" : "done" })} />
+              </li>
+            ))}
+          </ul>
+          <form
+            className="mt-2 flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!subTitle.trim()) return;
+              const value = subTitle.trim();
+              setSubTitle("");
+              void fetch("/api/workspace/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: value, parentId: selected.id }) });
+            }}
+          >
+            <input value={subTitle} onChange={(e) => setSubTitle(e.target.value)} className="h-8 flex-1 rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" placeholder="Add sub-issue" />
+            <button type="submit" className="text-[12px] text-[var(--theme-link-color)]">
+              Add
+            </button>
+          </form>
+          <ul className="mt-4 space-y-2 text-[13px]">
+            {comments.map((c) => (
+              <li key={c.id} className="rounded bg-[var(--input-BackgroundColor)] px-2 py-2">
+                <p className="text-[11px] text-[var(--theme-darker-color)]">{c.authorName}</p>
+                {c.body}
+              </li>
+            ))}
+          </ul>
+          <form
+            className="mt-2 flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!comment.trim() || !active) return;
+              const body = comment.trim();
+              setComment("");
+              void fetch("/api/workspace/comments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ taskId: active, body }) });
+              setComments((prev) => [...prev, { id: crypto.randomUUID(), body, createdAt: new Date().toISOString(), authorName: "You" }]);
+            }}
+          >
+            <input value={comment} onChange={(e) => setComment(e.target.value)} className="h-8 flex-1 rounded bg-[var(--input-BackgroundColor)] px-2 text-[13px]" placeholder="Comment" />
+            <button type="submit" className="text-[12px] text-[var(--theme-link-color)]">
+              Send
+            </button>
+          </form>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function mapPatch(body: Record<string, unknown>, t: WorkspaceTask): WorkspaceTask {
-  return {
-    ...t,
-    title: typeof body.title === "string" ? body.title : t.title,
-    status: typeof body.status === "string" ? (body.status as WorkspaceTask["status"]) : t.status,
-    description: body.description === undefined ? t.description : body.description ? String(body.description) : null,
-    dueAt: body.dueAt === undefined ? t.dueAt : body.dueAt ? String(body.dueAt) : null,
-  };
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl bg-white px-3 py-3">
-      <span className="text-[#8b938d]">{label}</span>
-      <span className="font-medium capitalize">{value}</span>
     </div>
   );
 }

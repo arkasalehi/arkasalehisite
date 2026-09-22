@@ -1,11 +1,10 @@
-import { getSession } from "@/lib/auth/session";
-import { listInbox } from "@/lib/data/workspace";
-import { ChatInbox } from "@/components/workspace/ChatInbox";
-
-export const dynamic = "force-dynamic";
-
-export default async function ChatIndexPage() {
-  const session = await getSession();
-  const items = await listInbox(session?.id).catch(() => []);
-  return <ChatInbox items={items} username={session?.username ?? ""} />;
+export default function ChatIndexPage() {
+  return (
+    <div className="grid h-full place-items-center text-center">
+      <div>
+        <p className="text-[14px] font-medium">Select a channel</p>
+        <p className="mt-1 text-[13px] text-[var(--theme-darker-color)]">Open a space from the navigator to start chatting.</p>
+      </div>
+    </div>
+  );
 }

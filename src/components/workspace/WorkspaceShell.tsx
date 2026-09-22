@@ -2,200 +2,206 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { publicSiteUrl } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
-import { IconBack, IconCal, IconCall, IconChat, IconHome, IconSearch, IconSite, IconTasks } from "@/components/workspace/ws-icons";
+import type { InboxItem, WorkspaceMeeting, WorkspaceNote, WorkspaceProject, WorkspaceTask, WorkspaceTenant } from "@/lib/data/workspace";
+import { HulyNavigator } from "@/components/workspace/HulyNavigator";
+import { CommandPalette } from "@/components/workspace/CommandPalette";
+import { WsNotifications } from "@/components/workspace/WsNotifications";
+import { wsCopy, type WsLocale } from "@/lib/workspace/copy";
+import {
+  IconCall,
+  IconCal,
+  IconChat,
+  IconDoc,
+  IconGrid,
+  IconSettings,
+  IconTasks,
+} from "@/components/workspace/ws-icons";
 
-const NAV = [
-  { href: "/ws", label: "Home", icon: IconHome, match: (p: string) => p === "/ws" },
-  { href: "/ws/chat", label: "Chat", icon: IconChat, match: (p: string) => p.startsWith("/ws/chat") },
-  { href: "/ws/meet", label: "Call", icon: IconCall, match: (p: string) => p.startsWith("/ws/meet") },
-  { href: "/ws/tasks", label: "Tasks", icon: IconTasks, match: (p: string) => p.startsWith("/ws/tasks") },
+type Person = { id: string; displayName: string; avatarUrl: string | null };
+
+const APPS = [
+  { href: "/ws", key: "inbox" as const, icon: IconGrid, match: (p: string) => p === "/ws" },
+  { href: "/ws/tasks", key: "tracker" as const, icon: IconTasks, match: (p: string) => p.startsWith("/ws/tasks") },
+  { href: "/ws/chat", key: "chat" as const, icon: IconChat, match: (p: string) => p.startsWith("/ws/chat") },
+  { href: "/ws/docs", key: "documents" as const, icon: IconDoc, match: (p: string) => p.startsWith("/ws/docs") },
+  { href: "/ws/meet", key: "office" as const, icon: IconCall, match: (p: string) => p.startsWith("/ws/meet") },
+  { href: "/ws/calendar", key: "calendar" as const, icon: IconCal, match: (p: string) => p.startsWith("/ws/calendar") },
 ];
 
 export function WorkspaceShell({
   children,
   displayName,
   channels,
+  inbox,
+  people = [],
+  userId = "",
+  tasks,
+  notes,
+  meetings,
+  tenants = [],
+  activeTenantId = null,
+  projects = [],
 }: {
   children: React.ReactNode;
   displayName: string;
-  channels: Array<{ id: string; slug: string; name: string }>;
+  channels: Array<{ id: string; slug: string; name: string; kind?: string }>;
+  inbox: InboxItem[];
+  people?: Person[];
+  userId?: string;
+  tasks: WorkspaceTask[];
+  notes: WorkspaceNote[];
+  meetings: WorkspaceMeeting[];
+  tenants?: WorkspaceTenant[];
+  activeTenantId?: string | null;
+  projects?: WorkspaceProject[];
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const site = publicSiteUrl();
-  const inThread = /^\/ws\/chat\/[^/]+/.test(pathname);
-  const [query, setQuery] = useState("");
-  const [listOpen, setListOpen] = useState(!inThread);
-  const [compose, setCompose] = useState(false);
-  const [note, setNote] = useState("");
+  const [navOpen, setNavOpen] = useState(true);
+  const [locale, setLocale] = useState<WsLocale>("en");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [invite, setInvite] = useState("");
+  const inRoom = pathname.startsWith("/ws/meet/");
+  const t = wsCopy(locale);
 
   useEffect(() => {
-    setListOpen(!inThread);
-  }, [inThread, pathname]);
+    setLocale(localStorage.getItem("ws-locale") === "fa" ? "fa" : "en");
+    setTheme(localStorage.getItem("ws-theme") === "light" ? "light" : "dark");
+  }, []);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return channels;
-    return channels.filter((ch) => ch.name.toLowerCase().includes(q) || ch.slug.toLowerCase().includes(q));
-  }, [channels, query]);
+  function persistLocale(next: WsLocale) {
+    setLocale(next);
+    localStorage.setItem("ws-locale", next);
+  }
 
-  const activeChannel = channels.find((ch) => pathname.includes(ch.id));
-  const flush = inThread || pathname.startsWith("/ws/meet/");
+  function persistTheme(next: "dark" | "light") {
+    setTheme(next);
+    localStorage.setItem("ws-theme", next);
+  }
 
-  async function addNote() {
-    const title = note.trim();
-    if (!title) return;
-    setNote("");
-    setCompose(false);
-    await fetch("/api/workspace/notes", {
+  async function switchTenant(id: string) {
+    await fetch("/api/workspace/tenants", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({ switchTo: id }),
     });
-    router.push("/ws");
     router.refresh();
   }
 
+  async function sendInvite(e: React.FormEvent) {
+    e.preventDefault();
+    if (!invite.trim()) return;
+    await fetch("/api/workspace/tenants", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inviteEmail: invite.trim() }),
+    });
+    setInvite("");
+  }
+
   return (
-    <div className="ws-app ws-app-sky min-h-svh p-0 md:p-3 lg:p-5" dir="ltr">
-      <div className="ws-window mx-auto flex h-svh max-w-[1440px] overflow-hidden rounded-none md:h-[calc(100svh-1.5rem)] md:rounded-[28px] lg:h-[calc(100svh-2.5rem)]">
-        <nav className="hidden w-[72px] shrink-0 flex-col items-center border-r border-[#e8ece6] bg-white/70 py-4 lg:flex">
-          <Link href="/ws" className="grid h-11 w-11 place-items-center rounded-2xl bg-[#1b6754] text-sm font-semibold text-white" aria-label="Workspace">
-            A
-          </Link>
-          <div className="mt-6 flex flex-1 flex-col items-center gap-1.5">
-            {NAV.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link key={item.href} href={item.href} title={item.label} className={cn("grid h-11 w-11 place-items-center rounded-2xl", item.match(pathname) ? "bg-[#efe8ff] text-[#7c5cfc]" : "text-[#8b938d] hover:bg-white")}>
-                  <Icon className="h-[18px] w-[18px]" />
-                </Link>
-              );
-            })}
-            <Link href="/ws/calendar" title="Calendar" className={cn("grid h-11 w-11 place-items-center rounded-2xl", pathname.startsWith("/ws/calendar") ? "bg-[#efe8ff] text-[#7c5cfc]" : "text-[#8b938d]")}>
-              <IconCal className="h-[18px] w-[18px]" />
-            </Link>
-            <button type="button" onClick={() => setCompose(true)} className="mt-2 grid h-11 w-11 place-items-center rounded-full bg-[#7c5cfc] text-lg text-white" aria-label="Create">
-              +
-            </button>
-          </div>
-          <a href={site} title="Back to site" className="grid h-11 w-11 place-items-center rounded-2xl text-[#8b938d]">
-            <IconSite className="h-[18px] w-[18px]" />
-          </a>
-          <span className="mt-2 grid h-10 w-10 place-items-center rounded-full bg-[#1b6754] text-xs font-semibold text-white">{initials(displayName)}</span>
-        </nav>
-
-        <aside className={cn("w-full shrink-0 flex-col border-r border-[#e8ece6] bg-[#f7f8f5] md:w-[300px]", inThread ? (listOpen ? "flex" : "hidden md:flex") : "hidden")}>
-          <div className="px-4 pb-2 pt-5">
-            <div className="flex items-center justify-between">
-              <h1 className="text-[22px] font-semibold tracking-tight">Messages</h1>
-              <Link href="/ws/meet" className="grid h-9 w-9 place-items-center rounded-full bg-white text-[#1b6754]" aria-label="New call">
-                <IconCall className="h-4 w-4" />
+    <div className={cn("ws-app flex h-svh min-h-0 overflow-hidden", theme === "light" && "ws-theme-light")} dir={locale === "fa" ? "rtl" : "ltr"} lang={locale}>
+      <CommandPalette channels={channels} tasks={tasks} notes={notes} meetings={meetings} />
+      <nav className="hidden h-full w-[var(--app-panel-width)] shrink-0 flex-col items-center border-r border-[var(--theme-navpanel-icons-divider)] bg-[var(--theme-back-color)] py-2 lg:flex">
+        <Link href="/ws" className="grid h-9 w-9 place-items-center rounded-md bg-[#3364e2] text-[13px] font-bold text-white" aria-label="Arka">
+          A
+        </Link>
+        <div className="mt-3 flex flex-1 flex-col items-center gap-1">
+          {APPS.map((app) => {
+            const Icon = app.icon;
+            const on = app.match(pathname);
+            const notify = app.href === "/ws/chat" && inbox.some((i) => i.unread);
+            return (
+              <Link
+                key={app.href}
+                href={app.href}
+                title={t[app.key]}
+                className={cn(
+                  "relative grid h-9 w-9 place-items-center rounded-md",
+                  on ? "bg-[var(--theme-navpanel-selected)] text-white" : "text-[var(--theme-navpanel-icons-color)] hover:bg-[var(--theme-navpanel-hovered)] hover:text-white",
+                )}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+                {notify ? <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#3364e2]" /> : null}
               </Link>
-            </div>
-            <label className="mt-3 flex h-11 items-center gap-2 rounded-full bg-white px-3.5 ring-1 ring-[#e8ece6]">
-              <IconSearch className="h-4 w-4 text-[#8b938d]" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 bg-transparent text-[13px] outline-none" placeholder="Search channels…" />
-            </label>
-          </div>
-          <div className="ws-scroll min-h-0 flex-1 overflow-auto px-2 pb-4">
-            <ul className="space-y-0.5">
-              {filtered.map((ch) => (
-                <li key={ch.id}>
-                  <Link href={`/ws/chat/${ch.id}`} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2.5", pathname.includes(ch.id) ? "bg-white shadow-sm" : "hover:bg-white/70")}>
-                    <span className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-[#7c5cfc] to-[#3d8fe0] text-sm font-semibold text-white">{initials(ch.name)}</span>
-                    <span className="truncate text-[13.5px] font-medium">{ch.name}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
-
-        <div className={cn("min-w-0 flex-1 flex-col bg-[#fbfcf9]", inThread && listOpen ? "hidden md:flex" : "flex")}>
-          <header className="flex items-center gap-2 border-b border-[#eef1ea] bg-white/80 px-3 py-3 md:hidden">
-            {inThread && !listOpen ? (
-              <button type="button" className="grid h-10 w-10 place-items-center rounded-full bg-[#f4f6f2]" onClick={() => setListOpen(true)} aria-label="Back">
-                <IconBack className="h-5 w-5" />
-              </button>
-            ) : (
-              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#1b6754] text-sm font-semibold text-white">A</span>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[15px] font-semibold">{activeChannel?.name ?? titleFor(pathname)}</p>
-              <p className="truncate text-[11px] text-[#8b938d]">{displayName || "Collaborator"}</p>
-            </div>
-          </header>
-          <div className={cn("min-h-0 flex-1", flush ? "flex flex-col overflow-hidden" : "ws-scroll overflow-auto p-4 pb-24 md:p-6 lg:pb-6")}>
-            {flush ? <div className="flex min-h-0 flex-1 flex-col">{children}</div> : children}
-          </div>
+            );
+          })}
         </div>
+        <a href={site} title="Settings" className="grid h-9 w-9 place-items-center rounded-md text-[var(--theme-navpanel-icons-color)] hover:bg-[var(--theme-navpanel-hovered)]">
+          <IconSettings className="h-[18px] w-[18px]" />
+        </a>
+      </nav>
+
+      {navOpen && !inRoom ? (
+        <aside className="hidden h-full w-[240px] shrink-0 border-r border-[var(--theme-divider-color)] md:flex">
+          <Suspense fallback={null}>
+            <HulyNavigator channels={channels} inbox={inbox} tasks={tasks} notes={notes} meetings={meetings} projects={projects} people={people.filter((p) => p.id !== userId)} locale={locale} />
+          </Suspense>
+        </aside>
+      ) : null}
+
+      <div className="flex min-w-0 flex-1 flex-col bg-[var(--theme-bg-color)]">
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)] px-3">
+          <button type="button" className="grid h-7 w-7 place-items-center rounded text-[var(--theme-dark-color)] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => setNavOpen((v) => !v)} aria-label="Toggle navigator">
+            ☰
+          </button>
+          <p className="min-w-0 truncate text-[13px] font-medium text-[var(--theme-caption-color)]">{titleFor(pathname, t)}</p>
+          {tenants.length ? (
+            <select className="h-7 max-w-[140px] rounded bg-[var(--input-BackgroundColor)] px-1 text-[12px]" value={activeTenantId ?? tenants[0]?.id} onChange={(e) => void switchTenant(e.target.value)}>
+              {tenants.map((tenant) => (
+                <option key={tenant.id} value={tenant.id}>
+                  {tenant.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          <form onSubmit={(e) => void sendInvite(e)} className="hidden items-center gap-1 md:flex">
+            <input value={invite} onChange={(e) => setInvite(e.target.value)} className="h-7 w-36 rounded bg-[var(--input-BackgroundColor)] px-2 text-[12px] outline-none" placeholder="invite@email" />
+            <button type="submit" className="text-[11px] text-[var(--theme-link-color)]">
+              {t.invite}
+            </button>
+          </form>
+          <button type="button" className="hidden h-7 rounded px-2 text-[12px] text-[var(--theme-darker-color)] hover:bg-[var(--theme-navpanel-hovered)] md:inline" onClick={() => window.dispatchEvent(new Event("ws:command"))}>
+            {t.search}
+          </button>
+          <button type="button" className="h-7 rounded px-2 text-[11px] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => persistLocale(locale === "en" ? "fa" : "en")}>
+            {locale === "en" ? "FA" : "EN"}
+          </button>
+          <button type="button" className="h-7 rounded px-2 text-[11px] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>
+            {theme === "dark" ? t.light : t.dark}
+          </button>
+          <WsNotifications />
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-[#205dc2] text-[10px] font-semibold">
+            {(displayName || "A").slice(0, 1).toUpperCase()}
+          </span>
+        </header>
+        <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
       </div>
 
-      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 items-center rounded-[28px] border border-white/70 bg-white/90 p-1.5 shadow-[0_16px_40px_rgba(20,60,100,0.14)] backdrop-blur-xl lg:hidden">
-        {NAV.slice(0, 2).map((item) => {
-          const Icon = item.icon;
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-[var(--theme-divider-color)] bg-[var(--theme-back-color)] lg:hidden">
+        {APPS.slice(0, 4).map((app) => {
+          const Icon = app.icon;
           return (
-            <Link key={item.href} href={item.href} className={cn("flex flex-col items-center gap-0.5 rounded-2xl py-2 text-[10px]", item.match(pathname) ? "bg-[#efe8ff] font-medium text-[#7c5cfc]" : "text-[#8b938d]")}>
+            <Link key={app.href} href={app.href} className={cn("flex flex-col items-center gap-0.5 py-2 text-[10px]", app.match(pathname) ? "text-white" : "text-[var(--theme-navpanel-icons-color)]")}>
               <Icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-        <button type="button" onClick={() => setCompose(true)} className="-mt-5 justify-self-center grid h-14 w-14 place-items-center rounded-full bg-[#1e2a24] text-2xl text-white shadow-lg" aria-label="Create">
-          +
-        </button>
-        {NAV.slice(2).map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link key={item.href} href={item.href} className={cn("flex flex-col items-center gap-0.5 rounded-2xl py-2 text-[10px]", item.match(pathname) ? "bg-[#efe8ff] font-medium text-[#7c5cfc]" : "text-[#8b938d]")}>
-              <Icon className="h-4 w-4" />
-              {item.label}
+              {t[app.key]}
             </Link>
           );
         })}
       </nav>
-
-      {compose ? (
-        <div className="fixed inset-0 z-50 grid place-items-end bg-black/30 p-3 lg:place-items-center" onClick={() => setCompose(false)}>
-          <div className="w-full max-w-md rounded-[28px] bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <p className="text-[16px] font-semibold">Create</p>
-            <div className="mt-4 grid gap-2">
-              <Link href="/ws/meet" onClick={() => setCompose(false)} className="rounded-2xl bg-[#ead9ff] px-4 py-3 text-sm font-medium">
-                New meeting
-              </Link>
-              <Link href="/ws/tasks" onClick={() => setCompose(false)} className="rounded-2xl bg-[#fff1c9] px-4 py-3 text-sm font-medium">
-                New task
-              </Link>
-              <Link href={channels[0] ? `/ws/chat/${channels[0].id}` : "/ws/chat"} onClick={() => setCompose(false)} className="rounded-2xl bg-[#d9f5e8] px-4 py-3 text-sm font-medium">
-                Open chat
-              </Link>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <input value={note} onChange={(e) => setNote(e.target.value)} className="h-11 flex-1 rounded-full bg-[#f6f3ff] px-4 text-sm outline-none" placeholder="Quick note" />
-              <button type="button" onClick={() => void addNote()} className="rounded-full bg-[#7c5cfc] px-4 text-sm text-white">
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
 
-function initials(name: string) {
-  const trimmed = name.trim();
-  return trimmed ? trimmed.slice(0, 1).toUpperCase() : "A";
-}
-
-function titleFor(pathname: string) {
-  if (pathname.startsWith("/ws/meet")) return "Meetings";
-  if (pathname.startsWith("/ws/tasks")) return "Tasks";
-  if (pathname.startsWith("/ws/calendar")) return "Calendar";
-  if (pathname === "/ws/chat") return "Messages";
-  return "Workspace";
+function titleFor(pathname: string, t: ReturnType<typeof wsCopy>) {
+  if (pathname.startsWith("/ws/meet")) return t.office;
+  if (pathname.startsWith("/ws/tasks")) return t.tracker;
+  if (pathname.startsWith("/ws/calendar")) return t.calendar;
+  if (pathname.startsWith("/ws/chat")) return t.chat;
+  if (pathname.startsWith("/ws/docs")) return t.documents;
+  return t.inbox;
 }

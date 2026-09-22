@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 export type WorkspaceChannel = { id: string; slug: string; name: string; kind: string };
@@ -9,6 +10,7 @@ export type WorkspaceMessage = {
   createdAt: string;
   kind: "text" | "file" | "voice";
   fileName: string | null;
+  fileUrl: string | null;
   replyTo: string | null;
   author?: { displayName: string; username: string; avatarUrl: string | null };
   reactions: Array<{ emoji: string; count: number; mine: boolean }>;
@@ -31,8 +33,21 @@ export type WorkspaceTask = {
   createdBy: string;
   description: string | null;
   parentId: string | null;
+  projectId: string | null;
+  priority: "none" | "low" | "medium" | "high" | "urgent";
+  labels: string[];
 };
-export type WorkspaceNote = { id: string; title: string; color: string; createdAt: string };
+export type WorkspaceNote = {
+  id: string;
+  title: string;
+  color: string;
+  body: string;
+  createdAt: string;
+  linkedTaskId: string | null;
+  fileUrls: string[];
+};
+export type WorkspaceProject = { id: string; name: string; identifier: string };
+export type WorkspaceTenant = { id: string; slug: string; name: string };
 export type InboxItem = {
   channelId: string;
   channelName: string;
@@ -40,6 +55,8 @@ export type InboxItem = {
   createdAt: string;
   authorName: string;
   kind: WorkspaceMessage["kind"];
+  lastUserId: string;
+  unread: boolean;
 };
 
 const CHANNEL_LABELS: Record<string, string> = {
@@ -59,11 +76,58 @@ function englishChannelName(slug: string, name: string) {
   return name;
 }
 
-export async function listChannels() {
+export async function getActiveTenantId() {
   const db = await createServerSupabase();
-  const { data, error } = await db.from("workspace_channels").select("id, slug, name, kind").order("created_at");
+  const jar = await cookies();
+  const fromCookie = jar.get("arka_tenant")?.value;
+  if (fromCookie) return fromCookie;
+  const { data } = await db.from("workspace_tenants").select("id").order("created_at").limit(1);
+  return data?.[0]?.id ? String(data[0].id) : null;
+}
+
+export async function listTenants(userId?: string) {
+  const db = await createServerSupabase();
+  const q = userId
+    ? db.from("workspace_tenant_members").select("tenant:workspace_tenants(id, slug, name)").eq("user_id", userId)
+    : db.from("workspace_tenants").select("id, slug, name");
+  const { data, error } = await q;
+  if (error || !data) {
+    const fallback = await db.from("workspace_tenants").select("id, slug, name");
+    return (fallback.data ?? []).map((row) => ({ id: String(row.id), slug: String(row.slug), name: String(row.name) })) as WorkspaceTenant[];
+  }
+  return data
+    .map((row) => {
+      const t = "tenant" in row ? (row.tenant as { id?: string; slug?: string; name?: string } | null) : (row as { id: string; slug: string; name: string });
+      if (!t?.id) return null;
+      return { id: String(t.id), slug: String(t.slug), name: String(t.name) };
+    })
+    .filter(Boolean) as WorkspaceTenant[];
+}
+
+export async function listProjects() {
+  const db = await createServerSupabase();
+  const tenantId = await getActiveTenantId();
+  let q = db.from("workspace_projects").select("id, name, identifier").order("created_at");
+  if (tenantId) q = q.eq("tenant_id", tenantId);
+  const { data, error } = await q;
+  if (error || !data) return [];
+  return data.map((row) => ({ id: String(row.id), name: String(row.name), identifier: String(row.identifier ?? "ARKA") })) as WorkspaceProject[];
+}
+
+export async function listChannels(userId?: string) {
+  const db = await createServerSupabase();
+  const tenantId = await getActiveTenantId();
+  let q = db.from("workspace_channels").select("id, slug, name, kind").order("created_at");
+  if (tenantId) q = q.eq("tenant_id", tenantId);
+  const { data, error } = await q;
   if (error) throw error;
-  return (data ?? []).map((row) => ({
+  let rows = data ?? [];
+  if (userId) {
+    const members = await db.from("workspace_channel_members").select("channel_id").eq("user_id", userId);
+    const allowed = new Set((members.data ?? []).map((m) => String(m.channel_id)));
+    rows = rows.filter((row) => row.kind !== "dm" && row.kind !== "private" ? true : allowed.has(String(row.id)));
+  }
+  return rows.map((row) => ({
     id: String(row.id),
     slug: String(row.slug),
     name: englishChannelName(String(row.slug), String(row.name)),
@@ -74,7 +138,7 @@ export async function listChannels() {
 export async function listMessages(channelId: string, userId?: string, limit = 80) {
   const db = await createServerSupabase();
   const selectFull =
-    "id, channel_id, user_id, body, created_at, kind, file_name, reply_to, author:profiles!user_id(display_name, username, avatar_url)";
+    "id, channel_id, user_id, body, created_at, kind, file_name, file_url, reply_to, author:profiles!user_id(display_name, username, avatar_url)";
   let { data, error } = await db
     .from("workspace_messages")
     .select(selectFull)
@@ -109,6 +173,7 @@ function mapMessage(rec: Record<string, unknown>): WorkspaceMessage {
     createdAt: String(rec.created_at),
     kind,
     fileName: rec.file_name ? String(rec.file_name) : null,
+    fileUrl: rec.file_url ? String(rec.file_url) : null,
     replyTo: rec.reply_to ? String(rec.reply_to) : null,
     author: {
       displayName: author?.display_name ?? "",
@@ -146,7 +211,7 @@ async function loadReactions(messageIds: string[], userId?: string) {
 }
 
 export async function listInbox(userId?: string) {
-  const channels = await listChannels();
+  const channels = await listChannels(userId);
   const db = await createServerSupabase();
   const { data } = await db
     .from("workspace_messages")
@@ -163,13 +228,16 @@ export async function listInbox(userId?: string) {
     if (!channel) continue;
     const author = row.author as { display_name?: string } | null;
     const kind = row.kind === "file" || row.kind === "voice" ? row.kind : "text";
+    const lastUserId = String(row.user_id);
     items.push({
       channelId,
       channelName: channel.name,
       preview: kind === "file" ? String(row.file_name ?? "Shared a file") : String(row.body),
       createdAt: String(row.created_at),
-      authorName: author?.display_name || (String(row.user_id) === userId ? "You" : "Teammate"),
+      authorName: author?.display_name || (lastUserId === userId ? "You" : "Teammate"),
       kind,
+      lastUserId,
+      unread: Boolean(userId && lastUserId !== userId),
     });
   }
   for (const ch of channels) {
@@ -181,6 +249,8 @@ export async function listInbox(userId?: string) {
         createdAt: "",
         authorName: "",
         kind: "text",
+        lastUserId: "",
+        unread: false,
       });
     }
   }
@@ -218,7 +288,10 @@ export async function getMeeting(id: string) {
 
 export async function listTasks() {
   const db = await createServerSupabase();
-  const { data, error } = await db.from("workspace_tasks").select("*").order("sort").order("created_at");
+  const tenantId = await getActiveTenantId();
+  let q = db.from("workspace_tasks").select("*").order("sort").order("created_at");
+  if (tenantId) q = q.eq("tenant_id", tenantId);
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []).map((row) => ({
     id: String(row.id),
@@ -230,19 +303,33 @@ export async function listTasks() {
     createdBy: String(row.created_by),
     description: row.description ? String(row.description) : null,
     parentId: row.parent_id ? String(row.parent_id) : null,
+    projectId: row.project_id ? String(row.project_id) : null,
+    priority: (["low", "medium", "high", "urgent"].includes(String(row.priority)) ? row.priority : "none") as WorkspaceTask["priority"],
+    labels: Array.isArray(row.labels) ? row.labels.map(String) : [],
   })) satisfies WorkspaceTask[];
 }
 
 export async function listNotes() {
   const db = await createServerSupabase();
-  const { data, error } = await db.from("workspace_notes").select("id, title, color, created_at").order("created_at", { ascending: false });
+  const full = await db.from("workspace_notes").select("id, title, color, body, created_at, linked_task_id, file_urls").order("created_at", { ascending: false });
+  const { data, error } = full.error
+    ? await db.from("workspace_notes").select("id, title, color, created_at").order("created_at", { ascending: false })
+    : full;
   if (error) return [];
   return (data ?? []).map((row) => ({
     id: String(row.id),
     title: String(row.title),
     color: String(row.color ?? "lilac"),
+    body: "body" in row && row.body ? String(row.body) : "",
     createdAt: String(row.created_at),
+    linkedTaskId: "linked_task_id" in row && row.linked_task_id ? String(row.linked_task_id) : null,
+    fileUrls: "file_urls" in row && Array.isArray(row.file_urls) ? row.file_urls.map(String) : [],
   })) satisfies WorkspaceNote[];
+}
+
+export async function getNote(id: string) {
+  const notes = await listNotes();
+  return notes.find((n) => n.id === id) ?? null;
 }
 
 export async function listTaskComments(taskId: string) {
