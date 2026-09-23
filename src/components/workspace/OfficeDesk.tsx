@@ -11,9 +11,10 @@ import { useCallRoom } from "@/components/workspace/useCallRoom";
 import type { WorkspaceNote, WorkspaceProject, WorkspaceTask } from "@/lib/data/workspace";
 import { cn } from "@/lib/utils";
 
-type TvState = { kind: string; url: string; title: string } | null;
+type TvClip = { kind: string; url: string; title: string };
+type TvState = TvClip | null;
 
-function kindFromFile(file: File): TvState["kind"] {
+function kindFromFile(file: File): TvClip["kind"] {
   if (file.type.startsWith("image/")) return "image";
   if (file.type.startsWith("video/")) return "video";
   if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) return "pdf";
@@ -69,6 +70,7 @@ export function OfficeDesk({
   const [tvLink, setTvLink] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [extraTitles, setExtraTitles] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
   const admin = isAdminRole(role);
   const project = projects.find((p) => p.id === projectId) ?? projects[0];
   const room = roomName;
