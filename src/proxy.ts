@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { withAppCookieOptions } from "@/lib/auth/cookies";
-import { isWorkspaceHost, publicSiteUrl } from "@/lib/runtime";
+import { isPublicAuthPath, isWorkspaceHost, publicSiteUrl } from "@/lib/runtime";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase";
 import { fetchWithTimeout } from "@/lib/supabase/fetch";
 
@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-arka-path", pathname);
   const onWorkspaceHost = isWorkspaceHost(host);
   const onWorkspacePath = pathname.startsWith("/ws") || pathname.startsWith("/api/workspace");
-  if (onWorkspaceHost || onWorkspacePath) {
+  if ((onWorkspaceHost && !isPublicAuthPath(pathname)) || onWorkspacePath) {
     requestHeaders.set("x-arka-app", "workspace");
   }
 
@@ -26,7 +26,8 @@ export async function proxy(request: NextRequest) {
 
   const adminPage = pathname.startsWith("/admin") || pathname.startsWith("/preview");
   const adminApi = pathname.startsWith("/api/admin");
-  const workspaceGate = onWorkspaceHost || pathname.startsWith("/ws") || pathname.startsWith("/api/workspace");
+  const workspaceGate =
+    (onWorkspaceHost && !isPublicAuthPath(pathname)) || pathname.startsWith("/ws") || pathname.startsWith("/api/workspace");
   const needsAuth =
     adminPage ||
     pathname.startsWith("/dashboard") ||
@@ -74,14 +75,11 @@ export async function proxy(request: NextRequest) {
   }
 
   if (needsAuth && !authed) {
-    if (onWorkspaceHost) {
-      const login = new URL("/login", publicSiteUrl());
-      login.searchParams.set("next", "/ws");
-      return NextResponse.redirect(login);
-    }
     const login = request.nextUrl.clone();
     login.pathname = "/login";
-    login.searchParams.set("next", pathname.startsWith("/ws") ? "/ws" : pathname);
+    const afterLogin =
+      onWorkspaceHost || pathname.startsWith("/ws") ? (pathname.startsWith("/ws") ? pathname : "/ws") : pathname;
+    login.searchParams.set("next", afterLogin);
     return NextResponse.redirect(login);
   }
 
@@ -89,7 +87,7 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith("/api/workspace")) {
       return jsonError("Access denied", 403);
     }
-    return NextResponse.redirect(new URL("/", publicSiteUrl()));
+    return NextResponse.redirect(new URL("/", publicSiteUrl(host)));
   }
 
   if (adminPage && !isAdmin) {
@@ -104,7 +102,13 @@ export async function proxy(request: NextRequest) {
     return jsonError("دسترسی مجاز نیست", 403);
   }
 
-  if (onWorkspaceHost && !pathname.startsWith("/ws") && !pathname.startsWith("/api/") && !pathname.startsWith("/_next")) {
+  if (
+    onWorkspaceHost &&
+    !isPublicAuthPath(pathname) &&
+    !pathname.startsWith("/ws") &&
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/_next")
+  ) {
     const rewrite = request.nextUrl.clone();
     rewrite.pathname = pathname === "/" ? "/ws" : `/ws${pathname}`;
     const rewritten = NextResponse.rewrite(rewrite, { request: { headers: requestHeaders } });

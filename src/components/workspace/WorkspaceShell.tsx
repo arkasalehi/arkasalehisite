@@ -53,7 +53,7 @@ export function WorkspaceShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const site = publicSiteUrl();
+  const site = publicSiteUrl(typeof window !== "undefined" ? window.location.host : undefined);
   const [navOpen, setNavOpen] = useState(false);
   const [locale, setLocale] = useState<WsLocale>("en");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
