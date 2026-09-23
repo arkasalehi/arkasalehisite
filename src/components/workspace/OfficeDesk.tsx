@@ -42,6 +42,8 @@ function TvView({ tv }: { tv: TvState }) {
 }
 
 export function OfficeDesk({
+  roomName,
+  title,
   projects,
   tasks,
   notes,
@@ -50,6 +52,8 @@ export function OfficeDesk({
   avatarUrl,
   role,
 }: {
+  roomName: string;
+  title: string;
   projects: WorkspaceProject[];
   tasks: WorkspaceTask[];
   notes: WorkspaceNote[];
@@ -67,7 +71,7 @@ export function OfficeDesk({
   const [extraTitles, setExtraTitles] = useState<string[]>([]);
   const admin = isAdminRole(role);
   const project = projects.find((p) => p.id === projectId) ?? projects[0];
-  const room = project ? `office-${project.id}` : "office-lobby";
+  const room = roomName;
   const call = useCallRoom(room, userId, displayName, { lite: true, avatarUrl });
 
   useEffect(() => {
@@ -167,6 +171,11 @@ export function OfficeDesk({
   return (
     <div className="ws-scroll h-full overflow-auto bg-[#0e1116] px-3 pb-4 pt-2 text-white">
       <div className="mb-2 flex items-center gap-2 text-[12px] text-white/70">
+        <Link href="/ws/meet" className="text-white/45 hover:text-white">
+          Rooms
+        </Link>
+        <span className="text-white/25">/</span>
+        <span className="min-w-0 truncate">{title}</span>
         <span className="h-2 w-2 rounded-full bg-emerald-400" />
         <span>Online</span>
         <span>
