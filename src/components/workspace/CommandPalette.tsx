@@ -42,9 +42,9 @@ export function CommandPalette({
   const hits = useMemo(() => {
     const items: Hit[] = [
       { href: "/ws", label: "Inbox", group: "Apps" },
-      { href: "/ws/tasks", label: "Tracker", group: "Apps" },
-      { href: "/ws/chat", label: "Chat", group: "Apps" },
+      { href: "/ws/tasks", label: "Tasks", group: "Apps" },
       { href: "/ws/docs", label: "Documents", group: "Apps" },
+      { href: "/ws/chat", label: "Chat", group: "Apps" },
       { href: "/ws/meet", label: "Office", group: "Apps" },
       ...channels.map((c) => ({ href: `/ws/chat/${c.id}`, label: c.name, group: "Chat" })),
       ...tasks.slice(0, 20).map((task) => ({ href: "/ws/tasks", label: task.title, group: "Tracker" })),

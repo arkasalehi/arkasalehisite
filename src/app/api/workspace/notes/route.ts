@@ -24,6 +24,7 @@ const createSchema = z.object({
   color: z.enum(["lilac", "cream", "mint", "sky"]).optional(),
   linkedTaskId: z.string().uuid().optional().nullable(),
   fileUrls: z.array(z.string()).optional(),
+  projectId: z.string().uuid().optional().nullable(),
 });
 
 const patchSchema = z.object({
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
       linked_task_id: input.linkedTaskId || null,
       file_urls: input.fileUrls ?? [],
     };
+    if (input.projectId) row.project_id = input.projectId;
     const { data, error } = await db.from("workspace_notes").insert(row).select("id").single();
     if (error) {
       const fallback = await db

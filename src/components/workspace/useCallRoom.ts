@@ -26,15 +26,22 @@ type Signal = {
   candidate?: RTCIceCandidateInit | null;
 };
 
-type PresenceMeta = { name?: string; id?: string; joinedAt?: number };
+type PresenceMeta = { name?: string; id?: string; joinedAt?: number; avatar?: string | null; camOn?: boolean };
 
 export type CallPeer = {
   id: string;
   name: string;
   stream: MediaStream | null;
+  avatarUrl: string | null;
+  camOn: boolean;
 };
 
-export function useCallRoom(roomName: string, userId: string, displayName: string) {
+export function useCallRoom(
+  roomName: string,
+  userId: string,
+  displayName: string,
+  options: { lite?: boolean; avatarUrl?: string | null } = {},
+) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [peers, setPeers] = useState<CallPeer[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +59,8 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   const queues = useRef(new Map<string, Promise<void>>());
   const iceBuf = useRef(new Map<string, RTCIceCandidateInit[]>());
   const names = useRef(new Map<string, string>());
+  const avatars = useRef(new Map<string, string | null>());
+  const cams = useRef(new Map<string, boolean>());
   const streams = useRef(new Map<string, MediaStream>());
   const makingOffer = useRef(new Map<string, boolean>());
   const ignoreOffer = useRef(new Map<string, boolean>());
@@ -66,13 +75,24 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   const seatedRef = useRef(false);
   const kickedRef = useRef(false);
   const joinedAtRef = useRef(Date.now());
+  const camOnRef = useRef(true);
+  const avatarRef = useRef(options.avatarUrl ?? null);
+  const liteRef = useRef(Boolean(options.lite));
   userRef.current = userId;
+  avatarRef.current = options.avatarUrl ?? null;
+  liteRef.current = Boolean(options.lite);
 
   const publishPeers = () => {
     const rows: CallPeer[] = [];
     for (const [id, name] of names.current) {
       if (id === tabRef.current) continue;
-      rows.push({ id, name, stream: streams.current.get(id) ?? null });
+      rows.push({
+        id,
+        name,
+        stream: streams.current.get(id) ?? null,
+        avatarUrl: avatars.current.get(id) ?? null,
+        camOn: cams.current.get(id) !== false,
+      });
     }
     setPeers(rows);
   };
@@ -82,6 +102,8 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     pcs.current.delete(id);
     iceBuf.current.delete(id);
     names.current.delete(id);
+    avatars.current.delete(id);
+    cams.current.delete(id);
     streams.current.delete(id);
     makingOffer.current.delete(id);
     ignoreOffer.current.delete(id);
@@ -292,6 +314,8 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     for (const id of keys) {
       const meta = state[id]?.[0];
       names.current.set(id, meta?.name || "Teammate");
+      avatars.current.set(id, meta?.avatar ?? null);
+      cams.current.set(id, meta?.camOn !== false);
       if (id === tab) continue;
       seen.add(id);
       const pc = ensurePc(id);
@@ -394,7 +418,14 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
       }
       seatedRef.current = true;
       kickedRef.current = false;
-      await channel.track({ id: userId, name: displayName, tab, joinedAt: joinedAtRef.current });
+      await channel.track({
+        id: userId,
+        name: displayName,
+        tab,
+        joinedAt: joinedAtRef.current,
+        avatar: avatarRef.current,
+        camOn: camOnRef.current,
+      });
     });
     const retry = window.setInterval(() => {
       if (kickedRef.current) return;
@@ -483,6 +514,7 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   }, []);
 
   useEffect(() => {
+    if (liteRef.current) return;
     if (!localStream || probe || probing) return;
     const t = window.setTimeout(() => void runProbe(), 400);
     return () => window.clearTimeout(t);
@@ -498,11 +530,20 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
 
   const toggleCam = useCallback(() => {
     const next = !camOn;
+    camOnRef.current = next;
     streamRef.current?.getVideoTracks().forEach((t) => {
       t.enabled = next;
     });
     setCamOn(next);
-  }, [camOn]);
+    void channelRef.current?.track({
+      id: userRef.current,
+      name: displayName,
+      tab: tabRef.current,
+      joinedAt: joinedAtRef.current,
+      avatar: avatarRef.current,
+      camOn: next,
+    });
+  }, [camOn, displayName]);
 
   const toggleShare = useCallback(async () => {
     if (sharing) {

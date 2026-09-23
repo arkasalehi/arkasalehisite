@@ -39,9 +39,13 @@ export function WsNotifications() {
 
   return (
     <div className="relative">
-      <button type="button" className="relative grid h-7 w-7 place-items-center rounded-[var(--ws-radius)] text-[var(--theme-dark-color)] hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => void toggle()} aria-label="Inbox">
+      <button type="button" className="relative grid h-10 w-10 place-items-center rounded-2xl bg-[#1c2128] text-white/80" onClick={() => void toggle()} aria-label="Notifications">
         <Bell className="h-4 w-4" strokeWidth={1.75} />
-        {unread > 0 ? <span className="absolute end-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--ws-accent)]" /> : null}
+        {unread > 0 ? (
+          <span className="absolute -end-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-[#e07a3a] px-1 text-[9px] font-semibold text-white">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        ) : null}
       </button>
       {open ? (
         <div className="absolute end-0 z-50 mt-2 w-80 overflow-hidden rounded-[var(--ws-radius)] border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)]">

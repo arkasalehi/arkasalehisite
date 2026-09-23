@@ -11,6 +11,7 @@ export type SessionUser = {
   username: string;
   displayName: string;
   role: Role;
+  avatarUrl: string | null;
 };
 
 export async function getSession(): Promise<SessionUser | null> {
@@ -30,6 +31,7 @@ export async function getSession(): Promise<SessionUser | null> {
         username: String(user.user_metadata?.username ?? ""),
         displayName: String(user.user_metadata?.display_name ?? user.email ?? ""),
         role: "user",
+        avatarUrl: null,
       };
     }
     return {
@@ -38,6 +40,7 @@ export async function getSession(): Promise<SessionUser | null> {
       username: profile.username,
       displayName: profile.displayName,
       role: normalizeRole(profile.role),
+      avatarUrl: profile.avatarUrl,
     };
   } catch (error) {
     console.error("getSession", error);

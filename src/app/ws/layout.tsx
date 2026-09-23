@@ -25,6 +25,8 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   return (
     <WorkspaceShell
       displayName={session?.displayName ?? ""}
+      role={session?.role ?? "collaborator"}
+      avatarUrl={session?.avatarUrl ?? null}
       channels={channels}
       inbox={inbox}
       people={people}
