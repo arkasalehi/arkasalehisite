@@ -6,7 +6,10 @@ import { runLoopbackProbe } from "@/lib/workspace/callLoopback";
 import {
   ICE_CONFIG,
   MEDIA_CONSTRAINTS,
+  MAX_CALL_PEOPLE,
   applySenderQuality,
+  applyReceiverLatency,
+  lockCaptureQuality,
   gradeStats,
   parseRtcStats,
   tabClientId,
@@ -23,16 +26,20 @@ type Signal = {
   candidate?: RTCIceCandidateInit | null;
 };
 
+type PresenceMeta = { name?: string; id?: string; joinedAt?: number };
+
 export type CallPeer = {
   id: string;
   name: string;
-  stream: MediaStream;
+  stream: MediaStream | null;
 };
 
 export function useCallRoom(roomName: string, userId: string, displayName: string) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [peers, setPeers] = useState<CallPeer[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [peopleCount, setPeopleCount] = useState(1);
+  const [sessionStartedAt, setSessionStartedAt] = useState(() => Date.now());
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [sharing, setSharing] = useState(false);
@@ -45,6 +52,9 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   const queues = useRef(new Map<string, Promise<void>>());
   const iceBuf = useRef(new Map<string, RTCIceCandidateInit[]>());
   const names = useRef(new Map<string, string>());
+  const streams = useRef(new Map<string, MediaStream>());
+  const makingOffer = useRef(new Map<string, boolean>());
+  const ignoreOffer = useRef(new Map<string, boolean>());
   const streamRef = useRef<MediaStream | null>(null);
   const cameraTrack = useRef<MediaStreamTrack | null>(null);
   const channelRef = useRef<ReturnType<ReturnType<typeof createBrowserSupabase>["channel"]> | null>(null);
@@ -52,13 +62,19 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   const tabRef = useRef("");
   const prevBytes = useRef<{ bytes: number; outboundBytes?: number; at: number } | undefined>(undefined);
   const shareMode = useRef<"camera" | "screen">("camera");
+  const peopleCountRef = useRef(1);
+  const seatedRef = useRef(false);
+  const kickedRef = useRef(false);
+  const joinedAtRef = useRef(Date.now());
   userRef.current = userId;
 
-  const setPeerStream = (id: string, stream: MediaStream) => {
-    setPeers((prev) => {
-      const rest = prev.filter((p) => p.id !== id);
-      return [...rest, { id, name: names.current.get(id) ?? "Teammate", stream }];
-    });
+  const publishPeers = () => {
+    const rows: CallPeer[] = [];
+    for (const [id, name] of names.current) {
+      if (id === tabRef.current) continue;
+      rows.push({ id, name, stream: streams.current.get(id) ?? null });
+    }
+    setPeers(rows);
   };
 
   const dropPeer = (id: string) => {
@@ -66,7 +82,11 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     pcs.current.delete(id);
     iceBuf.current.delete(id);
     names.current.delete(id);
-    setPeers((prev) => prev.filter((p) => p.id !== id));
+    streams.current.delete(id);
+    makingOffer.current.delete(id);
+    ignoreOffer.current.delete(id);
+    queues.current.delete(id);
+    publishPeers();
   };
 
   const send = async (payload: Signal) => {
@@ -76,55 +96,15 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   const attachLocal = (pc: RTCPeerConnection) => {
     const local = streamRef.current;
     if (!local) return;
-    const senders = pc.getSenders();
     for (const track of local.getTracks()) {
-      const has = senders.some((s) => s.track?.id === track.id || s.track?.kind === track.kind);
-      if (!has) pc.addTrack(track, local);
-    }
-    void applySenderQuality(pc, shareMode.current);
-  };
-
-  const ensurePc = (peerId: string) => {
-    const existing = pcs.current.get(peerId);
-    if (existing) {
-      attachLocal(existing);
-      return existing;
-    }
-    const pc = new RTCPeerConnection(ICE_CONFIG);
-    pcs.current.set(peerId, pc);
-    attachLocal(pc);
-    pc.onicecandidate = (event) => {
-      void send({
-        kind: "ice",
-        from: tabRef.current,
-        to: peerId,
-        candidate: event.candidate?.toJSON() ?? null,
-      });
-    };
-    pc.ontrack = (event) => {
-      const stream = event.streams[0] ?? new MediaStream([event.track]);
-      setPeerStream(peerId, stream);
-    };
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "failed") {
-        try {
-          pc.restartIce();
-        } catch {
-          dropPeer(peerId);
-        }
+      const sender = pc.getSenders().find((s) => s.track?.kind === track.kind);
+      if (sender) {
+        if (sender.track !== track) void sender.replaceTrack(track);
+      } else {
+        pc.addTrack(track, local);
       }
-      if (pc.connectionState === "closed") dropPeer(peerId);
-    };
-    pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === "failed") {
-        try {
-          pc.restartIce();
-        } catch {
-          /* ignore */
-        }
-      }
-    };
-    return pc;
+    }
+    void applySenderQuality(pc, shareMode.current, peopleCountRef.current);
   };
 
   const run = (peerId: string, task: () => Promise<void>) => {
@@ -148,25 +128,111 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   const offerTo = (peerId: string, iceRestart = false) =>
     run(peerId, async () => {
       const pc = ensurePc(peerId);
-      if (!iceRestart && pc.signalingState !== "stable") return;
-      await applySenderQuality(pc, shareMode.current);
-      const offer = await pc.createOffer({ iceRestart, offerToReceiveAudio: true, offerToReceiveVideo: true });
-      await pc.setLocalDescription(offer);
-      if (pc.localDescription) {
-        await send({ kind: "offer", from: tabRef.current, to: peerId, sdp: pc.localDescription });
+      if (pc.signalingState !== "stable") return;
+      makingOffer.current.set(peerId, true);
+      try {
+        await applySenderQuality(pc, shareMode.current, peopleCountRef.current);
+        const offer = await pc.createOffer({ iceRestart, offerToReceiveAudio: true, offerToReceiveVideo: true });
+        await pc.setLocalDescription(offer);
+        if (pc.localDescription) {
+          await send({ kind: "offer", from: tabRef.current, to: peerId, sdp: pc.localDescription });
+        }
+      } finally {
+        makingOffer.current.set(peerId, false);
       }
     });
 
+  const ensurePc = (peerId: string) => {
+    const existing = pcs.current.get(peerId);
+    if (existing) {
+      attachLocal(existing);
+      return existing;
+    }
+    const pc = new RTCPeerConnection(ICE_CONFIG);
+    pcs.current.set(peerId, pc);
+    if (streamRef.current) {
+      attachLocal(pc);
+    } else {
+      pc.addTransceiver("audio", { direction: "sendrecv" });
+      pc.addTransceiver("video", { direction: "sendrecv" });
+    }
+    pc.onicecandidate = (event) => {
+      void send({
+        kind: "ice",
+        from: tabRef.current,
+        to: peerId,
+        candidate: event.candidate?.toJSON() ?? null,
+      });
+    };
+    pc.ontrack = (event) => {
+      applyReceiverLatency(pc);
+      const stream = event.streams[0] ?? streams.current.get(peerId) ?? new MediaStream();
+      if (!event.streams[0]) stream.addTrack(event.track);
+      streams.current.set(peerId, stream);
+      publishPeers();
+    };
+    pc.onnegotiationneeded = () => {
+      if (kickedRef.current || tabRef.current > peerId) return;
+      void offerTo(peerId);
+    };
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "failed") {
+        try {
+          pc.restartIce();
+          if (tabRef.current < peerId) void offerTo(peerId, true);
+        } catch {
+          dropPeer(peerId);
+        }
+      }
+      if (pc.connectionState === "closed") dropPeer(peerId);
+    };
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === "failed" && tabRef.current < peerId) void offerTo(peerId, true);
+    };
+    return pc;
+  };
+
   const onSignal = (payload: Signal) => {
     const me = tabRef.current;
+    if (kickedRef.current || !me) return;
     if (!payload || payload.to !== me || payload.from === me) return;
+    if (pcs.current.size >= MAX_CALL_PEOPLE - 1 && !pcs.current.has(payload.from)) return;
     void run(payload.from, async () => {
       const pc = ensurePc(payload.from);
+      const polite = me > payload.from;
       if (payload.kind === "offer" && payload.sdp) {
-        if (pc.signalingState !== "stable") return;
+        const collision = Boolean(makingOffer.current.get(payload.from)) || pc.signalingState !== "stable";
+        if (collision && !polite) {
+          ignoreOffer.current.set(payload.from, true);
+          return;
+        }
+        ignoreOffer.current.set(payload.from, false);
+        if (collision && polite) {
+          try {
+            await pc.setLocalDescription({ type: "rollback" });
+          } catch {
+            pcs.current.delete(payload.from);
+            pc.close();
+            ensurePc(payload.from);
+            const fresh = pcs.current.get(payload.from);
+            if (!fresh) return;
+            await fresh.setRemoteDescription(payload.sdp);
+            await flushIce(payload.from, fresh);
+            await applySenderQuality(fresh, shareMode.current, peopleCountRef.current);
+            applyReceiverLatency(fresh);
+            const answer = await fresh.createAnswer();
+            await fresh.setLocalDescription(answer);
+            if (fresh.localDescription) {
+              await send({ kind: "answer", from: me, to: payload.from, sdp: fresh.localDescription });
+            }
+            return;
+          }
+        }
         await pc.setRemoteDescription(payload.sdp);
+        attachLocal(pc);
         await flushIce(payload.from, pc);
-        await applySenderQuality(pc, shareMode.current);
+        await applySenderQuality(pc, shareMode.current, peopleCountRef.current);
+        applyReceiverLatency(pc);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         if (pc.localDescription) {
@@ -174,9 +240,12 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
         }
         return;
       }
-      if (payload.kind === "answer" && payload.sdp && pc.signalingState === "have-local-offer") {
+      if (payload.kind === "answer" && payload.sdp) {
+        if (ignoreOffer.current.get(payload.from)) return;
+        if (pc.signalingState !== "have-local-offer") return;
         await pc.setRemoteDescription(payload.sdp);
         await flushIce(payload.from, pc);
+        applyReceiverLatency(pc);
         return;
       }
       if (payload.kind === "ice" && payload.candidate) {
@@ -190,6 +259,56 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     });
   };
 
+  const syncPresence = (state: Record<string, Array<PresenceMeta>>) => {
+    const tab = tabRef.current;
+    const keys = Object.keys(state);
+    const ranked = [...keys].sort();
+    if (keys.includes(tab) && ranked.indexOf(tab) >= MAX_CALL_PEOPLE) {
+      kickedRef.current = true;
+      seatedRef.current = false;
+      setError("This room is full (5 people).");
+      void channelRef.current?.untrack();
+      pcs.current.forEach((pc) => pc.close());
+      pcs.current.clear();
+      names.current.clear();
+      streams.current.clear();
+      setPeers([]);
+      setPeopleCount(MAX_CALL_PEOPLE);
+      return;
+    }
+    if (!keys.includes(tab)) return;
+    kickedRef.current = false;
+    seatedRef.current = true;
+    setError(null);
+    const people = keys.length;
+    peopleCountRef.current = people;
+    setPeopleCount(people);
+    const starts = keys
+      .map((id) => Number(state[id]?.[0]?.joinedAt) || joinedAtRef.current)
+      .filter((n) => Number.isFinite(n) && n > 0);
+    setSessionStartedAt(starts.length ? Math.min(...starts) : joinedAtRef.current);
+
+    const seen = new Set<string>();
+    for (const id of keys) {
+      const meta = state[id]?.[0];
+      names.current.set(id, meta?.name || "Teammate");
+      if (id === tab) continue;
+      seen.add(id);
+      const pc = ensurePc(id);
+      void applySenderQuality(pc, shareMode.current, people);
+      if (tab < id && pc.signalingState === "stable" && pc.iceConnectionState === "new") {
+        void offerTo(id);
+      }
+    }
+    for (const id of [...pcs.current.keys()]) {
+      if (!seen.has(id)) dropPeer(id);
+    }
+    for (const id of [...names.current.keys()]) {
+      if (id !== tab && !seen.has(id)) names.current.delete(id);
+    }
+    publishPeers();
+  };
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -199,15 +318,13 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
           media.getTracks().forEach((t) => t.stop());
           return;
         }
-        media.getVideoTracks().forEach((t) => {
-          t.contentHint = "motion";
-        });
+        await lockCaptureQuality(media);
         streamRef.current = media;
         cameraTrack.current = media.getVideoTracks()[0] ?? null;
         setLocalStream(media);
         pcs.current.forEach((pc, id) => {
           attachLocal(pc);
-          if (tabRef.current < id && !pc.remoteDescription && pc.signalingState === "stable") void offerTo(id);
+          if (tabRef.current < id && pc.signalingState === "stable") void offerTo(id);
         });
       } catch {
         try {
@@ -222,6 +339,10 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
           streamRef.current = audio;
           setLocalStream(audio);
           setCamOn(false);
+          pcs.current.forEach((pc, id) => {
+            attachLocal(pc);
+            if (tabRef.current < id && pc.signalingState === "stable") void offerTo(id);
+          });
         } catch {
           if (!cancelled) setError("Camera and microphone were blocked. Allow access to join the call.");
         }
@@ -239,6 +360,7 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     if (!roomName || !userId) return;
     const tab = tabClientId();
     tabRef.current = tab;
+    joinedAtRef.current = Date.now();
     let supabase: ReturnType<typeof createBrowserSupabase>;
     try {
       supabase = createBrowserSupabase();
@@ -252,28 +374,47 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     channelRef.current = channel;
     channel.on("broadcast", { event: "signal" }, ({ payload }) => onSignal(payload as Signal));
     channel.on("presence", { event: "sync" }, () => {
-      const state = channel.presenceState() as Record<string, Array<{ name?: string; id?: string }>>;
-      const seen = new Set<string>();
-      for (const [key, metas] of Object.entries(state)) {
-        const meta = metas[0];
-        const id = key;
-        if (id === tab) continue;
-        seen.add(id);
-        names.current.set(id, meta?.name || "Teammate");
-        const pc = ensurePc(id);
-        if (tab < id && !pc.remoteDescription && pc.signalingState === "stable") void offerTo(id);
-      }
-      for (const id of [...pcs.current.keys()]) {
-        if (!seen.has(id)) dropPeer(id);
-      }
+      syncPresence(channel.presenceState() as Record<string, Array<PresenceMeta>>);
+    });
+    channel.on("presence", { event: "join" }, () => {
+      syncPresence(channel.presenceState() as Record<string, Array<PresenceMeta>>);
+    });
+    channel.on("presence", { event: "leave" }, () => {
+      syncPresence(channel.presenceState() as Record<string, Array<PresenceMeta>>);
     });
     void channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") await channel.track({ id: userId, name: displayName, tab });
+      if (status !== "SUBSCRIBED") return;
+      const already = Object.keys(channel.presenceState()).length;
+      if (already >= MAX_CALL_PEOPLE) {
+        kickedRef.current = true;
+        seatedRef.current = false;
+        setError("This room is full (5 people).");
+        setPeopleCount(MAX_CALL_PEOPLE);
+        return;
+      }
+      seatedRef.current = true;
+      kickedRef.current = false;
+      await channel.track({ id: userId, name: displayName, tab, joinedAt: joinedAtRef.current });
     });
+    const retry = window.setInterval(() => {
+      if (kickedRef.current) return;
+      const me = tabRef.current;
+      for (const [id, pc] of pcs.current) {
+        const ice = pc.iceConnectionState;
+        const conn = pc.connectionState;
+        if (conn === "connected" || ice === "connected" || ice === "completed") continue;
+        if (me < id && (pc.signalingState === "stable" || conn === "failed" || ice === "disconnected" || ice === "failed")) {
+          void offerTo(id, conn === "failed" || ice === "failed");
+        }
+      }
+    }, 2000);
     return () => {
+      window.clearInterval(retry);
       channelRef.current = null;
       pcs.current.forEach((pc) => pc.close());
       pcs.current.clear();
+      names.current.clear();
+      streams.current.clear();
       setPeers([]);
       void supabase.removeChannel(channel);
     };
@@ -371,7 +512,7 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
         for (const pc of pcs.current.values()) {
           const sender = pc.getSenders().find((s) => s.track?.kind === "video");
           if (sender) await sender.replaceTrack(cam);
-          await applySenderQuality(pc, "camera");
+          await applySenderQuality(pc, "camera", peopleCountRef.current);
         }
         const local = streamRef.current;
         const old = local?.getVideoTracks()[0];
@@ -398,7 +539,7 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
         const sender = pc.getSenders().find((s) => s.track?.kind === "video");
         if (sender) await sender.replaceTrack(track);
         else pc.addTrack(track, display);
-        await applySenderQuality(pc, "screen");
+        await applySenderQuality(pc, "screen", peopleCountRef.current);
       }
       const local = streamRef.current ?? new MediaStream();
       const old = local.getVideoTracks()[0];
@@ -416,7 +557,7 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
             for (const pc of pcs.current.values()) {
               const sender = pc.getSenders().find((s) => s.track?.kind === "video");
               if (sender) await sender.replaceTrack(cam);
-              await applySenderQuality(pc, "camera");
+              await applySenderQuality(pc, "camera", peopleCountRef.current);
             }
             const current = streamRef.current;
             const screen = current?.getVideoTracks()[0];
@@ -435,6 +576,7 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
   }, [sharing]);
 
   const hangUp = useCallback(() => {
+    void channelRef.current?.untrack();
     pcs.current.forEach((pc) => pc.close());
     pcs.current.clear();
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -458,5 +600,8 @@ export function useCallRoom(roomName: string, userId: string, displayName: strin
     toggleCam,
     toggleShare,
     hangUp,
+    peopleCount,
+    maxPeople: MAX_CALL_PEOPLE,
+    sessionStartedAt,
   };
 }

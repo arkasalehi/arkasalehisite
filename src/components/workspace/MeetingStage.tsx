@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Mic, MicOff, MonitorUp, PhoneOff, Video, VideoOff } from "lucide-react";
 import { CallQualityBar } from "@/components/workspace/CallQualityBar";
 import { VideoTile } from "@/components/workspace/VideoTile";
 import { useCallRoom } from "@/components/workspace/useCallRoom";
+import { formatCallClock } from "@/lib/workspace/callQuality";
 import { cn } from "@/lib/utils";
 
 export function MeetingStage({
@@ -21,7 +23,16 @@ export function MeetingStage({
   displayName: string;
 }) {
   const call = useCallRoom(roomName, userId, displayName);
-  const count = call.peers.length + (call.localStream ? 1 : 0);
+  const count = Math.max(call.peopleCount, call.peers.length + (call.localStream ? 1 : 0));
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const elapsed = formatCallClock(now - call.sessionStartedAt);
+  const names = [displayName, ...call.peers.map((p) => p.name)].filter(Boolean);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#0c0c0c] text-white">
@@ -30,19 +41,29 @@ export function MeetingStage({
           Office
         </Link>
         <span className="min-w-0 truncate">{title}</span>
-        <span className="ms-auto hidden min-w-0 truncate text-[length:var(--ws-type-xs)] text-white/45 sm:inline">
-          {subtitle} · {count} in room
+        <span className="ms-auto flex shrink-0 items-center gap-2 font-medium tabular-nums text-white/80">
+          <span>
+            {count}/{call.maxPeople} online
+          </span>
+          <span className="text-white/35">·</span>
+          <span aria-label="Elapsed meeting time">{elapsed}</span>
         </span>
-        <Link href="/ws/meet" onClick={() => call.hangUp()} className="text-[length:var(--ws-type-xs)] text-[var(--ws-status-cancelled)]">
+        <Link href="/ws/meet" onClick={() => call.hangUp()} className="shrink-0 text-[length:var(--ws-type-xs)] text-[var(--ws-status-cancelled)]">
           Leave
         </Link>
       </div>
+      <p className="shrink-0 truncate border-b border-white/10 px-3 py-1 text-[length:var(--ws-type-xs)] text-white/45">
+        {subtitle} · {names.join(", ")}
+      </p>
       <div className="relative min-h-0 flex-1 p-[var(--ws-space-3)]">
         {call.error ? (
           <p className="grid h-full place-items-center text-center text-[length:var(--ws-type-sm)] text-white/70">{call.error}</p>
         ) : (
           <div
-            className={cn("grid h-full min-h-0 gap-[var(--ws-space-3)]", count <= 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3")}
+            className={cn(
+              "grid h-full min-h-0 gap-[var(--ws-space-3)]",
+              count <= 1 ? "grid-cols-1" : count === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+            )}
           >
             <VideoTile stream={call.localStream} muted camOn={call.camOn} you label={displayName} />
             {call.peers.map((peer) => (

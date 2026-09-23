@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { evaluateProbe, gradeStats, parseRtcStats, type CallStats } from "./callQuality.ts";
+import { evaluateProbe, formatCallClock, gradeStats, parseRtcStats, type CallStats } from "./callQuality.ts";
 
 function report(items: object[]) {
   return { forEach: (cb: (item: object) => void) => items.forEach(cb) } as unknown as RTCStatsReport;
@@ -55,5 +55,10 @@ assert.equal(stillScene.grade, "good");
 
 const weak = evaluateProbe({ ...live, rttMs: 400, lossPct: 12, fps: 8, height: 180, bitrateKbps: 40, connection: "connected" }, 6000, 1);
 assert.equal(weak.ok, false);
+
+assert.equal(formatCallClock(0), "00:00");
+assert.equal(formatCallClock(5_000), "00:05");
+assert.equal(formatCallClock(75_000), "01:15");
+assert.equal(formatCallClock(3_661_000), "1:01:01");
 
 console.log("callQuality stats parser and grading: pass");
