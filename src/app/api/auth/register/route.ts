@@ -1,10 +1,11 @@
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createRouteSupabase, jsonWithCookies } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/roles";
 import { identifierTaken, getProfile } from "@/lib/data/users";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { registerSchema } from "@/lib/validators";
 import { sanitizeText } from "@/lib/security";
 import { publicSiteUrl } from "@/lib/runtime";
+import type { CookieOptions } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,8 @@ export async function POST(request: Request) {
     if (taken.email) return json({ error: "این ایمیل قبلاً ثبت شده" }, 409);
     if (taken.username) return json({ error: "این نام کاربری گرفته شده" }, 409);
 
-    const supabase = await createServerSupabase();
+    const jar: Array<{ name: string; value: string; options: CookieOptions }> = [];
+    const supabase = createRouteSupabase(request, jar);
     const { data, error } = await supabase.auth.signUp({
       email,
       password: body.password,
@@ -58,15 +60,19 @@ export async function POST(request: Request) {
     }
 
     const profile = await getProfile(data.user.id);
-    return json({
-      user: {
-        id: data.user.id,
-        email: profile?.email ?? email,
-        username: profile?.username ?? username,
-        displayName: profile?.displayName ?? displayName,
-        role: normalizeRole(profile?.role),
+    return jsonWithCookies(
+      request,
+      {
+        user: {
+          id: data.user.id,
+          email: profile?.email ?? email,
+          username: profile?.username ?? username,
+          displayName: profile?.displayName ?? displayName,
+          role: normalizeRole(profile?.role),
+        },
       },
-    });
+      jar,
+    );
   } catch (error) {
     return errorResponse(error);
   }

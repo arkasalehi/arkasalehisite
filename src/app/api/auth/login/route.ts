@@ -1,9 +1,10 @@
 import { getSession } from "@/lib/auth/session";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createRouteSupabase, jsonWithCookies } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/roles";
 import { getProfile } from "@/lib/data/users";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { loginSchema } from "@/lib/validators";
+import type { CookieOptions } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,8 @@ export async function POST(request: Request) {
   try {
     await guardMutation(request, "login", 8);
     const body = loginSchema.parse(await request.json());
-    const supabase = await createServerSupabase();
+    const jar: Array<{ name: string; value: string; options: CookieOptions }> = [];
+    const supabase = createRouteSupabase(request, jar);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: body.email.toLowerCase(),
       password: body.password,
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
       displayName: profile?.displayName ?? String(data.user.user_metadata?.display_name ?? ""),
       role: normalizeRole(profile?.role ?? data.user.user_metadata?.role),
     };
-    return json({ user: session });
+    return jsonWithCookies(request, { user: session }, jar);
   } catch (error) {
     return errorResponse(error);
   }

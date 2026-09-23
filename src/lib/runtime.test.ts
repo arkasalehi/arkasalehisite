@@ -7,5 +7,6 @@ assert.equal(publicOriginFromHost("workspace.arkasalehi.com"), "https://arkasale
 assert.equal(publicOriginFromHost("arkasalehi.com"), "https://arkasalehi.com");
 assert.equal(publicOriginFromHost("localhost:3000"), "");
 assert.equal(isPublicAuthPath("/login"), true);
+assert.equal(isPublicAuthPath("/api/auth/login"), true);
 assert.equal(isPublicAuthPath("/ws"), false);
 console.log("runtime origin helpers: pass");

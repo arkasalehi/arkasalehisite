@@ -40,6 +40,16 @@ export function assertSameOrigin(request: Request) {
 
   if (!origin) {
     if (fetchSite === "same-origin" || fetchSite === "none") return;
+    const referer = request.headers.get("referer");
+    if (referer && host) {
+      try {
+        const refererHost = new URL(referer).host.toLowerCase();
+        const reqHost = host.split(":")[0]?.toLowerCase() ?? "";
+        if (refererHost === host.toLowerCase() || refererHost === reqHost) return;
+      } catch {
+        /* ignore */
+      }
+    }
     if (production) {
       const err = new Error("FORBIDDEN");
       err.name = "FORBIDDEN";

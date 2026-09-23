@@ -27,7 +27,9 @@ export async function proxy(request: NextRequest) {
   const adminPage = pathname.startsWith("/admin") || pathname.startsWith("/preview");
   const adminApi = pathname.startsWith("/api/admin");
   const workspaceGate =
-    (onWorkspaceHost && !isPublicAuthPath(pathname)) || pathname.startsWith("/ws") || pathname.startsWith("/api/workspace");
+    pathname.startsWith("/ws") ||
+    pathname.startsWith("/api/workspace") ||
+    (onWorkspaceHost && !isPublicAuthPath(pathname) && !pathname.startsWith("/api/"));
   const needsAuth =
     adminPage ||
     pathname.startsWith("/dashboard") ||
@@ -38,9 +40,9 @@ export async function proxy(request: NextRequest) {
   let isAdmin = false;
   let isCollaborator = false;
 
-  if (url && key && needsAuth) {
+  if (url && key && (needsAuth || adminApi)) {
     const supabase = createServerClient(url, key, {
-      global: { fetch: fetchWithTimeout(5000) },
+      global: { fetch: fetchWithTimeout(8000) },
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -66,8 +68,9 @@ export async function proxy(request: NextRequest) {
         isAdmin = data === true;
       }
       if (user && workspaceGate) {
-        const { data } = await supabase.rpc("is_collaborator");
-        isCollaborator = data === true;
+        const { data, error } = await supabase.rpc("is_collaborator");
+        isCollaborator = error ? false : data === true;
+        if (error) console.error("proxy is_collaborator", error.message);
       }
     } catch (error) {
       console.error("proxy auth", error);

@@ -21,34 +21,51 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
     setLoading(true);
     setError("");
     setNotice("");
-    const form = new FormData(e.currentTarget);
-    const payload = Object.fromEntries(form.entries());
-    const res = await fetch(mode === "login" ? "/api/auth/login" : "/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error ?? "خطا");
-      return;
-    }
-    if (data.needsConfirmation) {
-      setNotice(data.message ?? "حساب ساخته شد. ایمیل تأیید را چک کنید.");
-      return;
-    }
-    if (next.startsWith("/ws")) {
-      if (canAccessWorkspace(data.user?.role)) {
-        window.location.href = workspaceUrl();
+    try {
+      const form = new FormData(e.currentTarget);
+      const payload = Object.fromEntries(form.entries());
+      const res = await fetch(mode === "login" ? "/api/auth/login" : "/api/auth/register", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        needsConfirmation?: boolean;
+        message?: string;
+        user?: { role?: string };
+      };
+      if (!res.ok) {
+        setError(data.error ?? "ورود انجام نشد. دوباره تلاش کنید.");
         return;
       }
-      router.push("/");
+      if (data.needsConfirmation) {
+        setNotice(data.message ?? "حساب ساخته شد. ایمیل تأیید را چک کنید.");
+        return;
+      }
+      if (next.startsWith("/ws")) {
+        if (canAccessWorkspace(data.user?.role)) {
+          const dest = next.startsWith("/ws") ? next : "/ws";
+          const host = window.location.hostname;
+          if (host.startsWith("workspace.") || host.endsWith(".workers.dev") || host === "localhost") {
+            window.location.assign(dest);
+            return;
+          }
+          window.location.assign(`${workspaceUrl()}${dest}`);
+          return;
+        }
+        router.push("/");
+        router.refresh();
+        return;
+      }
+      router.push(next);
       router.refresh();
-      return;
+    } catch {
+      setError("اتصال برقرار نشد. دوباره تلاش کنید.");
+    } finally {
+      setLoading(false);
     }
-    router.push(next);
-    router.refresh();
   }
 
   return (
@@ -120,19 +137,25 @@ export function ForgotPasswordPage() {
     setLoading(true);
     setError("");
     setNotice("");
-    const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/auth/forgot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: form.get("email") }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error ?? "خطا");
-      return;
+    try {
+      const form = new FormData(e.currentTarget);
+      const res = await fetch("/api/auth/forgot", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: form.get("email") }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+      if (!res.ok) {
+        setError(data.error ?? "خطا");
+        return;
+      }
+      setNotice(data.message ?? "اگر این ایمیل ثبت شده باشد، لینک بازیابی ارسال می‌شود.");
+    } catch {
+      setError("اتصال برقرار نشد. دوباره تلاش کنید.");
+    } finally {
+      setLoading(false);
     }
-    setNotice(data.message ?? "اگر این ایمیل ثبت شده باشد، لینک بازیابی ارسال می‌شود.");
   }
 
   return (
@@ -165,27 +188,32 @@ export function UpdatePasswordPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const form = new FormData(e.currentTarget);
-    const password = String(form.get("password") ?? "");
-    const confirm = String(form.get("confirm") ?? "");
-    if (password !== confirm) {
+    try {
+      const form = new FormData(e.currentTarget);
+      const password = String(form.get("password") ?? "");
+      const confirm = String(form.get("confirm") ?? "");
+      if (password !== confirm) {
+        setError("رمز و تکرار آن یکی نیستند");
+        return;
+      }
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "خطا");
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("اتصال برقرار نشد. دوباره تلاش کنید.");
+    } finally {
       setLoading(false);
-      setError("رمز و تکرار آن یکی نیستند");
-      return;
     }
-    const res = await fetch("/api/auth/password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error ?? "خطا");
-      return;
-    }
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (

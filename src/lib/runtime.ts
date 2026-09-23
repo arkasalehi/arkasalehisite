@@ -61,6 +61,7 @@ export function isPublicAuthPath(pathname: string) {
     pathname === "/forgot-password" ||
     pathname === "/update-password" ||
     pathname.startsWith("/login/") ||
-    pathname.startsWith("/register/")
+    pathname.startsWith("/register/") ||
+    pathname.startsWith("/api/auth")
   );
 }
