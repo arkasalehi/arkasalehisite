@@ -7,7 +7,7 @@ import { createBrowserSupabase } from "@/lib/supabase/browser";
 import type { WorkspaceProject, WorkspaceTask } from "@/lib/data/workspace";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/workspace/EmptyState";
-import { wsCopy } from "@/lib/workspace/copy";
+import { useWsChrome } from "@/lib/theme/workspace";
 
 type Person = { id: string; displayName: string };
 type Comment = { id: string; body: string; createdAt: string; authorName: string };
@@ -34,13 +34,8 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
   const [subTitle, setSubTitle] = useState("");
   const [comment, setComment] = useState("");
   const [creating, setCreating] = useState(false);
-  const [locale, setLocale] = useState<"en" | "fa">("en");
+  const { t } = useWsChrome();
   const projectFilter = useSearchParams().get("project");
-  const t = wsCopy(locale);
-
-  useEffect(() => {
-    setLocale(localStorage.getItem("ws-locale") === "fa" ? "fa" : "en");
-  }, []);
 
   useEffect(() => {
     const supabase = createBrowserSupabase();
@@ -166,7 +161,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
     <div className="relative flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-[var(--ws-space-2)] border-b border-[var(--theme-divider-color)] px-[var(--ws-space-4)] py-[var(--ws-space-2)]">
         <form onSubmit={(e) => void add(e)} className="flex flex-1 gap-[var(--ws-space-2)]">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className="ws-input flex-1" placeholder="New issue" />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="ws-input flex-1" placeholder={t.newIssue} />
           <button type="submit" disabled={creating} className="ws-btn ws-btn-primary">
             {creating ? <span className="ws-spinner" /> : t.createIssue}
           </button>
@@ -186,9 +181,9 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
                   if (id) void patch(id, { status });
                 }}
               >
-                <p className="flex items-center gap-[var(--ws-space-2)] px-[var(--ws-space-2)] py-[var(--ws-space-1)] text-[length:var(--ws-type-xs)] font-semibold uppercase tracking-[var(--ws-tracking-label)]" style={{ color: STATUS_COLOR[status] }}>
+                <p className="flex items-center gap-[var(--ws-space-2)] px-[var(--ws-space-2)] py-[var(--ws-space-1)] text-[13px] font-semibold" style={{ color: STATUS_COLOR[status] }}>
                   <span className="ws-dot" />
-                  {status === "todo" ? t.backlog : status === "doing" ? t.active : "Done"}
+                  {status === "todo" ? t.backlog : status === "doing" ? t.active : t.done}
                 </p>
                 {column.length === 0 ? (
                   <p className="px-[var(--ws-space-2)] py-[var(--ws-space-4)] text-[length:var(--ws-type-xs)] text-[var(--theme-darker-color)]">Drop an issue here.</p>
@@ -225,7 +220,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
       ) : (
         <div className="ws-scroll min-h-0 flex-1 overflow-x-auto overflow-y-auto">
           <table className="w-full text-start text-[length:var(--ws-type-sm)]">
-            <thead className="sticky top-0 bg-[var(--theme-comp-header-color)] text-[length:var(--ws-type-xs)] uppercase tracking-[var(--ws-tracking-label)] text-[var(--theme-darker-color)]">
+            <thead className="sticky top-0 bg-[var(--theme-comp-header-color)] text-[13px] text-[var(--theme-darker-color)]">
               <tr>
                 <th className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] font-medium">Issue</th>
                 <th className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] font-medium">Status</th>
@@ -248,13 +243,13 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
                   <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)]">
                     <span className="ws-chip" style={{ color: STATUS_COLOR[item.status], background: "var(--input-BackgroundColor)" }}>
                       <span className="ws-dot" />
-                      {item.status === "todo" ? t.backlog : item.status === "doing" ? t.active : "Done"}
+                      {item.status === "todo" ? t.backlog : item.status === "doing" ? t.active : t.done}
                     </span>
                   </td>
                   <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)]" style={{ color: PRIORITY_COLOR[item.priority] }}>
                     {item.priority}
                   </td>
-                  <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] text-[var(--theme-dark-color)]">{people.find((p) => p.id === item.assigneeId)?.displayName || "Unassigned"}</td>
+                  <td className="px-[var(--ws-space-4)] py-[var(--ws-space-2)] text-[var(--theme-dark-color)]">{people.find((p) => p.id === item.assigneeId)?.displayName || t.unassigned}</td>
                 </tr>
               ))}
             </tbody>
@@ -270,12 +265,12 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
           <div className="mt-[var(--ws-space-3)] flex gap-[var(--ws-space-2)]">
             {(["todo", "doing", "done"] as const).map((s) => (
               <button key={s} type="button" onClick={() => void patch(selected.id, { status: s })} className={cn("ws-btn", selected.status === s ? "text-[var(--ws-on-accent)]" : "ws-btn-ghost")} style={selected.status === s ? { background: STATUS_COLOR[s] } : undefined}>
-                {s === "todo" ? t.backlog : s === "doing" ? t.active : "Done"}
+                {s === "todo" ? t.backlog : s === "doing" ? t.active : t.done}
               </button>
             ))}
           </div>
           <select className="ws-input mt-[var(--ws-space-3)] w-full" value={selected.assigneeId ?? ""} onChange={(e) => void patch(selected.id, { assigneeId: e.target.value || null })}>
-            <option value="">Unassigned</option>
+            <option value="">{t.unassigned}</option>
             {people.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.displayName}
@@ -300,10 +295,10 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
           <input
             className="ws-input mt-[var(--ws-space-2)] w-full"
             defaultValue={selected.labels.join(", ")}
-            placeholder="labels, comma separated"
+            placeholder={t.labels}
             onBlur={(e) => void patch(selected.id, { labels: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
           />
-          <textarea defaultValue={selected.description ?? ""} className="mt-[var(--ws-space-3)] min-h-32 w-full rounded-[var(--ws-radius)] bg-[var(--input-BackgroundColor)] p-[var(--ws-space-2)] text-[length:var(--ws-type-sm)] outline-none" placeholder="Description" onBlur={(e) => void patch(selected.id, { description: e.target.value })} />
+          <textarea defaultValue={selected.description ?? ""} className="mt-[var(--ws-space-3)] min-h-32 w-full rounded-[var(--ws-radius)] bg-[var(--input-BackgroundColor)] p-[var(--ws-space-2)] text-[length:var(--ws-type-sm)] outline-none" placeholder={t.description} onBlur={(e) => void patch(selected.id, { description: e.target.value })} />
           <h3 className="mt-[var(--ws-space-4)] text-[length:var(--ws-type-sm)] font-medium">Sub-issues</h3>
           <ul className="mt-[var(--ws-space-1)] space-y-[var(--ws-space-1)] text-[length:var(--ws-type-sm)]">
             {tasks
@@ -325,7 +320,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
               void fetch("/api/workspace/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: value, parentId: selected.id }) });
             }}
           >
-            <input value={subTitle} onChange={(e) => setSubTitle(e.target.value)} className="ws-input flex-1" placeholder="Add sub-issue" />
+            <input value={subTitle} onChange={(e) => setSubTitle(e.target.value)} className="ws-input flex-1" placeholder={t.addSubIssue} />
             <button type="submit" className="ws-btn ws-btn-ghost text-[var(--ws-accent)]">
               Add
             </button>
@@ -346,10 +341,10 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
               const body = comment.trim();
               setComment("");
               void fetch("/api/workspace/comments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ taskId: active, body }) });
-              setComments((prev) => [...prev, { id: crypto.randomUUID(), body, createdAt: new Date().toISOString(), authorName: "You" }]);
+              setComments((prev) => [...prev, { id: crypto.randomUUID(), body, createdAt: new Date().toISOString(), authorName: t.you }]);
             }}
           >
-            <input value={comment} onChange={(e) => setComment(e.target.value)} className="ws-input flex-1" placeholder="Comment" />
+            <input value={comment} onChange={(e) => setComment(e.target.value)} className="ws-input flex-1" placeholder={t.comment} />
             <button type="submit" className="ws-btn ws-btn-ghost text-[var(--ws-accent)]">
               Send
             </button>

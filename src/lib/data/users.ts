@@ -53,18 +53,32 @@ export async function getProfile(userId: string) {
 
 export async function updateProfile(
   userId: string,
-  data: { displayName?: string; bio?: string | null; avatarUrl?: string | null },
+  data: { displayName?: string; username?: string; bio?: string | null; avatarUrl?: string | null },
 ) {
   const db = await createServerSupabase();
-  const { error } = await db
-    .from("profiles")
-    .update({
-      display_name: data.displayName,
-      bio: data.bio,
-      avatar_url: data.avatarUrl,
-    })
-    .eq("id", userId);
+  if (data.username) {
+    const existing = await findUserByUsername(data.username);
+    if (existing && String(existing.id) !== userId) {
+      const err = new Error("USERNAME_TAKEN");
+      err.name = "CONFLICT";
+      throw err;
+    }
+  }
+  const patch: Record<string, string | null> = {};
+  if (data.displayName !== undefined) patch.display_name = data.displayName;
+  if (data.username !== undefined) patch.username = data.username.toLowerCase();
+  if (data.bio !== undefined) patch.bio = data.bio;
+  if (data.avatarUrl !== undefined) patch.avatar_url = data.avatarUrl;
+  const { error } = await db.from("profiles").update(patch).eq("id", userId);
   if (error) throw error;
+  if (data.username || data.displayName) {
+    await db.auth.updateUser({
+      data: {
+        ...(data.username ? { username: data.username.toLowerCase() } : {}),
+        ...(data.displayName ? { display_name: data.displayName } : {}),
+      },
+    });
+  }
   const profile = await getProfile(userId);
   if (!profile) throw new Error("NOT_FOUND");
   return profile;
@@ -72,23 +86,19 @@ export async function updateProfile(
 
 export async function getAdminStats() {
   const db = await createServerSupabase();
-  const [users, posts, comments, likes, products, orders, published] = await Promise.all([
+  const [users, posts, comments, likes, products, orders, viewsAgg] = await Promise.all([
     db.from("profiles").select("id", { count: "exact", head: true }),
     db.from("posts").select("id", { count: "exact", head: true }),
     db.from("comments").select("id", { count: "exact", head: true }),
     db.from("likes").select("id", { count: "exact", head: true }),
     db.from("products").select("id", { count: "exact", head: true }),
     db.from("orders").select("id", { count: "exact", head: true }),
-    db.from("posts").select("type, view_count"),
+    db.from("posts").select("view_count.sum()"),
   ]);
 
-  const viewRows = published.data ?? [];
-  const views = viewRows.reduce((n, row) => n + Number((row as { view_count?: number }).view_count ?? 0), 0);
-  const byTypeMap = new Map<string, number>();
-  for (const row of viewRows) {
-    const type = String((row as { type?: string }).type ?? "BLOG");
-    byTypeMap.set(type, (byTypeMap.get(type) ?? 0) + 1);
-  }
+  const viewsRaw = (viewsAgg.data ?? []) as Array<Record<string, unknown>>;
+  const first = viewsRaw[0] ?? {};
+  const views = Number(first.sum ?? first.view_count ?? 0);
 
   return {
     users: users.count ?? 0,
@@ -98,6 +108,6 @@ export async function getAdminStats() {
     products: products.count ?? 0,
     orders: orders.count ?? 0,
     views,
-    byType: [...byTypeMap.entries()].map(([type, count]) => ({ type, _count: { _all: count } })),
+    byType: [] as Array<{ type: string; _count: { _all: number } }>,
   };
 }

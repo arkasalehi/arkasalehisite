@@ -1,16 +1,22 @@
 import { cache } from "react";
-import { canQueryDatabase } from "./client";
+import { canQueryDatabase, publicDb } from "./client";
 import { cached } from "@/lib/cache";
 import { effectivePrice } from "@/lib/utils";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "./map";
 
+const PRODUCT_COLS =
+  "id, title, slug, description, price, compare_price, discount_percent, stock, image_url, in_stock, sku, featured, created_at, updated_at";
+
 export const listProducts = cache(async (opts?: { featured?: boolean; take?: number }) => {
   return cached(`products:${JSON.stringify(opts ?? {})}`, 20_000, async () => {
     if (!canQueryDatabase()) return [];
     try {
-      const db = await createServerSupabase();
-      let q = db.from("products").select("*").order("created_at", { ascending: false });
+      const db = publicDb();
+      let q = db
+        .from("products")
+        .select(PRODUCT_COLS)
+        .order("created_at", { ascending: false });
       if (opts?.featured) q = q.eq("featured", true);
       if (opts?.take) q = q.limit(opts.take);
       const { data, error } = await q;
@@ -26,8 +32,12 @@ export const listProducts = cache(async (opts?: { featured?: boolean; take?: num
 export const getProductBySlug = cache(async (slug: string) => {
   if (!canQueryDatabase()) return null;
   try {
-    const db = await createServerSupabase();
-    const { data, error } = await db.from("products").select("*").eq("slug", slug).maybeSingle();
+    const db = publicDb();
+      const { data, error } = await db
+        .from("products")
+        .select(PRODUCT_COLS)
+        .eq("slug", slug)
+        .maybeSingle();
     if (error) throw error;
     return data ? mapProduct(data as Record<string, unknown>) : null;
   } catch (error) {
@@ -38,7 +48,7 @@ export const getProductBySlug = cache(async (slug: string) => {
 
 export async function getProductById(id: string) {
   const db = await createServerSupabase();
-  const { data, error } = await db.from("products").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await db.from("products").select(PRODUCT_COLS).eq("id", id).maybeSingle();
   if (error) throw error;
   return data ? mapProduct(data as Record<string, unknown>) : null;
 }
@@ -46,7 +56,7 @@ export async function getProductById(id: string) {
 export async function listProductSlugs() {
   if (!canQueryDatabase()) return [];
   try {
-    const db = await createServerSupabase();
+    const db = publicDb();
     const { data, error } = await db.from("products").select("slug, updated_at");
     if (error) throw error;
     return (data ?? []).map((row) => ({ slug: String(row.slug), updatedAt: new Date(String(row.updated_at)) }));
@@ -59,7 +69,7 @@ export async function listProductSlugs() {
 export async function getProductsByIds(ids: string[]) {
   if (!ids.length) return [];
   const db = await createServerSupabase();
-  const { data, error } = await db.from("products").select("*").in("id", ids);
+  const { data, error } = await db.from("products").select(PRODUCT_COLS).in("id", ids);
   if (error) throw error;
   return (data ?? []).map((row) => mapProduct(row as Record<string, unknown>));
 }
@@ -115,11 +125,11 @@ export async function upsertProduct(data: {
   };
 
   if (data.id) {
-    const { data: row, error } = await db.from("products").update(payload).eq("id", data.id).select("*").single();
+    const { data: row, error } = await db.from("products").update(payload).eq("id", data.id).select(PRODUCT_COLS).single();
     if (error) throw error;
     return mapProduct(row as Record<string, unknown>);
   }
-  const { data: row, error } = await db.from("products").insert(payload).select("*").single();
+  const { data: row, error } = await db.from("products").insert(payload).select(PRODUCT_COLS).single();
   if (error) throw error;
   return mapProduct(row as Record<string, unknown>);
 }

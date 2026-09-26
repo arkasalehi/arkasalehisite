@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
+import { useMemo, useState } from "react";
 import { Inbox } from "lucide-react";
-import type { InboxItem, WorkspaceMeeting, WorkspaceTask } from "@/lib/data/workspace";
+import type { InboxItem, WorkspaceMeeting, WorkspaceNavTask } from "@/lib/data/workspace";
 import { EmptyState } from "@/components/workspace/EmptyState";
-import { wsCopy, type WsLocale } from "@/lib/workspace/copy";
+import { useWsChrome } from "@/lib/theme/workspace";
 import { cn } from "@/lib/utils";
 
 export function InboxFeed({
@@ -13,15 +13,11 @@ export function InboxFeed({
   inbox,
   meetings,
 }: {
-  tasks: WorkspaceTask[];
+  tasks: WorkspaceNavTask[];
   inbox: InboxItem[];
   meetings: WorkspaceMeeting[];
 }) {
-  const [locale, setLocale] = useState<WsLocale>("en");
-  useEffect(() => {
-    setLocale(localStorage.getItem("ws-locale") === "fa" ? "fa" : "en");
-  }, []);
-  const t = wsCopy(locale);
+  const { locale, t } = useWsChrome();
   const [filter, setFilter] = useState<"all" | "unread" | "files" | "mentions">("all");
   const open = tasks.filter((item) => !item.parentId && item.status !== "done");
   const messages = useMemo(() => {
@@ -58,7 +54,7 @@ export function InboxFeed({
             ? open.slice(0, 8).map((task) => (
                 <Link key={task.id} href="/ws/tasks" className="ws-row flex items-center justify-between py-[var(--ws-space-3)] text-[length:var(--ws-type-sm)] hover:bg-[var(--theme-navpanel-hovered)]">
                   <span>{task.title}</span>
-                  <span className="text-[length:var(--ws-type-xs)] uppercase tracking-[var(--ws-tracking-label)]" style={{ color: task.status === "doing" ? "var(--ws-status-progress)" : "var(--ws-status-backlog)" }}>
+                  <span className="text-[12px]" style={{ color: task.status === "doing" ? "var(--ws-status-progress)" : "var(--ws-status-backlog)" }}>
                     {task.status}
                   </span>
                 </Link>

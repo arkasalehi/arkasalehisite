@@ -4,10 +4,24 @@
  */
 type Bucket = { count: number; reset: number };
 
+const MAX_KEYS = 200;
 const buckets = new Map<string, Bucket>();
+
+function prune(now: number) {
+  if (buckets.size < MAX_KEYS / 2) return;
+  for (const [key, bucket] of buckets) {
+    if (bucket.reset < now) buckets.delete(key);
+  }
+  while (buckets.size >= MAX_KEYS) {
+    const first = buckets.keys().next().value;
+    if (first === undefined) break;
+    buckets.delete(first);
+  }
+}
 
 export function rateLimit(key: string, limit = 20, windowMs = 60_000) {
   const now = Date.now();
+  prune(now);
   const current = buckets.get(key);
   if (!current || current.reset < now) {
     buckets.set(key, { count: 1, reset: now + windowMs });

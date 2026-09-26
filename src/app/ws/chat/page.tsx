@@ -1,12 +1,23 @@
-import { MessageSquare } from "lucide-react";
-import { EmptyState } from "@/components/workspace/EmptyState";
+import { getSession } from "@/lib/auth/session";
+import { listCollaboratorDirectory, listInbox } from "@/lib/data/workspace";
+import { ChatHome } from "@/components/workspace/ChatHome";
+import { routeTimer } from "@/lib/timing";
 
-export default function ChatIndexPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ChatIndexPage() {
+  const done = routeTimer("page /ws/chat");
+  const session = await getSession();
+  const [inbox, people] = await Promise.all([
+    listInbox(session?.id).catch(() => []),
+    listCollaboratorDirectory().catch(() => []),
+  ]);
+  done();
   return (
-    <EmptyState
-      icon={<MessageSquare className="h-5 w-5" strokeWidth={1.75} />}
-      title="Pick a channel"
-      body="Open the menu to pick a space, or start a direct message."
+    <ChatHome
+      initial={inbox}
+      people={people.filter((person) => person.id !== session?.id)}
+      userId={session?.id ?? ""}
     />
   );
 }

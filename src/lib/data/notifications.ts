@@ -6,7 +6,7 @@ export async function listNotifications(userId: string, take = 30) {
   const db = await createServerSupabase();
   const { data, error } = await db
     .from("notifications")
-    .select("*")
+    .select("id, user_id, type, title, body, link, read, actor_id, post_id, group_key, count, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(take);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { useRouter } from "next/navigation";
 import { typeLabel, formatDate } from "@/lib/utils";
 import { DeleteButton } from "@/components/admin/DeleteButton";

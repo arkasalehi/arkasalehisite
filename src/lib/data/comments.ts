@@ -1,3 +1,4 @@
+import { publicDb } from "./client";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { asCommentStatus, mapCommentUser, toDate } from "./map";
 import type { VisibleComment } from "@/lib/types";
@@ -19,13 +20,14 @@ function mapComment(row: Record<string, unknown>, replies: VisibleComment["repli
 
 export async function listVisibleComments(postId: string) {
   try {
-    const db = await createServerSupabase();
+    const db = publicDb();
     const { data, error } = await db
       .from("comments")
-      .select("*, user:profiles!user_id(id, display_name, username, avatar_url)")
+      .select("id, body, status, post_id, user_id, parent_id, created_at, updated_at, user:profiles!user_id(id, display_name, username, avatar_url)")
       .eq("post_id", postId)
       .eq("status", "VISIBLE")
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })
+      .limit(80);
     if (error) throw error;
     const rows = (data ?? []) as Array<Record<string, unknown>>;
     const mapped = rows.map((row) => mapComment(row, []));
@@ -60,7 +62,7 @@ export async function createComment(input: {
       body: input.body.trim(),
       parent_id: input.parentId || null,
     })
-    .select("*, user:profiles!user_id(id, display_name, username, avatar_url)")
+    .select("id, body, status, post_id, user_id, parent_id, created_at, updated_at, user:profiles!user_id(id, display_name, username, avatar_url)")
     .single();
   if (error) throw error;
   return mapComment(data as Record<string, unknown>);

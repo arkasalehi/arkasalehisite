@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +22,10 @@ export function DashNav({
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors duration-150",
-                active ? "bg-[#1b6754]/10 text-[#1b6754]" : "text-muted hover:text-foreground",
+                active ? "bg-accent/10 text-accent" : "text-muted hover:text-foreground",
               )}
             >
               {item.label}

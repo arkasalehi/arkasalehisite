@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import type { Role } from "@/lib/types";
 import { isAdminRole, normalizeRole } from "@/lib/auth/roles";
@@ -14,7 +15,7 @@ export type SessionUser = {
   avatarUrl: string | null;
 };
 
-export async function getSession(): Promise<SessionUser | null> {
+export const getSession = cache(async (): Promise<SessionUser | null> => {
   try {
     const jar = await cookies();
     if (!hasSupabaseAuthCookie(jar.getAll())) return null;
@@ -46,7 +47,7 @@ export async function getSession(): Promise<SessionUser | null> {
     console.error("getSession", error);
     return null;
   }
-}
+});
 
 export async function requireUser() {
   const session = await getSession();

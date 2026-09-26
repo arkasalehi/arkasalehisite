@@ -16,6 +16,7 @@ import { buildMetadata } from "@/lib/seo";
 import { getSiteCms } from "@/lib/data/settings";
 import { getPostsBySlugs, listPublishedPosts } from "@/lib/data/posts";
 import { listProducts } from "@/lib/data/products";
+import { routeTimer } from "@/lib/timing";
 
 export const revalidate = 60;
 
@@ -71,6 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
+  const done = routeTimer("page /");
   const cms = await getSiteCms();
   const [featured, latest, blogs, videos, shorts, featuredProducts, allProducts, startHere] = await Promise.all([
     listPublishedPosts({ featured: true, take: 8 }),
@@ -89,6 +91,7 @@ export default async function HomePage() {
   const videoFallback = videoRail.length ? videoRail : latest.slice(0, 4);
   const products = featuredProducts.length ? featuredProducts : allProducts;
   const startPosts = startHere.length ? startHere : latest.slice(0, 6);
+  done();
 
   return (
     <div className="home-saas pb-6 md:pb-8">

@@ -65,3 +65,27 @@ export function isPublicAuthPath(pathname: string) {
     pathname.startsWith("/api/auth")
   );
 }
+
+export function requestHost(value: string | null | undefined) {
+  return (value || "").split(",")[0]?.trim() || "";
+}
+
+/** html.ws document chrome: workspace host (including login) or /ws routes. */
+export function isWorkspaceDocument(pathname: string, host?: string | null) {
+  return pathname.startsWith("/ws") || isWorkspaceHost(host);
+}
+
+/** Workspace shell with dock — not login/register. */
+export function isWorkspaceChrome(pathname: string, host?: string | null) {
+  if (pathname.startsWith("/ws")) return true;
+  if (isPublicAuthPath(pathname)) return false;
+  return isWorkspaceHost(host);
+}
+
+/** Marketing header/footer/padding. Never on workspace host or auth screens. */
+export function usesSiteChrome(pathname: string, host?: string | null) {
+  if (pathname.startsWith("/ws") || pathname.startsWith("/api/")) return false;
+  if (isWorkspaceHost(host)) return false;
+  if (isPublicAuthPath(pathname)) return false;
+  return true;
+}

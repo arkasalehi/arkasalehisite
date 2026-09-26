@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  primary: "bg-[#2f7de9] text-white shadow-[0_10px_24px_rgba(47,125,233,0.28)] hover:opacity-90 disabled:opacity-50",
+  primary: "bg-[#3390ec] text-white hover:bg-[#2b84d9] disabled:opacity-50",
   ghost: "border border-[var(--border)] bg-white/70 text-foreground hover:bg-white disabled:opacity-50",
-  subtle: "bg-white/80 text-foreground border border-[var(--border)] hover:border-[#1b6754]/30",
+  subtle: "bg-white/80 text-foreground border border-[var(--border)] hover:border-[#3390ec]/30",
   danger: "bg-rose-600 text-white hover:opacity-90",
 };
 

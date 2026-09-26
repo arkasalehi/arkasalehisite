@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useWsChrome } from "@/lib/theme/workspace";
 
 type Hit = { href: string; label: string; group: string };
 
@@ -16,6 +17,7 @@ export function CommandPalette({
   notes: Array<{ id: string; title: string }>;
   meetings: Array<{ id: string; title: string }>;
 }) {
+  const { t } = useWsChrome();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -41,27 +43,27 @@ export function CommandPalette({
 
   const hits = useMemo(() => {
     const items: Hit[] = [
-      { href: "/ws", label: "Inbox", group: "Apps" },
-      { href: "/ws/tasks", label: "Tasks", group: "Apps" },
-      { href: "/ws/docs", label: "Documents", group: "Apps" },
-      { href: "/ws/chat", label: "Chat", group: "Apps" },
-      { href: "/ws/meet", label: "Office", group: "Apps" },
-      ...channels.map((c) => ({ href: `/ws/chat/${c.id}`, label: c.name, group: "Chat" })),
-      ...tasks.slice(0, 20).map((task) => ({ href: "/ws/tasks", label: task.title, group: "Tracker" })),
-      ...notes.map((n) => ({ href: `/ws/docs/${n.id}`, label: n.title, group: "Documents" })),
-      ...meetings.map((m) => ({ href: `/ws/meet/${m.id}`, label: m.title, group: "Office" })),
+      { href: "/ws", label: t.inbox, group: t.apps },
+      { href: "/ws/tasks", label: t.tasksNav, group: t.apps },
+      { href: "/ws/docs", label: t.documents, group: t.apps },
+      { href: "/ws/chat", label: t.chat, group: t.apps },
+      { href: "/ws/meet", label: t.office, group: t.apps },
+      ...channels.map((c) => ({ href: `/ws/chat/${c.id}`, label: c.name, group: t.chat })),
+      ...tasks.slice(0, 20).map((task) => ({ href: "/ws/tasks", label: task.title, group: t.tracker })),
+      ...notes.map((n) => ({ href: `/ws/docs/${n.id}`, label: n.title, group: t.documents })),
+      ...meetings.map((m) => ({ href: `/ws/meet/${m.id}`, label: m.title, group: t.office })),
     ];
     const needle = q.trim().toLowerCase();
     if (!needle) return items.slice(0, 12);
     return items.filter((item) => item.label.toLowerCase().includes(needle)).slice(0, 16);
-  }, [channels, meetings, notes, q, tasks]);
+  }, [channels, meetings, notes, q, t, tasks]);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[80] grid place-items-start bg-black/50 p-4 pt-[12vh]" onClick={() => setOpen(false)}>
       <div className="mx-auto w-full max-w-lg overflow-hidden rounded-[var(--ws-radius)] border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)]" onClick={(e) => e.stopPropagation()}>
-        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-12 w-full border-b border-[var(--theme-divider-color)] bg-transparent px-4 text-[length:var(--ws-type-md)] outline-none" />
+        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.search} className="h-12 w-full border-b border-[var(--theme-divider-color)] bg-transparent px-4 text-[length:var(--ws-type-md)] outline-none" />
         <ul className="ws-scroll max-h-80 overflow-auto p-1">
           {hits.map((hit) => (
             <li key={`${hit.href}-${hit.label}`}>

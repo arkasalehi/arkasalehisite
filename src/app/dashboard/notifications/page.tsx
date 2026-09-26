@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth/session";
 import { listNotifications, markNotificationsRead } from "@/lib/data/notifications";
 import { formatDate } from "@/lib/utils";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { PageHeader } from "@/components/layout/Page";
 
 export const dynamic = "force-dynamic";

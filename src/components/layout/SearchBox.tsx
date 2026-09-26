@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { postPath, excerpt } from "@/lib/utils";
 import type { PostType } from "@/lib/types";
 import { SearchIcon } from "@/components/icons";

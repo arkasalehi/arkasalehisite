@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { useCart } from "@/components/providers";
 import { effectivePrice, formatToman, isProductAvailable } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -39,14 +39,14 @@ export function ProductCard({
   if (variant === "tool") {
     return (
       <Link href={`/product/${product.slug}`} className="surface glow-hover block rounded-[24px] p-6">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#e8ece6] bg-[#f4f6f2] text-[#1b6754]">
+        <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#e8ece6] bg-[#eef2f5] text-[#3390ec]">
           <ToolIcon />
         </span>
         <h3 className="mt-5 text-lg font-semibold tracking-tight text-[#1e2a24]">{product.title}</h3>
         <p className="mt-2 line-clamp-2 text-sm leading-7 text-[#8b938d]">
           {product.description || "ابزار محدود استودیو برای ساخت و انتشار دقیق‌تر."}
         </p>
-        <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#1b6754]">
+        <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#3390ec]">
           بیشتر
           <ArrowIcon className="h-3.5 w-3.5" />
         </span>

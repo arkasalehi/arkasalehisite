@@ -1,4 +1,4 @@
-import { canQueryDatabase } from "./client";
+import { canQueryDatabase, publicDb } from "./client";
 import { getProductsByIds } from "./products";
 import type { CartItem as ClientCart } from "@/lib/cart";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -9,7 +9,7 @@ export async function getUserCart(userId: string): Promise<ClientCart[]> {
     const db = await createServerSupabase();
     const { data, error } = await db
       .from("cart_items")
-      .select("product_id, quantity, product:products(*)")
+      .select("product_id, quantity, product:products(id, title, slug, price, image_url, in_stock)")
       .eq("user_id", userId);
     if (error) throw error;
     return (data ?? []).flatMap((row) => {
@@ -55,10 +55,10 @@ export async function replaceUserCart(userId: string, items: Array<{ productId: 
 export async function listRelatedProducts(slug: string, take = 3) {
   try {
     if (!canQueryDatabase()) return [];
-    const db = await createServerSupabase();
+    const db = publicDb();
     const { data, error } = await db
       .from("products")
-      .select("*")
+      .select("id, title, slug, description, price, compare_price, discount_percent, stock, image_url, in_stock, sku, featured, created_at, updated_at")
       .neq("slug", slug)
       .eq("in_stock", true)
       .order("featured", { ascending: false })

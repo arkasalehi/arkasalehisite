@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import type { PostType } from "@/lib/types";
 import { FadeItem, HoverLift } from "@/components/motion/Reveal";
 import { Badge } from "@/components/ui/Badge";
@@ -119,7 +119,7 @@ function BlogInsightCard({ post, href: hrefProp }: { post: PostCardPost; href?: 
             style={{ maskImage: "linear-gradient(225deg, white, transparent 60%)" }}
           />
           <div
-            className="pointer-events-none absolute inset-0 rounded-[1.2em] border border-[#1b6754]/10"
+            className="pointer-events-none absolute inset-0 rounded-[1.2em] border border-[#3390ec]/10"
             style={{ maskImage: "linear-gradient(225deg, transparent 60%, white)" }}
           />
 
@@ -134,7 +134,7 @@ function BlogInsightCard({ post, href: hrefProp }: { post: PostCardPost; href?: 
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center rounded-full border border-[#1b6754]/15 bg-[#1b6754]/8 px-2 py-1 text-[11px] text-[#1b6754]"
+                    className="inline-flex items-center rounded-full border border-[#3390ec]/15 bg-[#3390ec]/8 px-2 py-1 text-[11px] text-[#3390ec]"
                   >
                     {tag}
                   </span>

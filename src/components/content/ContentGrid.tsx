@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { Stagger } from "@/components/motion/Reveal";
 import { PostCard } from "@/components/content/PostCard";
 import { ContentFilters } from "@/components/content/ContentFilters";

@@ -36,7 +36,7 @@ export function HeroDashboardPreview() {
 function TopBar() {
   return (
     <div className="flex items-center gap-2">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#1b6754] text-white">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#3390ec] text-white">
         <BellIcon />
       </span>
       <div className="hidden items-center gap-1.5 md:flex">
@@ -46,12 +46,12 @@ function TopBar() {
         <span className="grid h-7 w-7 place-items-center rounded-lg bg-white shadow-sm">
           <span className="h-3.5 w-3.5 rounded-full bg-[conic-gradient(#8b5cf6,#fb7185,#f59e0b,#8b5cf6)]" />
         </span>
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#f97316] text-[11px] text-white">✸</span>
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#3390ec] text-[11px] text-white">✸</span>
         <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#6366f1] text-[10px] font-bold text-white">≡</span>
         <span className="grid h-7 w-7 place-items-center rounded-lg border border-[#e3e7e1] text-[#8b938d]">+</span>
       </div>
       <span className="hidden h-8 items-center gap-1 rounded-full bg-white px-3 text-[12px] font-medium shadow-sm lg:inline-flex">
-        <span className="text-[#1b6754]">+</span> Create
+        <span className="text-[#3390ec]">+</span> Create
       </span>
       <span className="hidden text-[#8b938d] lg:grid">
         <BellIcon />
@@ -113,7 +113,7 @@ function Sidebar() {
             />
             <span className="flex-1 truncate">{dm.name}</span>
             {dm.badge ? (
-              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#1b6754] px-1 text-[9px] text-white">
+              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#3390ec] px-1 text-[9px] text-white">
                 {dm.badge}
               </span>
             ) : null}
@@ -181,7 +181,7 @@ function AiSummary() {
       </p>
       <ul className="mt-3 space-y-2 text-[12px] leading-5 text-[#3d4741]">
         <li className="flex gap-2">
-          <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#1b6754] text-[9px] text-white">✓</span>
+          <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#3390ec] text-[9px] text-white">✓</span>
           <span>
             <b>Sarah:</b> Complete the remaining 10% of server migration.
           </span>
@@ -222,7 +222,7 @@ function CalendarPanel() {
           <div key={d} className="text-[11px]">
             <p className="text-[#8b938d]">{d}</p>
             <p className="mt-1 text-[15px] font-medium">{nums[i]}</p>
-            {i === 3 ? <span className="mx-auto mt-1 block h-1 w-4 rounded-full bg-[#1b6754]" /> : null}
+            {i === 3 ? <span className="mx-auto mt-1 block h-1 w-4 rounded-full bg-[#3390ec]" /> : null}
             {i === 4 ? <span className="mx-auto mt-1 block h-1 w-3 rounded-full bg-[#cfd6d0]" /> : null}
           </div>
         ))}
@@ -236,7 +236,7 @@ function CalendarPanel() {
                 {m.time} · {m.team}
               </p>
             </div>
-            <span className="flex items-center gap-2 text-[11px] font-medium" style={{ color: m.color ?? "#1b6754" }}>
+            <span className="flex items-center gap-2 text-[11px] font-medium" style={{ color: m.color ?? "#3390ec" }}>
               {m.status}
               <span className="h-4 w-4 rounded bg-gradient-to-br from-[#818cf8] to-[#34d399]" />
             </span>
@@ -251,7 +251,7 @@ function InsightCard() {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <p className="text-[12px] font-medium text-[#8b938d]">Insight</p>
-      <p className="mt-1 text-[28px] font-semibold leading-none text-[#1b6754]">93%</p>
+      <p className="mt-1 text-[28px] font-semibold leading-none text-[#3390ec]">93%</p>
       <p className="mt-2 text-[12px] leading-5 text-[#5b655f]">
         Is your meeting attendance rate based on your activity for the week of Dec 15–21.
       </p>
@@ -280,7 +280,7 @@ function InviteCard() {
           ))}
         </div>
       </div>
-      <span className="mt-4 inline-flex h-9 items-center rounded-full bg-[#1b6754] px-4 text-[12px] font-medium text-white">
+      <span className="mt-4 inline-flex h-9 items-center rounded-full bg-[#3390ec] px-4 text-[12px] font-medium text-white">
         Review Invitation
       </span>
     </div>
@@ -294,7 +294,7 @@ function RightRail() {
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">◎</span>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">☰</span>
       <span className="mt-2 grid h-9 w-9 place-items-center rounded-full bg-[#e11d48] text-[10px] text-white">●</span>
-      <span className="mt-auto grid h-9 w-9 place-items-center rounded-xl bg-[#1b6754] text-lg text-white">+</span>
+      <span className="mt-auto grid h-9 w-9 place-items-center rounded-xl bg-[#3390ec] text-lg text-white">+</span>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">≡</span>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">⌂</span>
     </aside>

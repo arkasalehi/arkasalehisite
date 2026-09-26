@@ -12,6 +12,8 @@ const items = [
   { href: "/admin/settings", label: "تنظیمات سایت" },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login?next=/admin");

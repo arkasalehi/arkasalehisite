@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import type { PostType } from "@/lib/types";
@@ -11,15 +11,9 @@ import { TableOfContents } from "@/components/content/TableOfContents";
 import { CoverImage } from "@/components/content/CoverImage";
 import { Stagger } from "@/components/motion/Reveal";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { getSession } from "@/lib/auth/session";
 import { listVisibleComments } from "@/lib/data/comments";
-import { getUserPostState } from "@/lib/data/interactions";
-import {
-  getPostBySlugAny,
-  getPublishedPostBySlug,
-  getRelatedPosts,
-  incrementPostViews,
-} from "@/lib/data/posts";
+import { getPostBySlugAny, getPublishedPostBySlug, getRelatedPosts } from "@/lib/data/posts";
+import { ViewHit } from "@/components/content/ViewHit";
 import { articleJsonLd, videoJsonLd } from "@/lib/seo";
 import { extractToc } from "@/lib/toc";
 import { formatDate, formatNumber, postPath, typeLabel } from "@/lib/utils";
@@ -47,13 +41,7 @@ export async function PostDetail({
   if (!post) notFound();
   if (!preview && type && post.type !== type) notFound();
 
-  const session = await getSession();
-  const [state, comments, related] = await Promise.all([
-    getUserPostState(session?.id, post.id),
-    listVisibleComments(post.id),
-    getRelatedPosts(post),
-  ]);
-  if (!preview) void incrementPostViews(post.id);
+  const [comments, related] = await Promise.all([listVisibleComments(post.id), getRelatedPosts(post)]);
 
   const jsonLd = post.type === "BLOG" ? articleJsonLd(post) : videoJsonLd(post);
   const typeHref = post.type === "VIDEO" ? "/video" : post.type === "SHORT" ? "/shorts" : "/blog";
@@ -61,6 +49,7 @@ export async function PostDetail({
 
   return (
     <article>
+      {preview ? null : <ViewHit postId={post.id} />}
       {preview ? (
         <p className="mb-4 rounded-xl bg-amber-400/15 px-3 py-2 text-sm text-amber-200">پیش‌نمایش — هنوز عمومی نیست</p>
       ) : null}
@@ -110,8 +99,8 @@ export async function PostDetail({
       <div className="mt-6">
         <InteractionBar
           postId={post.id}
-          liked={state.liked}
-          saved={state.saved}
+          liked={false}
+          saved={false}
           likeCount={post._count.likes}
           commentCount={post._count.comments}
           title={post.title}

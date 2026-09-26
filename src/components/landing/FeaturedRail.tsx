@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import dynamic from "next/dynamic";
 import { CoverImage } from "@/components/content/CoverImage";
 import { PlayIcon } from "@/components/icons";

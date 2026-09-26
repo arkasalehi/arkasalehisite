@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { useCart } from "@/components/providers";
 import { Button } from "@/components/ui/Button";
 import { formatToman } from "@/lib/utils";

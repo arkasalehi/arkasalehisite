@@ -1,15 +1,29 @@
 import { getSession } from "@/lib/auth/session";
-import { listInbox, listMeetings, listTasks } from "@/lib/data/workspace";
-import { InboxFeed } from "@/components/workspace/InboxFeed";
+import { listCollaboratorDirectory } from "@/lib/data/workspace";
+import { listStudioEvents, listStudioPeople, listStudioProjects } from "@/lib/data/studio";
+import { ProjectInbox } from "@/components/workspace/ProjectInbox";
+import { routeTimer } from "@/lib/timing";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkspaceHomePage() {
+  const done = routeTimer("page /ws");
   const session = await getSession();
-  const [meetings, tasks, inbox] = await Promise.all([
-    listMeetings(),
-    listTasks(),
-    listInbox(session?.id).catch(() => []),
+  const [projects, people, team, events] = await Promise.all([
+    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator").catch(() => []),
+    listCollaboratorDirectory().catch(() => []),
+    listStudioPeople().catch(() => []),
+    listStudioEvents().catch(() => []),
   ]);
-  return <InboxFeed tasks={tasks} inbox={inbox} meetings={meetings} />;
+  done();
+  return (
+    <ProjectInbox
+      projects={projects}
+      people={people}
+      team={team}
+      events={events}
+      userId={session?.id ?? ""}
+      role={session?.role ?? "collaborator"}
+    />
+  );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -27,12 +27,12 @@ export function Header({ cms }: { cms: SiteCms }) {
 
   return (
     <header className={headerClass()}>
-      <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-white/70 bg-white/80 px-3 shadow-[var(--shadow-nav)] backdrop-blur-xl md:h-16 md:px-5">
+      <div className="flex h-14 items-center justify-between gap-3 rounded-full border border-border bg-[var(--glass)] px-3 shadow-[var(--shadow-nav)] backdrop-blur-xl md:h-16 md:px-5">
         <Link href="/" className="flex shrink-0 items-center gap-2 px-1" aria-label={cms.seo.title || "arkasalehi"}>
-          <span className="grid h-8 w-8 place-items-center rounded-[9px] border border-[#1b6754]/30 text-[15px] font-semibold text-[#1b6754]">
+          <span className="grid h-8 w-8 place-items-center rounded-[9px] border border-accent/30 text-[15px] font-semibold text-accent">
             ×
           </span>
-          <span className="text-[16px] font-semibold tracking-tight text-[#1e2a24]">آرکا صالحی</span>
+          <span className="text-[16px] font-semibold tracking-tight text-foreground">آرکا صالحی</span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex">
@@ -42,9 +42,10 @@ export function Header({ cms }: { cms: SiteCms }) {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-sm transition-colors duration-150",
-                  active ? "font-semibold text-[#1b6754]" : "font-medium text-muted hover:text-foreground",
+                  active ? "bg-accent/10 font-semibold text-accent" : "font-medium text-muted hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -63,7 +64,7 @@ export function Header({ cms }: { cms: SiteCms }) {
           >
             <CartIcon />
             {count > 0 ? (
-              <span className="absolute -left-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#2f7de9] px-1 text-[10px] font-medium text-white">
+              <span className="absolute -left-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#3390ec] px-1 text-[10px] font-medium text-white">
                 {count}
               </span>
             ) : null}
@@ -114,7 +115,7 @@ export function Header({ cms }: { cms: SiteCms }) {
       </div>
 
       {open ? (
-        <div className="mt-2 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-3 shadow-[var(--shadow-nav)] backdrop-blur-xl lg:hidden">
+        <div className="mt-2 overflow-hidden rounded-[24px] border border-border bg-[var(--glass)] p-3 shadow-[var(--shadow-nav)] backdrop-blur-xl lg:hidden">
           <nav className="flex flex-col">
             {navItems.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -123,7 +124,8 @@ export function Header({ cms }: { cms: SiteCms }) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={cn("rounded-xl px-3 py-2.5 text-sm", active ? "font-semibold text-[#1b6754]" : "text-muted")}
+                  aria-current={active ? "page" : undefined}
+                  className={cn("rounded-xl px-3 py-2.5 text-sm", active ? "bg-accent/10 font-semibold text-accent" : "text-muted")}
                 >
                   {item.label}
                 </Link>
@@ -151,23 +153,23 @@ export function Footer({ cms }: { cms: SiteCms }) {
   const legal = cms.footer.links.filter((item) => !navItems.some((n) => n.href === item.href));
 
   return (
-    <footer className="mt-10 border-t border-[#e8ece6] bg-[#f4f6f2] text-[#1e2a24] md:mt-12">
+    <footer className="mt-10 border-t border-border bg-[var(--footer)] text-foreground md:mt-12">
       <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-5 py-14 md:grid-cols-12 md:px-12">
         <div className="md:col-span-5">
-          <p className="text-[22px] font-semibold tracking-tight text-[#1e2a24]">آرکا صالحی</p>
-          <p className="mt-3 max-w-sm text-sm leading-7 text-[#8b938d]">{cms.about.bio}</p>
+          <p className="text-[22px] font-semibold tracking-tight text-foreground">آرکا صالحی</p>
+          <p className="mt-3 max-w-sm text-sm leading-7 text-muted">{cms.about.bio}</p>
           <form
-            className="mt-6 flex max-w-sm items-center gap-2 rounded-full border border-[#e8ece6] bg-white p-1 shadow-[0_10px_28px_rgba(20,60,100,0.08)]"
+            className="mt-6 flex max-w-sm items-center gap-2 rounded-full border border-border bg-card p-1 shadow-[var(--shadow-card)]"
             onSubmit={(e) => e.preventDefault()}
           >
             <input
               type="email"
               required
               placeholder="ایمیل برای خبرنامه"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2 text-sm text-[#1e2a24] outline-none placeholder:text-[#8b938d]"
+              className="min-w-0 flex-1 bg-transparent px-4 py-2 text-sm text-foreground outline-none placeholder:text-muted"
               aria-label="ایمیل خبرنامه"
             />
-            <button type="submit" className="shrink-0 rounded-full bg-[#2f7de9] px-4 py-2 text-sm font-semibold text-white">
+            <button type="submit" className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
               عضویت
             </button>
           </form>
@@ -178,12 +180,12 @@ export function Footer({ cms }: { cms: SiteCms }) {
           <FooterCol title="قانونی" items={legal.length ? legal : [{ href: "mailto:hello@arkasalehi.ir", label: "تماس" }]} />
         </div>
       </div>
-      <div className="border-t border-[#e8ece6]">
+      <div className="border-t border-border">
         <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-12">
-          <p className="text-xs text-[#8b938d]">© {new Date().getFullYear()} آرکا صالحی</p>
-          <div className="flex items-center gap-4 text-[#8b938d]">
+          <p className="text-xs text-muted">© {new Date().getFullYear()} آرکا صالحی</p>
+          <div className="flex items-center gap-4 text-muted">
             {cms.socials.map((s) => (
-              <a key={`${s.href}-${s.label}`} href={s.href} className="text-xs transition-colors hover:text-[#1b6754]" rel="noreferrer">
+              <a key={`${s.href}-${s.label}`} href={s.href} className="text-xs transition-colors hover:text-accent" rel="noreferrer">
                 {s.label}
               </a>
             ))}
@@ -197,10 +199,10 @@ export function Footer({ cms }: { cms: SiteCms }) {
 function FooterCol({ title, items }: { title: string; items: Array<{ href: string; label: string }> }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-[#8b938d]">{title}</p>
+      <p className="text-xs font-semibold text-muted">{title}</p>
       <ul className="mt-4 space-y-2.5">
         {items.map((item) => {
-          const cls = "text-sm text-[#1e2a24] transition-colors hover:text-[#1b6754]";
+          const cls = "text-sm text-foreground transition-colors hover:text-accent";
           return (
             <li key={`${item.href}-${item.label}`}>
               {item.href.startsWith("http") || item.href.startsWith("mailto:") ? (

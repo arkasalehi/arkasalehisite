@@ -14,9 +14,11 @@ function snapshot(): Theme {
 }
 
 export function applyTheme(theme: Theme) {
+  if (typeof document !== "undefined" && document.documentElement.classList.contains("ws")) return;
   document.documentElement.classList.toggle("dark", theme === "dark");
   localStorage.setItem("as_theme", theme);
-  document.cookie = `as_theme=${theme}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  const secure = typeof location !== "undefined" && location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `as_theme=${theme}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
   window.dispatchEvent(new Event("as-theme"));
 }
 
@@ -41,9 +43,11 @@ export function ThemeProvider({
   const value = useMemo(() => ({ theme, toggle }), [theme, toggle]);
 
   useEffect(() => {
+    if (document.documentElement.classList.contains("ws")) return;
     try {
       const stored = localStorage.getItem("as_theme");
       if (stored !== "dark" && stored !== "light") return;
+      if (snapshot() === stored) return;
       applyTheme(stored);
     } catch {
       /* ignore */

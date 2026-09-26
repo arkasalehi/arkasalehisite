@@ -9,7 +9,7 @@ import { listRelatedProducts } from "@/lib/data/cart";
 import { buildMetadata, productJsonLd } from "@/lib/seo";
 import { formatToman, effectivePrice, isProductAvailable } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -48,7 +48,7 @@ export default async function ProductPage({
             <Image src="/samples/tool-1.jpg" alt={product.title} fill className="object-cover" priority sizes="50vw" />
           )}
           {product.discountPercent > 0 || (product.comparePrice && product.comparePrice > product.price) ? (
-            <span className="absolute right-3 top-3 z-10 rounded-full bg-[#1b6754] px-3 py-1 text-xs font-medium text-white">
+            <span className="absolute right-3 top-3 z-10 rounded-full bg-[#3390ec] px-3 py-1 text-xs font-medium text-white">
               تخفیف
             </span>
           ) : null}

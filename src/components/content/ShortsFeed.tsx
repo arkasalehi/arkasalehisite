@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { VideoPlayer } from "@/components/content/VideoPlayer";
 import { LikeButton } from "@/components/content/LikeButton";
 import { BookmarkButton } from "@/components/content/BookmarkButton";

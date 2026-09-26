@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { formatDate, postPath } from "@/lib/utils";
 import type { PostCardPost } from "@/components/content/PostCard";
 import { ArrowIcon } from "@/components/icons";
@@ -22,7 +22,7 @@ export function StartHere({ posts }: { posts: PostCardPost[] }) {
               {post.title}
             </h3>
             {post.excerpt ? <p className="mt-3 line-clamp-4 text-sm leading-7 text-[#8b938d]">{post.excerpt}</p> : null}
-            <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-[#1b6754]">
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-[#3390ec]">
               ادامه
               <ArrowIcon className="h-3.5 w-3.5" />
             </span>

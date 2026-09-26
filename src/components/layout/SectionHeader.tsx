@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { cn } from "@/lib/utils";
 import { ArrowIcon } from "@/components/icons";
 
@@ -37,7 +37,7 @@ export function SectionHeader({
           href={href}
           className={
             saas
-              ? "mb-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e8ece6] bg-white px-4 py-1.5 text-[13px] font-semibold text-[#1b6754] shadow-[0_8px_20px_rgba(20,60,100,0.06)] transition-colors hover:border-[#1b6754]/25"
+              ? "mb-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e4e9ee] bg-white px-4 py-1.5 text-[13px] font-semibold text-[#3390ec] transition-colors hover:border-[#3390ec]/25"
               : "mb-1 inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-muted transition-colors duration-150 hover:text-foreground"
           }
         >

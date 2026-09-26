@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { Avatar } from "@/components/ui/Avatar";
 import { CoverImage } from "@/components/content/CoverImage";
 import { samples } from "@/lib/media";
@@ -9,7 +9,7 @@ export function About({ cms }: { cms: SiteCms }) {
   return (
     <section className="grid items-stretch gap-5 md:grid-cols-2 md:gap-6">
       <blockquote className="flex flex-col justify-center rounded-[28px] border border-[#e8ece6] bg-white/85 p-7 shadow-[0_16px_40px_rgba(20,60,100,0.08)] backdrop-blur-md md:p-9">
-        <p className="text-[13px] font-semibold text-[#1b6754]">درباره استودیو</p>
+        <p className="text-[13px] font-semibold text-[#3390ec]">درباره استودیو</p>
         <p className="mt-4 text-[20px] font-semibold leading-[1.7] tracking-tight text-[#1e2a24] md:text-[24px]">
           «{cms.about.bio}»
         </p>
@@ -23,7 +23,7 @@ export function About({ cms }: { cms: SiteCms }) {
         <div className="mt-8 flex flex-wrap gap-3">
           <a
             href={workspaceUrl()}
-            className="inline-flex h-11 items-center rounded-full bg-[#2f7de9] px-5 text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(47,125,233,0.28)]"
+            className="inline-flex h-11 items-center rounded-full bg-[#3390ec] px-5 text-[14px] font-semibold text-white"
           >
             ورود به ورک‌اسپیس
           </a>

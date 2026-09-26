@@ -5,7 +5,7 @@ import { Stagger } from "@/components/motion/Reveal";
 import { formatDate, postPath, typeLabel } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/layout/Page";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 
 export const dynamic = "force-dynamic";
 

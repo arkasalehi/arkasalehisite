@@ -163,5 +163,12 @@ export function asCommentStatus(value: unknown): CommentStatus {
   return "VISIBLE";
 }
 
-export const POST_SELECT =
-  "*, category:categories(*), author:profiles!author_id(id, display_name, username, avatar_url), post_products(product:products(*)), likes(count), comments(count)";
+const POST_CARD_FIELDS =
+  "id, type, status, title, slug, excerpt, cover_image, video_url, thumbnail_url, duration, reading_time, seo_title, seo_description, featured, scheduled_at, published_at, view_count, category_id, author_id, created_at, updated_at";
+
+const POST_JOINS =
+  "category:categories(id, name, slug), author:profiles!author_id(id, display_name, username, avatar_url), post_products(product:products(id, title, slug, price, compare_price, discount_percent, stock, image_url, in_stock)), likes(count), comments(count)";
+
+export const POST_LIST_SELECT = `${POST_CARD_FIELDS}, ${POST_JOINS}`;
+
+export const POST_SELECT = `${POST_CARD_FIELDS}, body, ${POST_JOINS}`;

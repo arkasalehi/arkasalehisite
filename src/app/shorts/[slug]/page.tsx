@@ -3,7 +3,7 @@ import { PostDetail } from "@/components/content/PostDetail";
 import { getPublishedPostBySlug } from "@/lib/data/posts";
 import { buildMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,

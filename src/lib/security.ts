@@ -75,3 +75,23 @@ export function assertSameOrigin(request: Request) {
     throw err;
   }
 }
+
+/** Allow only http(s) URLs on this site or Supabase storage. */
+export function sanitizeHttpUrl(input: string | null | undefined, max = 2000): string | null {
+  if (!input) return null;
+  const raw = input.trim().slice(0, max);
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+  const host = parsed.host.toLowerCase();
+  if ((host.endsWith(".supabase.co") || host.endsWith(".supabase.in")) && parsed.pathname.includes("/storage/")) {
+    return raw;
+  }
+  const allowed = allowedHosts();
+  if (allowed.has(host)) return raw;
+  return null;
+}

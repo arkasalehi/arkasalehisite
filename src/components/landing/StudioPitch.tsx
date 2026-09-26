@@ -1,10 +1,10 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { workspaceUrl } from "@/lib/runtime";
 
 const LAYERS = [
-  { name: "Chat", tone: "text-[#2f7de9] bg-[#2f7de9]/10" },
-  { name: "Meeting", tone: "text-[#7c3aed]" },
-  { name: "Tasks", tone: "text-[#1b6754]" },
+  { name: "Chat", tone: "text-[#3390ec] bg-[#3390ec]/10" },
+  { name: "Meeting", tone: "text-[#5c6bc0]" },
+  { name: "Tasks", tone: "text-[#3390ec]" },
   { name: "Blog", tone: "text-amber-600" },
   { name: "Shorts", tone: "text-pink-500" },
 ];
@@ -18,7 +18,7 @@ export function StudioPitch() {
       <div className="mx-auto max-w-7xl px-1 pt-8 pb-6 md:pt-12">
         <div className="mx-auto max-w-3xl text-center">
           <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-1 text-xs font-medium text-[#5b6b74] shadow-[0_8px_20px_rgba(20,60,100,0.06)]">
-            <SparkIcon className="h-4 w-4 text-[#2f7de9]" />
+            <SparkIcon className="h-4 w-4 text-[#3390ec]" />
             جدید: انتشار آنی از ورک‌اسپیس
           </p>
           <h2 className="text-[32px] font-semibold tracking-tight text-[#1e2a24] sm:text-[44px] md:text-[52px]">
@@ -54,7 +54,7 @@ export function StudioPitch() {
               <span
                 aria-hidden
                 className="absolute bottom-0 left-1/2 h-px w-[70%] -translate-x-1/2 opacity-30 transition group-hover:opacity-80"
-                style={{ background: "linear-gradient(90deg,transparent,#1b6754,transparent)" }}
+                style={{ background: "linear-gradient(90deg,transparent,#3390ec,transparent)" }}
               />
             </Link>
           </div>
@@ -89,7 +89,7 @@ function StudioWindow() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <a href={workspaceUrl()} className="rounded-md bg-[#2f7de9] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(47,125,233,0.28)]">
+            <a href={workspaceUrl()} className="rounded-md bg-[#3390ec] px-3 py-1.5 text-xs font-semibold text-white">
               Publish
             </a>
           </div>
@@ -114,7 +114,7 @@ function StudioWindow() {
                       key={item.name}
                       className={`flex items-center gap-2 rounded-md px-2 py-1 ${i === 0 ? item.tone : "hover:bg-[#f4f6f2]"}`}
                     >
-                      <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? "bg-[#2f7de9]" : "bg-[#cdd5ce]"}`} />
+                      <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? "bg-[#3390ec]" : "bg-[#cdd5ce]"}`} />
                       {item.name}
                     </li>
                   ))}

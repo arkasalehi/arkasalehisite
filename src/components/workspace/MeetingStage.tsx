@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { Mic, MicOff, MonitorUp, PhoneOff, Video, VideoOff } from "lucide-react";
 import { CallQualityBar } from "@/components/workspace/CallQualityBar";
 import { VideoTile } from "@/components/workspace/VideoTile";

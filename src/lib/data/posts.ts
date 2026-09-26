@@ -1,10 +1,10 @@
 import { cache } from "react";
 import type { PostStatus, PostType, PublicPost } from "@/lib/types";
-import { canQueryDatabase } from "./client";
+import { canQueryDatabase, publicDb } from "./client";
 import { readingTimeFromBody } from "@/lib/utils";
 import { cached, invalidateCache } from "@/lib/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { POST_SELECT, mapCategory, mapPost } from "./map";
+import { POST_LIST_SELECT, POST_SELECT, mapCategory, mapPost } from "./map";
 
 export type { PublicPost };
 
@@ -35,8 +35,8 @@ export const listPublishedPosts = cache(async (opts?: PostListOpts) => {
   return cached(key, 15_000, async () => {
     if (!canQueryDatabase()) return [];
     try {
-      const db = await createServerSupabase();
-      let q = applyPublished(db.from("posts").select(POST_SELECT));
+      const db = publicDb();
+      let q = applyPublished(db.from("posts").select(POST_LIST_SELECT));
       if (opts?.type) q = q.eq("type", opts.type);
       if (opts?.featured) q = q.eq("featured", true);
       if (opts?.categorySlug) {
@@ -67,12 +67,12 @@ export const searchPublishedPosts = cache(async (q: string, take = 8) => {
   if (query.length < 2) return [];
   return cached(`search:${query}:${take}`, 10_000, async () => {
     try {
-      const db = await createServerSupabase();
+      const db = publicDb();
       const like = `%${query}%`;
       const { data, error } = await applyPublished(db.from("posts").select("id, title, slug, type, excerpt, cover_image"))
-        .or(`title.ilike."${like}",excerpt.ilike."${like}",body.ilike."${like}"`)
+        .or(`title.ilike."${like}",excerpt.ilike."${like}"`)
         .order("published_at", { ascending: false })
-        .limit(take);
+        .limit(Math.min(take, 8));
       if (error) throw error;
       return (data ?? []).map((row) => ({
         id: String(row.id),
@@ -92,7 +92,7 @@ export const searchPublishedPosts = cache(async (q: string, take = 8) => {
 export const getPublishedPostBySlug = cache(async (slug: string, type?: PostType) => {
   if (!canQueryDatabase()) return null;
   try {
-    const db = await createServerSupabase();
+    const db = publicDb();
     let q = applyPublished(db.from("posts").select(POST_SELECT)).eq("slug", slug);
     if (type) q = q.eq("type", type);
     const { data, error } = await q.maybeSingle();
@@ -119,8 +119,8 @@ export const getPostBySlugAny = cache(async (slug: string) => {
 export async function getPostsBySlugs(slugs: string[]) {
   if (!slugs.length) return [];
   try {
-    const db = await createServerSupabase();
-    const { data, error } = await applyPublished(db.from("posts").select(POST_SELECT)).in("slug", slugs);
+    const db = publicDb();
+    const { data, error } = await applyPublished(db.from("posts").select(POST_LIST_SELECT)).in("slug", slugs).limit(12);
     if (error) throw error;
     const map = new Map((data ?? []).map((row) => {
       const post = mapPost(row as Record<string, unknown>);
@@ -136,7 +136,7 @@ export async function getPostsBySlugs(slugs: string[]) {
 export async function listPublishedSlugs(type?: PostType) {
   if (!canQueryDatabase()) return [];
   try {
-    const db = await createServerSupabase();
+    const db = publicDb();
     let q = applyPublished(db.from("posts").select("slug, type, updated_at"));
     if (type) q = q.eq("type", type);
     const { data, error } = await q;
@@ -154,7 +154,7 @@ export async function listPublishedSlugs(type?: PostType) {
 
 export async function incrementPostViews(id: string) {
   try {
-    const db = await createServerSupabase();
+    const db = publicDb();
     await db.rpc("increment_post_views", { p_id: id });
   } catch (error) {
     console.error("incrementPostViews", error);
@@ -163,8 +163,8 @@ export async function incrementPostViews(id: string) {
 
 export async function listCategories() {
   try {
-    const db = await createServerSupabase();
-    const { data, error } = await db.from("categories").select("*, posts(count)").order("name");
+    const db = publicDb();
+    const { data, error } = await db.from("categories").select("id, name, slug, description, posts(count)").order("name");
     if (error) throw error;
     return (data ?? []).map((row) => mapCategory(row as Record<string, unknown>));
   } catch (error) {
@@ -175,8 +175,8 @@ export async function listCategories() {
 
 export async function getCategoryBySlug(slug: string) {
   try {
-    const db = await createServerSupabase();
-    const { data, error } = await db.from("categories").select("*").eq("slug", slug).maybeSingle();
+    const db = publicDb();
+    const { data, error } = await db.from("categories").select("id, name, slug, description").eq("slug", slug).maybeSingle();
     if (error) throw error;
     return data ? mapCategory(data as Record<string, unknown>) : null;
   } catch (error) {
@@ -189,8 +189,9 @@ export async function listAdminPosts() {
   const db = await createServerSupabase();
   const { data, error } = await db
     .from("posts")
-    .select("*, category:categories(*), likes(count), comments(count)")
-    .order("updated_at", { ascending: false });
+    .select("id, type, status, title, slug, excerpt, cover_image, featured, published_at, updated_at, view_count, category:categories(id, name, slug), likes(count), comments(count)")
+    .order("updated_at", { ascending: false })
+    .limit(80);
   if (error) throw error;
   return (data ?? []).map((row) => mapPost(row as Record<string, unknown>));
 }
@@ -321,8 +322,8 @@ export async function bulkPosts(ids: string[], action: "delete" | "publish" | "d
 
 export async function getRelatedPosts(post: { id: string; type: PostType; categoryId: string | null }) {
   try {
-    const db = await createServerSupabase();
-    const { data, error } = await applyPublished(db.from("posts").select(POST_SELECT))
+    const db = publicDb();
+    const { data, error } = await applyPublished(db.from("posts").select(POST_LIST_SELECT))
       .neq("id", post.id)
       .order("published_at", { ascending: false })
       .limit(8);
@@ -342,22 +343,23 @@ export async function getRelatedPosts(post: { id: string; type: PostType; catego
 
 export async function getContentAnalytics() {
   const db = await createServerSupabase();
-  const { data, error } = await db
-    .from("posts")
-    .select("id, title, slug, type, view_count, likes(count), comments(count)")
-    .eq("status", "PUBLISHED");
-  if (error) throw error;
-  const rows = (data ?? []).map((row) => mapPost({ ...row, author: null, post_products: [], bookmarks: [] } as Record<string, unknown>));
-  const byViews = [...rows].sort((a, b) => b.viewCount - a.viewCount).slice(0, 8);
-  const byLikes = [...rows].sort((a, b) => b._count.likes - a._count.likes).slice(0, 8);
-  const viewSum = rows.reduce((n, p) => n + p.viewCount, 0);
+  const select = "id, title, slug, type, view_count, likes(count), comments(count)";
+  const [views, likes] = await Promise.all([
+    db.from("posts").select(select).eq("status", "PUBLISHED").order("view_count", { ascending: false }).limit(8),
+    db.from("posts").select(select).eq("status", "PUBLISHED").order("published_at", { ascending: false }).limit(8),
+  ]);
+  if (views.error) throw views.error;
+  const mapRow = (row: Record<string, unknown>) => mapPost({ ...row, author: null, post_products: [], bookmarks: [] } as Record<string, unknown>);
+  const byViews = (views.data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+  const byLikes = [...(likes.data ?? []).map((row) => mapRow(row as Record<string, unknown>))].sort((a, b) => b._count.likes - a._count.likes).slice(0, 8);
+  const viewSum = byViews.reduce((n, p) => n + p.viewCount, 0);
   return {
     byViews,
     byLikes,
     totals: {
       _sum: { viewCount: viewSum },
-      _avg: { viewCount: rows.length ? viewSum / rows.length : 0 },
-      _count: rows.length,
+      _avg: { viewCount: byViews.length ? viewSum / byViews.length : 0 },
+      _count: byViews.length,
     },
   };
 }

@@ -3,7 +3,7 @@ import { listUserActivity } from "@/lib/data/interactions";
 import { formatDate, postPath } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/layout/Page";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 
 export const dynamic = "force-dynamic";
 

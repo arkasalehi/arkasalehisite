@@ -2,17 +2,21 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import type { WorkspaceNote, WorkspaceTask } from "@/lib/data/workspace";
+import type { WorkspaceNote } from "@/lib/data/workspace";
+import { uploadWorkspaceFile } from "@/lib/workspace/uploadClient";
+import { useWsChrome } from "@/lib/theme/workspace";
 
-async function uploadFile(file: File) {
-  const form = new FormData();
-  form.append("file", file);
-  const res = await fetch("/api/workspace/files", { method: "POST", body: form });
-  return (await res.json()) as { url?: string; name?: string };
+async function uploadFile(file: File): Promise<{ url?: string; name?: string }> {
+  try {
+    return await uploadWorkspaceFile(file);
+  } catch {
+    return {};
+  }
 }
 
-export function DocsEditor({ note, tasks }: { note: WorkspaceNote | null; tasks: WorkspaceTask[] }) {
+export function DocsEditor({ note, tasks }: { note: WorkspaceNote | null; tasks: Array<{ id: string; title: string; parentId?: string | null }> }) {
   const router = useRouter();
+  const { t } = useWsChrome();
   const [title, setTitle] = useState(note?.title ?? "");
   const [body, setBody] = useState(note?.body ?? "");
   const [slash, setSlash] = useState(false);
@@ -93,10 +97,10 @@ export function DocsEditor({ note, tasks }: { note: WorkspaceNote | null; tasks:
           />
         </label>
         <button type="submit" disabled={saving} className="ws-btn ws-btn-ghost text-[var(--ws-accent)]">
-          {saving ? <span className="ws-spinner" /> : "Save"}
+          {saving ? <span className="ws-spinner" /> : t.save}
         </button>
       </div>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-transparent px-6 py-4 text-[length:var(--ws-type-xl)] font-semibold tracking-[var(--ws-tracking-heading)] outline-none" placeholder="Untitled" />
+      <input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-transparent px-6 py-4 text-[length:var(--ws-type-xl)] font-semibold tracking-[var(--ws-tracking-heading)] outline-none" placeholder={t.untitled} />
       <textarea
         ref={area}
         value={body}
@@ -104,19 +108,19 @@ export function DocsEditor({ note, tasks }: { note: WorkspaceNote | null; tasks:
           setBody(e.target.value);
           setSlash(e.target.value.endsWith("/"));
         }}
-        className="min-h-0 flex-1 resize-none bg-transparent px-6 pb-8 text-[length:var(--ws-type-md)] leading-[var(--ws-leading-body)] text-[var(--theme-content-color)] outline-none"
-        placeholder="Type / for heading, list, or issue link…"
+        className="ws-docs-body min-h-0 flex-1 resize-none bg-transparent px-6 pb-8 text-[length:var(--ws-type-md)] leading-[var(--ws-leading-body)] text-[var(--theme-content-color)] outline-none"
+        placeholder={t.docsHint}
       />
       {slash ? (
         <div className="absolute bottom-24 start-6 w-48 overflow-hidden rounded-[var(--ws-radius)] border border-[var(--theme-divider-color)] bg-[var(--theme-comp-header-color)] text-[length:var(--ws-type-sm)]">
           <button type="button" className="block w-full px-3 py-2 text-start hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => applySlash("h1")}>
-            Heading
+            {t.heading}
           </button>
           <button type="button" className="block w-full px-3 py-2 text-start hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => applySlash("list")}>
-            Bullet list
+            {t.bulletList}
           </button>
           <button type="button" className="block w-full px-3 py-2 text-start hover:bg-[var(--theme-navpanel-hovered)]" onClick={() => applySlash("issue")}>
-            Link issue
+            {t.linkIssue}
           </button>
         </div>
       ) : null}

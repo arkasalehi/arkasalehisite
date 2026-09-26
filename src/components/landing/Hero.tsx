@@ -1,7 +1,8 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { HeroNameplate } from "@/components/landing/HeroNameplate";
 import { HeroDashboardPreview } from "@/components/landing/HeroDashboardPreview";
 import { HeroAtmosphere } from "@/components/landing/HeroAtmosphere";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { workspaceUrl } from "@/lib/runtime";
 import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import type { SiteCms } from "@/lib/cms/types";
@@ -37,6 +38,7 @@ export function Hero({ cms }: { cms: SiteCms }) {
               <Link
                 key={item.label}
                 href={item.href}
+                aria-current={item.active ? "page" : undefined}
                 className={item.active ? "font-medium text-white underline decoration-white/80 underline-offset-[10px]" : "hover:text-white"}
               >
                 {item.label}
@@ -44,12 +46,15 @@ export function Hero({ cms }: { cms: SiteCms }) {
             ))}
           </nav>
 
-          <a
-            href={workspaceUrl()}
-            className="inline-flex h-10 items-center rounded-full bg-white px-5 text-[13px] font-semibold text-[#1c2430] shadow-[0_8px_20px_rgba(15,40,70,0.12)]"
-          >
-            ورود به ورک‌اسپیس
-          </a>
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="text-white hover:text-white" />
+            <a
+              href={workspaceUrl()}
+              className="inline-flex h-10 items-center rounded-full bg-white px-5 text-[13px] font-semibold text-[#1c2430] shadow-[0_8px_20px_rgba(15,40,70,0.12)]"
+            >
+              ورود به ورک‌اسپیس
+            </a>
+          </div>
         </header>
 
         <div className="mx-auto max-w-[920px] pb-6 pt-14 text-center md:pt-[68px]">
@@ -68,7 +73,7 @@ export function Hero({ cms }: { cms: SiteCms }) {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a
               href={workspaceUrl()}
-              className="inline-flex h-11 items-center rounded-full bg-[#2f7de9] px-5 text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(47,125,233,0.35)]"
+              className="inline-flex h-11 items-center rounded-full bg-[#3390ec] px-5 text-[14px] font-semibold text-white"
             >
               باز کردن ورک‌اسپیس
             </a>

@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import type { SessionUser } from "@/lib/auth/session";
 import { CART_KEY, type CartItem } from "@/lib/cart";
-import { ThemeProvider, type Theme } from "@/components/theme/ThemeProvider";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ToastProvider, useToast } from "@/components/ui/Toaster";
 
 type AuthCtx = { user: SessionUser | null };
@@ -174,18 +175,41 @@ function CartProvider({ children, user }: { children: React.ReactNode; user: Ses
 
 export function Providers({
   children,
-  user,
-  theme,
+  initialTheme = "light",
+  workspaceDoc = false,
 }: {
   children: React.ReactNode;
-  user: SessionUser | null;
-  theme: Theme;
+  initialTheme?: "dark" | "light";
+  workspaceDoc?: boolean;
 }) {
   return (
-    <ThemeProvider initialTheme={theme}>
+    <ThemeProvider initialTheme={initialTheme}>
       <ToastProvider>
-        <CartProvider user={user}>{children}</CartProvider>
+        <SessionGate skip={workspaceDoc}>{children}</SessionGate>
       </ToastProvider>
     </ThemeProvider>
   );
+}
+
+function SessionGate({ children, skip = false }: { children: React.ReactNode; skip?: boolean }) {
+  const pathname = usePathname();
+  const [user, setUser] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    if (skip || pathname.startsWith("/ws")) return;
+    let dead = false;
+    void fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { user: null }))
+      .then((data: { user?: SessionUser | null }) => {
+        if (!dead) setUser(data.user ?? null);
+      })
+      .catch(() => {
+        if (!dead) setUser(null);
+      });
+    return () => {
+      dead = true;
+    };
+  }, [pathname, skip]);
+
+  return <CartProvider user={user}>{children}</CartProvider>;
 }

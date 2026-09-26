@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { listProducts } from "@/lib/data/products";
 import { formatToman } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";

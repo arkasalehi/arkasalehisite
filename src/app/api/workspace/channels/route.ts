@@ -32,6 +32,17 @@ export async function POST(request: Request) {
     const db = await createServerSupabase();
     const tenantId = await getActiveTenantId();
     if (input.kind === "dm" && input.withUserId) {
+      if (input.withUserId === session.id) {
+        const error = new Error("INVALID");
+        error.name = "INVALID";
+        throw error;
+      }
+      const peer = await db.from("profiles").select("id").eq("id", input.withUserId).maybeSingle();
+      if (!peer.data?.id) {
+        const error = new Error("NOT_FOUND");
+        error.name = "NOT_FOUND";
+        throw error;
+      }
       const [a, b] = [session.id, input.withUserId].sort();
       const slug = `dm-${a.slice(0, 8)}-${b.slice(0, 8)}`;
       const existing = await db.from("workspace_channels").select("id").eq("slug", slug).maybeSingle();
@@ -42,10 +53,10 @@ export async function POST(request: Request) {
         .select("id")
         .single();
       if (error) throw error;
-      await db.from("workspace_channel_members").insert([
-        { channel_id: data.id, user_id: session.id },
-        { channel_id: data.id, user_id: input.withUserId },
-      ]);
+      const selfMember = await db.from("workspace_channel_members").insert({ channel_id: data.id, user_id: session.id });
+      if (selfMember.error) throw selfMember.error;
+      const peerMember = await db.from("workspace_channel_members").insert({ channel_id: data.id, user_id: input.withUserId });
+      if (peerMember.error) throw peerMember.error;
       return json({ id: data.id });
     }
     const name = sanitizeText(input.name ?? "channel", 60);

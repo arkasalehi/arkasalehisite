@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { isLoopbackOrigin, isPublicAuthPath, publicOriginFromHost } from "./runtime.ts";
+import { isLoopbackOrigin, isPublicAuthPath, isWorkspaceChrome, isWorkspaceDocument, publicOriginFromHost, usesSiteChrome } from "./runtime.ts";
 
 assert.equal(isLoopbackOrigin("http://localhost:3000"), true);
 assert.equal(isLoopbackOrigin("https://arkasalehi.com"), false);
@@ -9,4 +9,13 @@ assert.equal(publicOriginFromHost("localhost:3000"), "");
 assert.equal(isPublicAuthPath("/login"), true);
 assert.equal(isPublicAuthPath("/api/auth/login"), true);
 assert.equal(isPublicAuthPath("/ws"), false);
+assert.equal(isWorkspaceDocument("/ws", "arkasalehi.com"), true);
+assert.equal(isWorkspaceDocument("/login", "workspace.arkasalehi.com"), true);
+assert.equal(isWorkspaceDocument("/login", "arkasalehi.com"), false);
+assert.equal(isWorkspaceChrome("/", "workspace.arkasalehi.com"), true);
+assert.equal(isWorkspaceChrome("/login", "workspace.arkasalehi.com"), false);
+assert.equal(usesSiteChrome("/login", "arkasalehi.com"), false);
+assert.equal(usesSiteChrome("/login", "workspace.arkasalehi.com"), false);
+assert.equal(usesSiteChrome("/blog", "arkasalehi.com"), true);
+assert.equal(usesSiteChrome("/", "workspace.arkasalehi.com"), false);
 console.log("runtime origin helpers: pass");

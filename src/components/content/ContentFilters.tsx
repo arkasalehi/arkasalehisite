@@ -62,7 +62,7 @@ function FilterChip({
       className={cn(
         "whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150",
         active
-          ? "border-[#1b6754] bg-[#1b6754] text-white"
+          ? "border-[#3390ec] bg-[#3390ec] text-white"
           : "border-[var(--border)] bg-white/70 text-muted hover:text-foreground",
       )}
     >

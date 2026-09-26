@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { CoverImage } from "@/components/content/CoverImage";
 import { formatNumber, postPath } from "@/lib/utils";
 import type { PostCardPost } from "@/components/content/PostCard";

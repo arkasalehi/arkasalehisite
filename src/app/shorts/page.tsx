@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { ShortsFeed } from "@/components/content/ShortsFeed";
-import { getSession } from "@/lib/auth/session";
-import { getUserPostState } from "@/lib/data/interactions";
 import { listPublishedPosts } from "@/lib/data/posts";
 import { buildMetadata } from "@/lib/seo";
 
@@ -14,11 +12,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ShortsIndexPage() {
-  const [shorts, session] = await Promise.all([listPublishedPosts({ type: "SHORT", take: 20 }), getSession()]);
-  const states = session
-    ? await Promise.all(shorts.map((post) => getUserPostState(session.id, post.id).then((s) => [post.id, s] as const)))
-    : [];
-  const map = Object.fromEntries(states);
+  const shorts = await listPublishedPosts({ type: "SHORT", take: 20 });
 
   return (
     <section className="-mt-8">
@@ -33,8 +27,8 @@ export default async function ShortsIndexPage() {
           thumbnailUrl: post.thumbnailUrl,
           coverImage: post.coverImage,
           _count: post._count,
-          liked: map[post.id]?.liked,
-          saved: map[post.id]?.saved,
+          liked: false,
+          saved: false,
         }))}
       />
     </section>

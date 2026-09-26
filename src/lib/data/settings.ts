@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { canQueryDatabase } from "./client";
+import { canQueryDatabase, publicDb } from "./client";
 import { cached, invalidateCache } from "@/lib/cache";
 import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
@@ -27,7 +27,7 @@ export const getSiteCms = cache(async (): Promise<SiteCms> => {
     const defaults = defaultCms();
     if (!canQueryDatabase()) return defaults;
     try {
-      const db = await createServerSupabase();
+      const db = publicDb();
       const { data, error } = await db.from("site_settings").select("key, value");
       if (error) throw error;
       const raw: Partial<SiteCms> = {};

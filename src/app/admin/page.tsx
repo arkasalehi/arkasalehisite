@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { getAdminStats } from "@/lib/data/users";
 import { getContentAnalytics } from "@/lib/data/posts";
 import { formatNumber, postPath, typeLabel } from "@/lib/utils";

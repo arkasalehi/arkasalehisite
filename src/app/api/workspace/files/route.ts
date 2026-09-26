@@ -3,10 +3,14 @@ import { canAccessWorkspace } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { getActiveTenantId } from "@/lib/data/workspace";
+import { routeTimer } from "@/lib/timing";
 
 export const runtime = "nodejs";
 
+const MAX_BYTES = 5 * 1024 * 1024;
+
 export async function POST(request: Request) {
+  const done = routeTimer("POST /api/workspace/files");
   try {
     await guardMutation(request, "workspace-files", 20);
     const session = await requireUser();
@@ -15,28 +19,25 @@ export async function POST(request: Request) {
       error.name = "FORBIDDEN";
       throw error;
     }
-    const form = await request.formData();
-    const file = form.get("file");
-    if (!(file instanceof File) || file.size < 1) {
-      const error = new Error("INVALID");
-      error.name = "INVALID";
-      throw error;
-    }
-    if (file.size > 20 * 1024 * 1024) {
+    const input = (await request.json()) as { name?: string; size?: number; type?: string };
+    const name = String(input.name ?? "file").slice(0, 80);
+    const size = Number(input.size ?? 0);
+    if (!Number.isFinite(size) || size < 1 || size > MAX_BYTES) {
       const error = new Error("INVALID");
       error.name = "INVALID";
       throw error;
     }
     const tenantId = (await getActiveTenantId()) ?? "shared";
-    const safe = file.name.replace(/[^\w.\-]+/g, "_").slice(0, 80);
+    const safe = name.replace(/[^\w.\-]+/g, "_").slice(0, 80);
     const path = `${tenantId}/${session.id}/${crypto.randomUUID()}-${safe}`;
     const db = await createServerSupabase();
-    const buf = Buffer.from(await file.arrayBuffer());
-    const { error } = await db.storage.from("workspace").upload(path, buf, { contentType: file.type || "application/octet-stream", upsert: false });
-    if (error) throw error;
-    const { data } = db.storage.from("workspace").getPublicUrl(path);
-    return json({ url: data.publicUrl, name: file.name, path });
+    const { data, error } = await db.storage.from("workspace").createSignedUploadUrl(path);
+    if (error || !data) throw error ?? new Error("upload");
+    const publicUrl = db.storage.from("workspace").getPublicUrl(path).data.publicUrl;
+    return json({ path, token: data.token, url: publicUrl, name });
   } catch (error) {
     return errorResponse(error, "en");
+  } finally {
+    done();
   }
 }

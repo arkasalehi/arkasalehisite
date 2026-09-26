@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { BellIcon } from "@/components/icons";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/components/providers";
