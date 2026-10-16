@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { listVisibleComments } from "@/lib/data/comments";
 import { getPostBySlugAny, getPublishedPostBySlug, getRelatedPosts } from "@/lib/data/posts";
 import { ViewHit } from "@/components/content/ViewHit";
-import { articleJsonLd, videoJsonLd } from "@/lib/seo";
+import { articleJsonLd, breadcrumbJsonLd, videoJsonLd } from "@/lib/seo";
 import { extractToc } from "@/lib/toc";
 import { formatDate, formatNumber, postPath, typeLabel } from "@/lib/utils";
 
@@ -54,6 +54,13 @@ export async function PostDetail({
         <p className="mb-4 rounded-xl bg-amber-400/15 px-3 py-2 text-sm text-amber-200">پیش‌نمایش — هنوز عمومی نیست</p>
       ) : null}
       <JsonLd data={jsonLd} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "خانه", path: "/" },
+          { name: typeLabel(post.type), path: typeHref },
+          { name: post.title, path: postPath(post.type, post.slug) },
+        ])}
+      />
       <p className="text-sm text-muted">
         <Link href={typeHref}>{typeLabel(post.type)}</Link>
         {post.category ? (

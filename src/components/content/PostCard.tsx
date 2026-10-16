@@ -61,7 +61,7 @@ export function PostCard({
         <Link href={to} className="surface glow-hover block h-full overflow-hidden">
           <div className={`editorial-media relative ${featured ? "aspect-[16/8]" : "aspect-[16/10]"}`}>
             {post.videoUrl ? (
-              <VideoHoverPreview src={post.videoUrl} poster={image} seed={post.id} kind={kindFor(post.type)} />
+              <VideoHoverPreview src={post.videoUrl} poster={image} seed={post.id} kind={kindFor(post.type)} alt={post.title} />
             ) : (
               <CoverImage
                 src={image}

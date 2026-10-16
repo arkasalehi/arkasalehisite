@@ -6,6 +6,7 @@ import type { SessionUser } from "@/lib/auth/session";
 import { CART_KEY, type CartItem } from "@/lib/cart";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ToastProvider, useToast } from "@/components/ui/Toaster";
+import { isWorkspaceHost } from "@/lib/runtime";
 
 type AuthCtx = { user: SessionUser | null };
 const AuthContext = createContext<AuthCtx>({ user: null });
@@ -196,7 +197,7 @@ function SessionGate({ children, skip = false }: { children: React.ReactNode; sk
   const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
-    if (skip || pathname.startsWith("/ws")) return;
+    if (skip || pathname.startsWith("/ws") || isWorkspaceHost(window.location.host)) return;
     let dead = false;
     void fetch("/api/auth/me", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : { user: null }))

@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
+
+export const metadata: Metadata = {
+  title: { absolute: "صفحه پیدا نشد" },
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (

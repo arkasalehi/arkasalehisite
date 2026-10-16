@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { isAdminRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
@@ -5,6 +6,11 @@ import { getPostBySlugAny } from "@/lib/data/posts";
 import { PostDetail } from "@/components/content/PostDetail";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: { absolute: "پیش‌نمایش" },
+};
 
 export default async function PreviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const session = await getSession();

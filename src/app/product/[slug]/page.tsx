@@ -4,12 +4,18 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/content/JsonLd";
 import { ProductBuyBox } from "@/components/content/ProductBuyBox";
 import { ProductCard } from "@/components/content/ProductCard";
-import { getProductBySlug } from "@/lib/data/products";
+import { isTestContent } from "@/lib/content-visibility";
+import { getProductBySlug, listProductSlugs } from "@/lib/data/products";
 import { listRelatedProducts } from "@/lib/data/cart";
-import { buildMetadata, productJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, productJsonLd } from "@/lib/seo";
 import { formatToman, effectivePrice, isProductAvailable } from "@/lib/utils";
 
 export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const products = await listProductSlugs();
+  return products.map((product) => ({ slug: product.slug }));
+}
 
 export async function generateMetadata({
   params,
@@ -19,12 +25,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "محصول" };
-  return buildMetadata({
+  const metadata = buildMetadata({
     title: product.title,
     description: product.description,
     image: product.imageUrl,
     path: `/product/${slug}`,
   });
+  return isTestContent(product) ? { ...metadata, robots: { index: false, follow: false } } : metadata;
 }
 
 export default async function ProductPage({
@@ -41,6 +48,13 @@ export default async function ProductPage({
     <div>
       <article className="grid gap-8 md:grid-cols-2">
         <JsonLd data={productJsonLd(product)} />
+        <JsonLd
+          data={breadcrumbJsonLd([
+            { name: "خانه", path: "/" },
+            { name: "فروشگاه", path: "/products" },
+            { name: product.title, path: `/product/${product.slug}` },
+          ])}
+        />
         <div className="editorial-media relative aspect-square overflow-hidden rounded-[24px] bg-background">
           {product.imageUrl ? (
             <Image src={product.imageUrl} alt={product.title} fill className="object-cover" priority sizes="50vw" />

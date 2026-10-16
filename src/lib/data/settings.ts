@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { canQueryDatabase, publicDb } from "./client";
+import { publicDb } from "./client";
+import { hasSupabaseConfig } from "@/lib/supabase";
 import { cached, invalidateCache } from "@/lib/cache";
 import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
@@ -25,7 +26,7 @@ function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
 export const getSiteCms = cache(async (): Promise<SiteCms> => {
   return cached("cms:all", 30_000, async () => {
     const defaults = defaultCms();
-    if (!canQueryDatabase()) return defaults;
+    if (!hasSupabaseConfig()) return defaults;
     try {
       const db = publicDb();
       const { data, error } = await db.from("site_settings").select("key, value");

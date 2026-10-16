@@ -12,7 +12,8 @@ import { ProductCard } from "@/components/content/ProductCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { PageSection } from "@/components/layout/Page";
 import { Reveal, Stagger } from "@/components/motion/Reveal";
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/content/JsonLd";
+import { buildMetadata, personJsonLd, professionalServiceJsonLd } from "@/lib/seo";
 import { getSiteCms } from "@/lib/data/settings";
 import { getPostsBySlugs, listPublishedPosts } from "@/lib/data/posts";
 import { listProducts } from "@/lib/data/products";
@@ -95,6 +96,8 @@ export default async function HomePage() {
 
   return (
     <div className="home-saas pb-6 md:pb-8">
+      <JsonLd data={personJsonLd()} />
+      <JsonLd data={professionalServiceJsonLd()} />
       <Hero cms={cms} />
       <StudioPitch />
 

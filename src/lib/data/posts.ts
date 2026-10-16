@@ -1,8 +1,10 @@
 import { cache } from "react";
 import type { PostStatus, PostType, PublicPost } from "@/lib/types";
-import { canQueryDatabase, publicDb } from "./client";
+import { isTestContent } from "@/lib/content-visibility";
+import { discardStaticIfBuild, publicDb } from "./client";
 import { readingTimeFromBody } from "@/lib/utils";
 import { cached, invalidateCache } from "@/lib/cache";
+import { hasSupabaseConfig } from "@/lib/supabase";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { POST_LIST_SELECT, POST_SELECT, mapCategory, mapPost } from "./map";
 
@@ -33,7 +35,10 @@ export type PostListOpts = {
 export const listPublishedPosts = cache(async (opts?: PostListOpts) => {
   const key = `posts:${JSON.stringify(opts ?? {})}`;
   return cached(key, 15_000, async () => {
-    if (!canQueryDatabase()) return [];
+    if (!hasSupabaseConfig()) {
+      await discardStaticIfBuild();
+      return [];
+    }
     try {
       const db = publicDb();
       let q = applyPublished(db.from("posts").select(POST_LIST_SELECT));
@@ -50,9 +55,12 @@ export const listPublishedPosts = cache(async (opts?: PostListOpts) => {
           : q.order("featured", { ascending: false }).order("published_at", { ascending: false });
       const { data, error } = await q.range(opts?.skip ?? 0, (opts?.skip ?? 0) + (opts?.take ?? 24) - 1);
       if (error) throw error;
-      return (data ?? []).map((row) => mapPost(row as Record<string, unknown>));
+      return (data ?? [])
+        .map((row) => mapPost(row as Record<string, unknown>))
+        .filter((post) => !isTestContent(post));
     } catch (error) {
       console.error("listPublishedPosts", error);
+      await discardStaticIfBuild();
       return [];
     }
   });
@@ -74,14 +82,16 @@ export const searchPublishedPosts = cache(async (q: string, take = 8) => {
         .order("published_at", { ascending: false })
         .limit(Math.min(take, 8));
       if (error) throw error;
-      return (data ?? []).map((row) => ({
-        id: String(row.id),
-        title: String(row.title),
-        slug: String(row.slug),
-        type: row.type as PostType,
-        excerpt: row.excerpt as string | null,
-        coverImage: (row.cover_image as string | null) ?? null,
-      }));
+      return (data ?? [])
+        .map((row) => ({
+          id: String(row.id),
+          title: String(row.title),
+          slug: String(row.slug),
+          type: row.type as PostType,
+          excerpt: row.excerpt as string | null,
+          coverImage: (row.cover_image as string | null) ?? null,
+        }))
+        .filter((post) => !isTestContent(post));
     } catch (error) {
       console.error("searchPublishedPosts", error);
       return [];
@@ -90,7 +100,10 @@ export const searchPublishedPosts = cache(async (q: string, take = 8) => {
 });
 
 export const getPublishedPostBySlug = cache(async (slug: string, type?: PostType) => {
-  if (!canQueryDatabase()) return null;
+  if (!hasSupabaseConfig()) {
+    await discardStaticIfBuild();
+    return null;
+  }
   try {
     const db = publicDb();
     let q = applyPublished(db.from("posts").select(POST_SELECT)).eq("slug", slug);
@@ -100,6 +113,7 @@ export const getPublishedPostBySlug = cache(async (slug: string, type?: PostType
     return data ? mapPost(data as Record<string, unknown>) : null;
   } catch (error) {
     console.error("getPublishedPostBySlug", error);
+    await discardStaticIfBuild();
     return null;
   }
 });
@@ -118,6 +132,10 @@ export const getPostBySlugAny = cache(async (slug: string) => {
 
 export async function getPostsBySlugs(slugs: string[]) {
   if (!slugs.length) return [];
+  if (!hasSupabaseConfig()) {
+    await discardStaticIfBuild();
+    return [];
+  }
   try {
     const db = publicDb();
     const { data, error } = await applyPublished(db.from("posts").select(POST_LIST_SELECT)).in("slug", slugs).limit(12);
@@ -126,26 +144,34 @@ export async function getPostsBySlugs(slugs: string[]) {
       const post = mapPost(row as Record<string, unknown>);
       return [post.slug, post] as const;
     }));
-    return slugs.map((s) => map.get(s)).filter((p): p is PublicPost => Boolean(p));
+    return slugs
+      .map((s) => map.get(s))
+      .filter((p): p is PublicPost => Boolean(p))
+      .filter((p) => !isTestContent(p));
   } catch (error) {
     console.error("getPostsBySlugs", error);
+    await discardStaticIfBuild();
     return [];
   }
 }
 
 export async function listPublishedSlugs(type?: PostType) {
-  if (!canQueryDatabase()) return [];
+  if (!hasSupabaseConfig()) return [];
   try {
     const db = publicDb();
-    let q = applyPublished(db.from("posts").select("slug, type, updated_at"));
+    let q = applyPublished(db.from("posts").select("slug, type, title, updated_at"));
     if (type) q = q.eq("type", type);
     const { data, error } = await q;
     if (error) throw error;
-    return (data ?? []).map((row) => ({
-      slug: String(row.slug),
-      type: row.type as PostType,
-      updatedAt: new Date(String(row.updated_at)),
-    }));
+    return (data ?? [])
+      .map((row) => ({
+        slug: String(row.slug),
+        type: row.type as PostType,
+        title: String(row.title ?? ""),
+        updatedAt: new Date(String(row.updated_at)),
+      }))
+      .filter((post) => !isTestContent(post))
+      .map(({ slug, type: postType, updatedAt }) => ({ slug, type: postType, updatedAt }));
   } catch (error) {
     console.error("listPublishedSlugs", error);
     return [];
@@ -162,6 +188,7 @@ export async function incrementPostViews(id: string) {
 }
 
 export async function listCategories() {
+  if (!hasSupabaseConfig()) return [];
   try {
     const db = publicDb();
     const { data, error } = await db.from("categories").select("id, name, slug, description, posts(count)").order("name");
@@ -328,7 +355,9 @@ export async function getRelatedPosts(post: { id: string; type: PostType; catego
       .order("published_at", { ascending: false })
       .limit(8);
     if (error) throw error;
-    const mapped = (data ?? []).map((row) => mapPost(row as Record<string, unknown>));
+    const mapped = (data ?? [])
+      .map((row) => mapPost(row as Record<string, unknown>))
+      .filter((item) => !isTestContent(item));
     const ranked = mapped.sort((a, b) => {
       const as = Number(a.categoryId === post.categoryId) + Number(a.type === post.type);
       const bs = Number(b.categoryId === post.categoryId) + Number(b.type === post.type);

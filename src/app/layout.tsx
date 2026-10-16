@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
 import "./globals.css";
 import { vazir } from "@/lib/fonts";
 import { siteConfig } from "@/lib/config";
@@ -7,8 +6,6 @@ import { getSiteCms } from "@/lib/data/settings";
 import { Providers } from "@/components/providers";
 import { RootFrame } from "@/components/layout/RootFrame";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
-import { isWorkspaceDocument, requestHost } from "@/lib/runtime";
-import { parseWsTheme, wsLocaleOrDefault, wsThemeOrDefault } from "@/lib/theme/prefs";
 
 export const revalidate = 60;
 
@@ -35,41 +32,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cms = await getSiteCms();
-  const hdrs = await headers();
-  const jar = await cookies();
-  const host = requestHost(hdrs.get("x-forwarded-host") || hdrs.get("host"));
-  const path = hdrs.get("x-arka-path") || "";
-  const workspaceDoc = hdrs.get("x-arka-app") === "workspace" || isWorkspaceDocument(path, host);
-  const wsTheme = wsThemeOrDefault(jar.get("ws_theme")?.value);
-  const wsLocale = wsLocaleOrDefault(jar.get("ws_locale")?.value);
-  const asTheme = parseWsTheme(jar.get("as_theme")?.value) ?? "light";
-  const lang = workspaceDoc ? (wsLocale === "en" ? "en" : "fa") : "fa";
-  const dir = lang === "en" ? "ltr" : "rtl";
-  const dark = workspaceDoc ? wsTheme === "dark" : asTheme === "dark";
-  const htmlClass = [
-    vazir.variable,
-    vazir.className,
-    "h-full",
-    workspaceDoc ? "ws" : "",
-    workspaceDoc && wsTheme === "light" ? "ws-theme-light" : "",
-    dark ? "dark" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const htmlClass = [vazir.variable, vazir.className, "h-full"].join(" ");
 
   return (
-    <html lang={lang} dir={dir} className={htmlClass} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={htmlClass} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
       </head>
       <body className="h-full font-sans antialiased" suppressHydrationWarning>
         <ServiceWorkerRegister />
-        <Providers initialTheme={workspaceDoc ? wsTheme : asTheme} workspaceDoc={workspaceDoc}>
-          <RootFrame cms={cms} host={host}>
-            {children}
-          </RootFrame>
+        <Providers>
+          <RootFrame cms={cms}>{children}</RootFrame>
         </Providers>
       </body>
     </html>

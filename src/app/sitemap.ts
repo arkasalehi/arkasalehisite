@@ -6,10 +6,13 @@ import type { MetadataRoute } from "next";
 
 export const revalidate = 3600;
 
+/** Bump when the static routes themselves change. Not the request time. */
+const STATIC_LAST_MODIFIED = "2026-09-02T00:00:00.000Z";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes = ["", "/blog", "/video", "/shorts", "/products"].map((path) => ({
     url: `${siteConfig.url}${path}`,
-    lastModified: new Date(),
+    lastModified: STATIC_LAST_MODIFIED,
   }));
 
   try {

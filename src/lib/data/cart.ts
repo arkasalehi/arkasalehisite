@@ -1,6 +1,8 @@
-import { canQueryDatabase, publicDb } from "./client";
+import { isTestContent } from "@/lib/content-visibility";
+import { publicDb } from "./client";
 import { getProductsByIds } from "./products";
 import type { CartItem as ClientCart } from "@/lib/cart";
+import { hasSupabaseConfig } from "@/lib/supabase";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "./map";
 
@@ -54,7 +56,7 @@ export async function replaceUserCart(userId: string, items: Array<{ productId: 
 
 export async function listRelatedProducts(slug: string, take = 3) {
   try {
-    if (!canQueryDatabase()) return [];
+    if (!hasSupabaseConfig()) return [];
     const db = publicDb();
     const { data, error } = await db
       .from("products")
@@ -64,7 +66,9 @@ export async function listRelatedProducts(slug: string, take = 3) {
       .order("featured", { ascending: false })
       .limit(take);
     if (error) throw error;
-    return (data ?? []).map((row) => mapProduct(row as Record<string, unknown>));
+    return (data ?? [])
+      .map((row) => mapProduct(row as Record<string, unknown>))
+      .filter((product) => !isTestContent(product));
   } catch (error) {
     console.error("listRelatedProducts", error);
     return [];

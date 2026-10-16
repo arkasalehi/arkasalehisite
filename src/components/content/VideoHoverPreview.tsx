@@ -9,11 +9,13 @@ export function VideoHoverPreview({
   poster,
   seed = "video",
   kind = "video",
+  alt = "",
 }: {
   src: string;
   poster?: string | null;
   seed?: string;
   kind?: SampleKind;
+  alt?: string;
 }) {
   const [hover, setHover] = useState(false);
 
@@ -22,7 +24,7 @@ export function VideoHoverPreview({
       {hover ? (
         <video src={src} muted playsInline autoPlay loop preload="none" className="h-full w-full object-cover" />
       ) : (
-        <CoverImage src={poster} alt="" seed={seed} kind={kind} sizes="33vw" />
+        <CoverImage src={poster} alt={alt} seed={seed} kind={kind} sizes="33vw" />
       )}
     </div>
   );

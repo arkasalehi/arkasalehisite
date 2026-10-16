@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { canAccessWorkspace } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/session";
 import {
   getActiveTenantId,
@@ -21,37 +24,44 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Workspace",
+  robots: { index: false, follow: false },
 };
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const done = routeTimer("layout /ws");
   const session = await getSession();
+  if (!session) {
+    const path = (await headers()).get("x-arka-path") || "/ws";
+    const next = path.startsWith("/ws") ? path : "/ws";
+    redirect(`/login?next=${encodeURIComponent(next)}`);
+  }
+  if (!canAccessWorkspace(session.role)) redirect("/");
   const [channels, inbox, tasks, notes, meetings, tenants, projects, activeTenantId, people] = await Promise.all([
-    listChannels(session?.id).catch(() => []),
-    listInbox(session?.id).catch(() => []),
+    listChannels(session.id).catch(() => []),
+    listInbox(session.id).catch(() => []),
     listNavTasks().catch(() => []),
     listNavNotes().catch(() => []),
     listNavMeetings().catch(() => []),
-    listTenants(session?.id).catch(() => []),
+    listTenants(session.id).catch(() => []),
     listProjects().catch(() => []),
     getActiveTenantId().catch(() => null),
     listCollaboratorDirectory().catch(() => []),
   ]);
-  if (session) await ensurePersonalRoom(session.id, session.displayName || session.username || "Room").catch(() => null);
+  await ensurePersonalRoom(session.id, session.displayName || session.username || "Room").catch(() => null);
   const jar = await cookies();
   const initialTheme = wsThemeOrDefault(jar.get("ws_theme")?.value);
   const initialLocale = wsLocaleOrDefault(jar.get("ws_locale")?.value);
   done();
   return (
     <WorkspaceShell
-      displayName={session?.displayName ?? ""}
-      username={session?.username ?? ""}
-      email={session?.email ?? ""}
-      role={session?.role ?? "collaborator"}
-      avatarUrl={session?.avatarUrl ?? null}
+      displayName={session.displayName}
+      username={session.username}
+      email={session.email}
+      role={session.role}
+      avatarUrl={session.avatarUrl}
       channels={channels}
       inbox={inbox}
-      userId={session?.id ?? ""}
+      userId={session.id}
       tasks={tasks}
       notes={notes}
       meetings={meetings}
