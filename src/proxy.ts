@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { authCookieKey } from "@/lib/auth/gate-key";
 import { withAppCookieOptions } from "@/lib/auth/cookies";
 import { isPublicAuthPath, isWorkspaceHost, publicSiteUrl } from "@/lib/runtime";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase";
@@ -16,23 +17,6 @@ const GATE_MAX = 80;
 const gateCache = new Map<string, Gate>();
 const gateInflight = new Map<string, Promise<Gate>>();
 
-function isRscRequest(request: NextRequest) {
-  return (
-    request.nextUrl.searchParams.has("_rsc") ||
-    request.headers.get("rsc") === "1" ||
-    request.headers.get("next-router-prefetch") === "1"
-  );
-}
-
-function cookieFingerprint(request: NextRequest) {
-  return request.cookies
-    .getAll()
-    .filter((c) => c.name.includes("-auth-token"))
-    .map((c) => `${c.name}:${c.value.slice(0, 24)}`)
-    .join("|")
-    .slice(0, 220);
-}
-
 function pruneGates(now: number) {
   for (const [key, row] of gateCache) {
     if (row.exp <= now) gateCache.delete(key);
@@ -45,10 +29,8 @@ function pruneGates(now: number) {
 }
 
 export async function proxy(request: NextRequest) {
-  const started = Date.now();
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host");
-  const rsc = isRscRequest(request);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-arka-path", pathname);
   const onWorkspaceHost = isWorkspaceHost(host);
@@ -81,11 +63,8 @@ export async function proxy(request: NextRequest) {
   if (needsAuth || adminApi) {
     if (!hasCookie) {
       authed = false;
-    } else if (rsc && workspaceGate && !adminPage && !adminApi) {
-      authed = true;
-      isCollaborator = true;
     } else if (url && key) {
-      const fp = `${cookieFingerprint(request)}:${adminPage || adminApi ? "a" : ""}:${workspaceGate ? "c" : ""}`;
+      const fp = `${await authCookieKey(request.cookies.getAll())}:${adminPage || adminApi ? "a" : ""}:${workspaceGate ? "c" : ""}`;
       const now = Date.now();
       pruneGates(now);
       const hit = gateCache.get(fp);
@@ -148,12 +127,10 @@ export async function proxy(request: NextRequest) {
     const afterLogin =
       onWorkspaceHost || pathname.startsWith("/ws") ? (pathname.startsWith("/ws") ? pathname : "/ws") : pathname;
     login.searchParams.set("next", afterLogin);
-    console.log(`[proxy] ${pathname} rsc=${rsc ? 1 : 0} ${Date.now() - started}ms redirect-login`);
     return NextResponse.redirect(login);
   }
 
   if (workspaceGate && !isCollaborator) {
-    console.log(`[proxy] ${pathname} rsc=${rsc ? 1 : 0} ${Date.now() - started}ms deny-ws`);
     if (pathname.startsWith("/api/workspace")) {
       return jsonError("Access denied", 403);
     }
@@ -183,13 +160,9 @@ export async function proxy(request: NextRequest) {
     dest.pathname = pathname === "/" ? "/ws" : `/ws${pathname}`;
     const redirected = NextResponse.redirect(dest);
     response.cookies.getAll().forEach((cookie) => redirected.cookies.set(cookie));
-    console.log(`[proxy] ${pathname} rsc=${rsc ? 1 : 0} ${Date.now() - started}ms redirect-ws`);
     return redirected;
   }
 
-  if (pathname.startsWith("/ws")) {
-    console.log(`[proxy] ${pathname} rsc=${rsc ? 1 : 0} ${Date.now() - started}ms`);
-  }
   return response;
 }
 

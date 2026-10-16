@@ -143,7 +143,13 @@ function VideoStage() {
   return (
     <div className="grid h-[270px] gap-2 sm:grid-cols-[minmax(0,1.45fr)_168px]">
       <div className="relative overflow-hidden rounded-2xl bg-[#d7dbd4]">
-        <img src={hostSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={hostSrc}
+          alt="کنت اسمیت، میزبان جلسه"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/40 px-2 py-1 text-[11px] text-white backdrop-blur-sm">
           <span className="h-4 w-4 rounded-full bg-cover bg-center" style={{ backgroundImage: `url(${hostSrc})` }} />
           Kenneth Smith (Host)
@@ -160,7 +166,7 @@ function VideoStage() {
 function VideoTile({ src, name }: { src: string; name: string }) {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-[#d7dbd4]">
-      <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <img src={src} alt={name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
       <span className="absolute bottom-2 left-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] text-white">{name}</span>
     </div>
   );

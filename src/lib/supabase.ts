@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { fetchWithTimeout } from "@/lib/supabase/fetch";
 
 export function getSupabaseUrl() {
   return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
@@ -22,6 +23,7 @@ export function createPublicClient() {
   }
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: fetchWithTimeout(8000) },
   });
 }
 

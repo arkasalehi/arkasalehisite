@@ -1,7 +1,9 @@
 import { cache } from "react";
-import { canQueryDatabase, publicDb } from "./client";
+import { isTestContent } from "@/lib/content-visibility";
+import { discardStaticIfBuild, publicDb } from "./client";
 import { cached } from "@/lib/cache";
 import { effectivePrice } from "@/lib/utils";
+import { hasSupabaseConfig } from "@/lib/supabase";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { mapProduct } from "./map";
 
@@ -10,7 +12,10 @@ const PRODUCT_COLS =
 
 export const listProducts = cache(async (opts?: { featured?: boolean; take?: number }) => {
   return cached(`products:${JSON.stringify(opts ?? {})}`, 20_000, async () => {
-    if (!canQueryDatabase()) return [];
+    if (!hasSupabaseConfig()) {
+      await discardStaticIfBuild();
+      return [];
+    }
     try {
       const db = publicDb();
       let q = db
@@ -21,16 +26,22 @@ export const listProducts = cache(async (opts?: { featured?: boolean; take?: num
       if (opts?.take) q = q.limit(opts.take);
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []).map((row) => mapProduct(row as Record<string, unknown>));
+      return (data ?? [])
+        .map((row) => mapProduct(row as Record<string, unknown>))
+        .filter((product) => !isTestContent(product));
     } catch (error) {
       console.error("listProducts", error);
+      await discardStaticIfBuild();
       return [];
     }
   });
 });
 
 export const getProductBySlug = cache(async (slug: string) => {
-  if (!canQueryDatabase()) return null;
+  if (!hasSupabaseConfig()) {
+    await discardStaticIfBuild();
+    return null;
+  }
   try {
     const db = publicDb();
       const { data, error } = await db
@@ -42,6 +53,7 @@ export const getProductBySlug = cache(async (slug: string) => {
     return data ? mapProduct(data as Record<string, unknown>) : null;
   } catch (error) {
     console.error("getProductBySlug", error);
+    await discardStaticIfBuild();
     return null;
   }
 });
@@ -54,12 +66,19 @@ export async function getProductById(id: string) {
 }
 
 export async function listProductSlugs() {
-  if (!canQueryDatabase()) return [];
+  if (!hasSupabaseConfig()) return [];
   try {
     const db = publicDb();
-    const { data, error } = await db.from("products").select("slug, updated_at");
+    const { data, error } = await db.from("products").select("slug, title, updated_at");
     if (error) throw error;
-    return (data ?? []).map((row) => ({ slug: String(row.slug), updatedAt: new Date(String(row.updated_at)) }));
+    return (data ?? [])
+      .map((row) => ({
+        slug: String(row.slug),
+        title: String(row.title ?? row.slug),
+        updatedAt: new Date(String(row.updated_at)),
+      }))
+      .filter((product) => !isTestContent(product))
+      .map(({ slug, updatedAt }) => ({ slug, updatedAt }));
   } catch (error) {
     console.error("listProductSlugs", error);
     return [];

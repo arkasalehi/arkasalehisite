@@ -11,6 +11,7 @@ export const siteConfig = {
   locale: "fa_IR",
   localeHtml: "fa",
   creator: "آرکا صالحی",
+  ogImage: "/samples/studio.jpg",
   twitter: "@arkasalehi",
   socials: [
     { href: "https://x.com/arkasalehi", label: "ایکس" },

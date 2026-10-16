@@ -9,7 +9,11 @@ const LAYERS = [
   { name: "Shorts", tone: "text-pink-500" },
 ];
 
-const ASSETS = ["/samples/blog-1.jpg", "/samples/video-1.jpg", "/samples/tool-1.jpg"];
+const ASSETS = [
+  { src: "/samples/blog-1.jpg", alt: "نمونه تصویر وبلاگ" },
+  { src: "/samples/video-1.jpg", alt: "نمونه تصویر ویدیو" },
+  { src: "/samples/tool-1.jpg", alt: "نمونه تصویر ابزار" },
+];
 const FACES = ["/samples/collab/host.jpg", "/samples/collab/peer-a.jpg", "/samples/collab/peer-b.jpg"];
 
 export function StudioPitch() {
@@ -62,7 +66,14 @@ export function StudioPitch() {
           <div className="mt-6 flex items-center justify-center gap-3 text-sm text-[#8b938d]">
             <div className="flex -space-x-2 space-x-reverse">
               {FACES.map((src) => (
-                <img key={src} src={src} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-white" />
+                <img
+                  key={src}
+                  src={src}
+                  alt="همکار استودیو آرکا"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-7 w-7 rounded-full object-cover ring-2 ring-white"
+                />
               ))}
             </div>
             <span>تیم‌های استودیو و محتوا به آرکا اعتماد می‌کنند</span>
@@ -123,9 +134,9 @@ function StudioWindow() {
               <div className="rounded-xl bg-white p-2 shadow-sm">
                 <p className="mb-2 text-xs font-semibold text-[#1e2a24]">Assets</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {ASSETS.map((src) => (
-                    <div key={src} className="aspect-video overflow-hidden rounded-md bg-[#eef4f0]">
-                      <img src={src} alt="" className="h-full w-full object-cover" />
+                  {ASSETS.map((asset) => (
+                    <div key={asset.src} className="aspect-video overflow-hidden rounded-md bg-[#eef4f0]">
+                      <img src={asset.src} alt={asset.alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                     </div>
                   ))}
                 </div>
@@ -142,7 +153,13 @@ function StudioWindow() {
             </div>
             <div className="relative p-4 sm:p-6">
               <div className="relative overflow-hidden rounded-xl border border-[#e8ece6] bg-white">
-                <img src="/samples/studio.jpg" alt="" className="h-[280px] w-full object-cover sm:h-[380px]" />
+                <img
+                  src="/samples/studio.jpg"
+                  alt="بوم استودیو آرکا برای چت، جلسه و تسک"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-[280px] w-full object-cover sm:h-[380px]"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1e2a24]/70 via-transparent to-transparent" />
                 <div className="absolute inset-x-5 bottom-5">
                   <div className="max-w-xl rounded-xl border border-white/20 bg-[#1e2a24]/55 p-4 text-white backdrop-blur-md">
@@ -157,7 +174,13 @@ function StudioWindow() {
               </div>
               <div className="pointer-events-none absolute -bottom-4 right-4 hidden w-44 rounded-xl border border-white/80 bg-white/80 p-2 shadow-lg backdrop-blur lg:block">
                 <div className="overflow-hidden rounded-md">
-                  <img src="/samples/short-1.jpg" alt="" className="aspect-[9/16] w-full object-cover" />
+                  <img
+                    src="/samples/short-1.jpg"
+                    alt="پیش‌نمایش عمودی شورتس"
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[9/16] w-full object-cover"
+                  />
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[10px] text-[#8b938d]">
                   <span>Mobile 390</span>

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     root: path.dirname(fileURLToPath(import.meta.url)),
   },
   images: {
+    // Cloudflare Workers have no sharp/IMAGES binding. See DEPLOY.md.
     unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

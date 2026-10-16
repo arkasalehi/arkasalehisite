@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Stagger } from "@/components/motion/Reveal";
 import { PostCard } from "@/components/content/PostCard";
-import { getCategoryBySlug, listPublishedPosts } from "@/lib/data/posts";
+import { getCategoryBySlug, listCategories, listPublishedPosts } from "@/lib/data/posts";
 import { PageHeader } from "@/components/layout/Page";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const categories = await listCategories();
+  return categories.map((category) => ({ slug: category.slug }));
+}
 
 export async function generateMetadata({
   params,

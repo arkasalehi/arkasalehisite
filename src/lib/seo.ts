@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { siteConfig } from "./config";
 import type { PostType } from "@/lib/types";
 import { postPath } from "./utils";
+import { resolveDocumentTitle } from "./seo-title";
 
 type MetaInput = {
   title: string;
@@ -10,29 +12,44 @@ type MetaInput = {
   type?: "website" | "article" | "video.other";
 };
 
-export function buildMetadata({ title, description, image, path, type = "website" }: MetaInput) {
+function plainExcerpt(value?: string | null, max = 180) {
+  if (!value) return "";
+  const plain = value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (!plain) return "";
+  if (plain.length <= max) return plain;
+  return `${plain.slice(0, max - 1).trim()}…`;
+}
+
+export function absoluteAsset(url: string) {
+  if (/^https?:\/\//i.test(url)) return url;
+  const path = url.startsWith("/") ? url : `/${url}`;
+  return `${siteConfig.url}${path}`;
+}
+
+export function buildMetadata({ title, description, image, path, type = "website" }: MetaInput): Metadata {
   const url = `${siteConfig.url}${path}`;
-  const desc = description || siteConfig.description;
-  const fullTitle = title.includes(siteConfig.name) ? title : `${title} | ${siteConfig.name}`;
+  const desc = plainExcerpt(description, 300) || siteConfig.description;
+  const named = resolveDocumentTitle(title, siteConfig.name, path);
+  const ogImage = image || siteConfig.ogImage;
 
   return {
-    title: fullTitle,
+    title: named.title,
     description: desc,
-    alternates: { canonical: url },
+    alternates: { canonical: path || "/" },
     openGraph: {
-      title: fullTitle,
+      title: named.social,
       description: desc,
       url,
       siteName: siteConfig.name,
       locale: siteConfig.locale,
       type,
-      images: image ? [{ url: image }] : undefined,
+      images: [{ url: ogImage }],
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title: fullTitle,
+      card: "summary_large_image",
+      title: named.social,
       description: desc,
-      images: image ? [image] : undefined,
+      images: [ogImage],
     },
   };
 }
@@ -49,19 +66,20 @@ export function articleJsonLd(post: {
   type: PostType;
   readingTime?: number | null;
 }) {
+  const description = plainExcerpt(post.excerpt) || plainExcerpt(post.body) || siteConfig.description;
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    description: post.excerpt,
-    image: post.coverImage,
-    datePublished: post.publishedAt?.toISOString(),
+    description,
+    image: absoluteAsset(post.coverImage || siteConfig.ogImage),
+    ...(post.publishedAt ? { datePublished: post.publishedAt.toISOString() } : {}),
     dateModified: post.updatedAt.toISOString(),
-    author: { "@type": "Person", name: post.author.displayName },
+    author: { "@type": "Person", name: post.author.displayName.trim() || siteConfig.creator },
     publisher: { "@type": "Person", name: siteConfig.creator },
     mainEntityOfPage: `${siteConfig.url}${postPath(post.type, post.slug)}`,
     inLanguage: "fa-IR",
-    timeRequired: post.readingTime ? `PT${post.readingTime}M` : undefined,
+    ...(post.readingTime ? { timeRequired: `PT${post.readingTime}M` } : {}),
   };
 }
 
@@ -84,11 +102,11 @@ export function videoJsonLd(post: {
     "@context": "https://schema.org",
     "@type": "VideoObject",
     name: post.title,
-    description: post.excerpt,
-    thumbnailUrl: post.thumbnailUrl || post.coverImage,
-    contentUrl: post.videoUrl,
-    uploadDate: post.publishedAt?.toISOString(),
-    duration,
+    description: plainExcerpt(post.excerpt) || siteConfig.description,
+    thumbnailUrl: absoluteAsset(post.thumbnailUrl || post.coverImage || siteConfig.ogImage),
+    ...(post.videoUrl ? { contentUrl: post.videoUrl } : {}),
+    ...(post.publishedAt ? { uploadDate: post.publishedAt.toISOString() } : {}),
+    ...(duration ? { duration } : {}),
     inLanguage: "fa-IR",
     url: `${siteConfig.url}${postPath(post.type, post.slug)}`,
   };
@@ -106,9 +124,10 @@ export function productJsonLd(product: {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.title,
-    description: product.description,
-    image: product.imageUrl,
+    description: plainExcerpt(product.description) || `${product.title} در ${siteConfig.name}`,
+    image: absoluteAsset(product.imageUrl || siteConfig.ogImage),
     sku: product.slug,
+    brand: { "@type": "Brand", name: siteConfig.name },
     offers: {
       "@type": "Offer",
       priceCurrency: "IRR",
@@ -118,5 +137,44 @@ export function productJsonLd(product: {
         : "https://schema.org/OutOfStock",
       url: `${siteConfig.url}/product/${product.slug}`,
     },
+  };
+}
+
+export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.path === "/" ? siteConfig.url : `${siteConfig.url}${item.path}`,
+    })),
+  };
+}
+
+export function personJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: siteConfig.creator,
+    url: siteConfig.url,
+    image: absoluteAsset(siteConfig.ogImage),
+    jobTitle: "طراح و سازنده",
+    description: siteConfig.bio,
+  };
+}
+
+export function professionalServiceJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    image: absoluteAsset(siteConfig.ogImage),
+    description: siteConfig.description,
+    founder: { "@type": "Person", name: siteConfig.creator },
+    areaServed: "IR",
+    inLanguage: "fa-IR",
   };
 }

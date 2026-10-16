@@ -1,29 +1,31 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import type { SiteCms } from "@/lib/cms/types";
 import { isWorkspaceDocument, usesSiteChrome } from "@/lib/runtime";
 import { restoreWsChrome, syncPublicThemeFromStorage } from "@/lib/theme/workspace";
 
-export function RootFrame({
-  children,
-  cms,
-  host,
-}: {
-  children: React.ReactNode;
-  cms: SiteCms;
-  host: string;
-}) {
+function useHost() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => window.location.host,
+    () => "",
+  );
+}
+
+export function RootFrame({ children, cms }: { children: React.ReactNode; cms: SiteCms }) {
   const pathname = usePathname();
+  const host = useHost();
   const workspaceDoc = isWorkspaceDocument(pathname, host);
   const site = usesSiteChrome(pathname, host);
 
   useLayoutEffect(() => {
-    if (workspaceDoc) restoreWsChrome();
+    const onWorkspace = isWorkspaceDocument(pathname, window.location.host);
+    if (onWorkspace) restoreWsChrome();
     else syncPublicThemeFromStorage();
-  }, [workspaceDoc]);
+  }, [pathname]);
 
   if (site) {
     return <SiteChrome cms={cms}>{children}</SiteChrome>;

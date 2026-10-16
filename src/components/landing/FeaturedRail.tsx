@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import dynamic from "next/dynamic";
 import { CoverImage } from "@/components/content/CoverImage";
@@ -23,11 +24,7 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
       <article className="overflow-hidden rounded-[24px] border border-[#e8ece6] bg-white/85 p-3 shadow-[0_16px_40px_rgba(20,60,100,0.08)] backdrop-blur-md md:p-4">
         <div className={cn("relative aspect-video overflow-hidden rounded-[18px]", !main.videoUrl && "editorial-media")}>
           {main.videoUrl ? (
-            <VideoPlayer
-              src={main.videoUrl}
-              poster={main.thumbnailUrl || main.coverImage}
-              className="absolute inset-0 h-full max-h-none"
-            />
+            <HomeFeaturedVideo post={main} />
           ) : (
             <Link href={mainHref} className="absolute inset-0">
               <CoverImage
@@ -78,5 +75,33 @@ export function FeaturedRail({ posts }: { posts: PostCardPost[] }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function HomeFeaturedVideo({ post }: { post: PostCardPost }) {
+  const [play, setPlay] = useState(false);
+  if (play && post.videoUrl) {
+    return (
+      <VideoPlayer
+        src={post.videoUrl}
+        poster={post.thumbnailUrl || post.coverImage}
+        className="absolute inset-0 h-full max-h-none"
+        title={post.title}
+      />
+    );
+  }
+  return (
+    <button type="button" className="absolute inset-0" onClick={() => setPlay(true)} aria-label={`پخش ${post.title}`}>
+      <CoverImage
+        src={post.coverImage || post.thumbnailUrl}
+        alt={post.title}
+        seed={post.id}
+        kind="video"
+        sizes="(max-width: 1024px) 100vw, 70vw"
+      />
+      <span className="absolute bottom-4 left-4 z-10 grid h-12 w-12 place-items-center rounded-full bg-black/55 text-white">
+        <PlayIcon className="h-4 w-4" />
+      </span>
+    </button>
   );
 }
