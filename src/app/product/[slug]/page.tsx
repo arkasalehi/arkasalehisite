@@ -62,7 +62,7 @@ export default async function ProductPage({
             <Image src="/samples/tool-1.jpg" alt={product.title} fill className="object-cover" priority sizes="50vw" />
           )}
           {product.discountPercent > 0 || (product.comparePrice && product.comparePrice > product.price) ? (
-            <span className="absolute right-3 top-3 z-10 rounded-full bg-[#3390ec] px-3 py-1 text-xs font-medium text-white">
+            <span className="absolute right-3 top-3 z-10 rounded-full bg-[var(--brand)] px-3 py-1 text-xs font-medium text-[var(--brand-fg)]">
               تخفیف
             </span>
           ) : null}

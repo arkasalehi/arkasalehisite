@@ -59,32 +59,26 @@ function Clouds({ weather }: { weather: HeroWeatherId }) {
   const heavy = weather === "cloudy" || weather === "rainy" || weather === "storm" || weather === "snowy";
   const tint =
     weather === "storm"
-      ? "bg-slate-400/45"
+      ? "bg-slate-300/10"
       : weather === "cloudy" || weather === "rainy"
-        ? "bg-slate-200/55"
+        ? "bg-slate-200/10"
         : weather === "autumn"
-          ? "bg-orange-100/45"
+          ? "bg-orange-200/10"
           : weather === "sunset"
-            ? "bg-pink-100/40"
+            ? "bg-orange-200/10"
             : weather === "night"
-              ? "bg-indigo-200/20"
-              : weather === "sunny"
-                ? "bg-white/25"
-                : "bg-white/35";
+              ? "bg-indigo-200/10"
+              : "bg-[#3ecf8e]/[0.07]";
 
   return (
     <>
       <div className="hero-cloud-layer absolute inset-0">
-        <div className={`absolute left-[-12%] top-[12%] h-52 w-[50%] rounded-full blur-3xl ${tint}`} />
-        <div className={`absolute right-[-14%] top-[4%] h-56 w-[48%] rounded-full blur-3xl ${heavy ? tint : "bg-white/30"}`} />
-        <div className={`absolute left-[8%] top-[22%] h-16 w-40 rounded-full blur-xl ${heavy ? tint : "bg-white/40"}`} />
+        <div className={`absolute left-[-12%] top-[8%] h-40 w-[42%] rounded-full blur-3xl ${tint}`} />
+        <div className={`absolute right-[-10%] top-[0%] h-44 w-[40%] rounded-full blur-3xl ${tint}`} />
       </div>
       <div className="hero-cloud-layer-b absolute inset-0">
-        <div className={`absolute bottom-[30%] left-[6%] h-40 w-[42%] rounded-full blur-[64px] ${heavy ? tint : "bg-white/50"}`} />
-        <div className={`absolute bottom-[24%] right-[4%] h-44 w-[40%] rounded-full blur-[70px] ${heavy ? tint : "bg-white/55"}`} />
-        {heavy ? <div className={`absolute left-[22%] top-[8%] h-36 w-[58%] rounded-full blur-3xl ${tint}`} /> : null}
-        <div className="absolute left-[28%] top-[42%] h-28 w-72 rounded-full bg-white/25 blur-2xl" />
-        <div className="absolute right-[12%] top-[26%] h-14 w-48 rounded-full bg-white/35 blur-xl" />
+        <div className={`absolute bottom-[34%] left-[10%] h-28 w-[36%] rounded-full blur-[72px] ${heavy ? tint : "bg-white/[0.035]"}`} />
+        <div className={`absolute right-[8%] top-[18%] h-24 w-[28%] rounded-full blur-[64px] ${heavy ? tint : "bg-[#3ecf8e]/[0.05]"}`} />
       </div>
     </>
   );

@@ -23,7 +23,7 @@ export function applyTheme(theme: Theme) {
 }
 
 const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
-  theme: "light",
+  theme: "dark",
   toggle: () => {},
 });
 

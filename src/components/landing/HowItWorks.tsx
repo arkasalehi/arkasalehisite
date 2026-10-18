@@ -22,11 +22,11 @@ export function HowItWorks() {
       {STEPS.map((step) => (
         <article
           key={step.n}
-          className="rounded-[24px] border border-[#e8ece6] bg-white/85 p-6 shadow-[0_16px_40px_rgba(20,60,100,0.08)] backdrop-blur-md"
+          className="rounded-xl border border-border bg-card p-6 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--brand)_45%,var(--border))]"
         >
-          <p className="text-[13px] font-semibold text-[#3390ec]">{step.n}</p>
-          <h3 className="mt-3 text-[18px] font-semibold tracking-tight text-[#1e2a24]">{step.title}</h3>
-          <p className="mt-2 text-sm leading-7 text-[#8b938d]">{step.body}</p>
+          <p className="font-mono text-[13px] font-medium text-primary">{step.n}</p>
+          <h3 className="mt-3 text-[18px] font-semibold tracking-tight text-foreground">{step.title}</h3>
+          <p className="mt-2 text-sm leading-7 text-muted">{step.body}</p>
         </article>
       ))}
     </div>

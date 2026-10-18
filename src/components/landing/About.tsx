@@ -8,29 +8,23 @@ import type { SiteCms } from "@/lib/cms/types";
 export function About({ cms }: { cms: SiteCms }) {
   return (
     <section className="grid items-stretch gap-5 md:grid-cols-2 md:gap-6">
-      <blockquote className="flex flex-col justify-center rounded-[28px] border border-[#e8ece6] bg-white/85 p-7 shadow-[0_16px_40px_rgba(20,60,100,0.08)] backdrop-blur-md md:p-9">
-        <p className="text-[13px] font-semibold text-[#3390ec]">درباره استودیو</p>
-        <p className="mt-4 text-[20px] font-semibold leading-[1.7] tracking-tight text-[#1e2a24] md:text-[24px]">
+      <blockquote className="flex flex-col justify-center rounded-xl border border-border bg-card p-7 md:p-9">
+        <p className="text-[13px] font-medium text-primary">درباره استودیو</p>
+        <p className="mt-4 text-[20px] font-semibold leading-[1.7] tracking-tight text-foreground md:text-[24px]">
           «{cms.about.bio}»
         </p>
         <div className="mt-8 flex items-center gap-3">
           <Avatar name={cms.about.title} src={cms.about.avatarUrl || samples.portrait} size="md" />
           <div>
-            <p className="font-semibold text-[#1e2a24]">{cms.about.title}</p>
-            <p className="text-sm text-[#8b938d]">خالق استودیو arkasalehi</p>
+            <p className="font-semibold text-foreground">{cms.about.title}</p>
+            <p className="text-sm text-muted">خالق استودیو arkasalehi</p>
           </div>
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
-          <a
-            href={workspaceUrl()}
-            className="inline-flex h-11 items-center rounded-full bg-[#3390ec] px-5 text-[14px] font-semibold text-white"
-          >
+          <a href={workspaceUrl()} className="sb-btn sb-btn-primary h-10 px-4 text-[14px]">
             ورود به ورک‌اسپیس
           </a>
-          <Link
-            href="/blog"
-            className="inline-flex h-11 items-center rounded-full bg-white px-5 text-[14px] font-semibold text-[#1c2430] shadow-[0_8px_22px_rgba(20,50,80,0.08)] ring-1 ring-[#e8ece6]"
-          >
+          <Link href="/blog" className="sb-btn sb-btn-secondary h-10 px-4 text-[14px]">
             وبلاگ
           </Link>
         </div>

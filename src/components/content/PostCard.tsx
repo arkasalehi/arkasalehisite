@@ -108,10 +108,10 @@ function BlogInsightCard({ post, href: hrefProp }: { post: PostCardPost; href?: 
       <Link
         href={href}
         dir="rtl"
-        className="relative block h-full overflow-hidden rounded-3xl border border-white/70 bg-white/45 p-4 shadow-[0_16px_40px_rgba(20,60,100,0.08)]"
+        className="relative block h-full overflow-hidden rounded-xl border border-border bg-card p-4 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--brand)_45%,var(--border))]"
       >
         <div
-          className="card-top relative h-full overflow-hidden rounded-[1.2em] bg-gradient-to-l from-white/80 to-white/40 transition duration-300"
+          className="card-top relative h-full overflow-hidden rounded-lg bg-foreground/[0.03] transition duration-200"
           style={{ backdropFilter: "blur(16px)" }}
         >
           <div
@@ -125,30 +125,30 @@ function BlogInsightCard({ post, href: hrefProp }: { post: PostCardPost; href?: 
 
           <div className="relative flex h-full flex-col gap-5 p-5 lg:flex-row lg:items-stretch lg:gap-6 lg:p-6">
             <div className="flex flex-1 flex-col">
-              <h3 className="text-lg font-semibold tracking-tight text-[#1e2a24]">{post.title}</h3>
+              <h3 className="text-lg font-semibold tracking-tight text-foreground">{post.title}</h3>
               {post.excerpt ? (
-                <p className="mt-3 line-clamp-3 text-sm font-light leading-7 text-[#6b7872]">{post.excerpt}</p>
+                <p className="mt-3 line-clamp-3 text-sm font-light leading-7 text-muted">{post.excerpt}</p>
               ) : null}
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center rounded-full border border-[#3390ec]/15 bg-[#3390ec]/8 px-2 py-1 text-[11px] text-[#3390ec]"
+                    className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-[11px] text-primary"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
 
-              <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-medium text-[#5b6b74]">
+              <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-medium text-muted">
                 ادامه
                 <ArrowIcon className="h-4 w-4" />
               </span>
             </div>
 
             <div className="flex-1 lg:max-w-[280px]">
-              <article className="relative flex h-52 flex-col overflow-hidden rounded-2xl border border-[#e8ece6] bg-gradient-to-br from-white to-[#eef4f0] p-3 lg:h-full lg:min-h-[220px]">
+              <article className="relative flex h-52 flex-col overflow-hidden rounded-lg border border-border bg-background p-3 lg:h-full lg:min-h-[220px]">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#1e2a24]/50" />
@@ -161,10 +161,10 @@ function BlogInsightCard({ post, href: hrefProp }: { post: PostCardPost; href?: 
                   <CoverImage src={image} alt={post.title} seed={post.id} kind="blog" sizes="(max-width: 1024px) 100vw, 280px" />
                 </div>
                 <div>
-                  <p className="line-clamp-2 text-[13px] font-medium leading-snug tracking-tight text-[#1e2a24]">
+                  <p className="line-clamp-2 text-[13px] font-medium leading-snug tracking-tight text-foreground">
                     {post.title}
                   </p>
-                  <p className="mt-1 text-[11px] text-[#8b938d]">
+                  <p className="mt-1 text-[11px] text-muted">
                     {post.publishedAt ? formatDate(post.publishedAt) : "یادداشت استودیو"}
                   </p>
                 </div>

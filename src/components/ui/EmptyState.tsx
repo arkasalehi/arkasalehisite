@@ -16,10 +16,10 @@ export function EmptyState({
 }) {
   if (compact) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-[24px] border border-[#e8ece6] bg-white/85 px-5 py-8 text-center shadow-[0_12px_32px_rgba(20,60,100,0.06)] sm:flex-row sm:justify-between sm:text-start">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-start">
         <div>
-          <p className="text-[16px] font-semibold tracking-tight text-[#1e2a24]">{title}</p>
-          {description ? <p className="mt-1 text-sm leading-7 text-[#8b938d]">{description}</p> : null}
+          <p className="text-[16px] font-semibold tracking-tight text-foreground">{title}</p>
+          {description ? <p className="mt-1 text-sm leading-7 text-muted">{description}</p> : null}
         </div>
         {href ? (
           <Button href={href} variant="ghost" className="shrink-0">

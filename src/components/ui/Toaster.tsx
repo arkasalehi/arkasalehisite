@@ -26,14 +26,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed inset-x-4 bottom-6 z-50 mx-auto flex w-auto max-w-sm flex-col gap-2">
+      <div className="pointer-events-none fixed end-4 top-4 z-[90] flex w-[min(100%-2rem,360px)] flex-col gap-2">
         {items.map((item) => (
           <div
             key={item.id}
-            className={`pointer-events-auto surface px-4 py-3 text-sm ${
-              item.tone === "error" ? "text-rose-400" : "text-foreground"
+            role="status"
+            className={`pointer-events-auto flex items-start gap-2.5 rounded-md border border-border bg-card px-3 py-2.5 text-sm shadow-lg ${
+              item.tone === "error" ? "text-rose-300" : "text-foreground"
             }`}
           >
+            <span
+              className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${item.tone === "error" ? "bg-rose-400" : "bg-primary"}`}
+              aria-hidden
+            />
             {item.title}
           </div>
         ))}

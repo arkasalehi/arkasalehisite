@@ -5,6 +5,7 @@ import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { postPath, excerpt } from "@/lib/utils";
 import type { PostType } from "@/lib/types";
 import { SearchIcon } from "@/components/icons";
+import { cn } from "@/lib/utils";
 
 type Hit = {
   id: string;
@@ -14,7 +15,7 @@ type Hit = {
   excerpt?: string | null;
 };
 
-export function SearchBox() {
+export function SearchBox({ className }: { className?: string }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -49,20 +50,20 @@ export function SearchBox() {
   }, []);
 
   return (
-    <div ref={box} className="relative hidden md:block">
-      <label className="flex h-9 items-center gap-2 rounded-full px-3 text-muted">
+    <div ref={box} className={cn("relative", className)}>
+      <label className="flex h-9 items-center gap-2 rounded-md border border-border px-3 text-muted">
         <SearchIcon className="h-4 w-4 shrink-0" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => hits.length && setOpen(true)}
           placeholder="جستجو"
-          className="w-24 bg-transparent text-sm text-foreground outline-none placeholder:text-muted lg:w-32"
+          className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted md:w-28"
           aria-label="جستجوی محتوا"
         />
       </label>
       {open && hits.length ? (
-        <div className="surface absolute left-0 top-11 z-50 w-80 overflow-hidden p-0">
+        <div className="surface absolute start-0 top-11 z-50 w-80 max-w-[calc(100vw-2rem)] overflow-hidden p-0">
           {hits.map((hit) => (
             <Link
               key={hit.id}

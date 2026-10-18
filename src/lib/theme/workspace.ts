@@ -100,9 +100,9 @@ export function syncPublicThemeFromStorage() {
   root.classList.remove("ws", "ws-theme-light");
   root.lang = "fa";
   root.dir = "rtl";
-  root.style.colorScheme = "";
-  const stored = parseWsTheme(localStorage.getItem("as_theme")) || parseWsTheme(readCookie("as_theme"));
+  const stored = parseWsTheme(localStorage.getItem("as_theme")) || parseWsTheme(readCookie("as_theme")) || "dark";
   root.classList.toggle("dark", stored === "dark");
+  root.style.colorScheme = stored;
   window.dispatchEvent(new Event("as-theme"));
 }
 

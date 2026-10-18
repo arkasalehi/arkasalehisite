@@ -4,9 +4,9 @@ const peerBSrc = "/samples/collab/peer-b.jpg";
 
 export function HeroDashboardPreview() {
   return (
-    <div className="hero-saas pointer-events-none relative mx-auto w-[min(1200px,96%)] rounded-[32px] border border-white/55 bg-white/35 p-3 shadow-[0_28px_60px_rgba(20,60,100,0.12)] backdrop-blur-2xl sm:p-4">
-      <div className="rounded-[22px] bg-[#f4f6f2]/95 p-3 ring-1 ring-white/40 sm:p-4">
-        <div className="flex text-left text-[#1e2a24]">
+    <div className="hero-saas pointer-events-none relative mx-auto w-[min(1200px,96%)] rounded-xl border border-white/10 bg-[#171717]/80 p-2 shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:p-3">
+      <div className="rounded-lg bg-[#1c1c1c] p-3 ring-1 ring-white/10 sm:p-4">
+        <div className="flex text-left text-[#ededed]">
           <div className="flex min-w-0 flex-1 flex-col">
             <TopBar />
             <div className="mt-3 flex flex-1">
@@ -36,27 +36,27 @@ export function HeroDashboardPreview() {
 function TopBar() {
   return (
     <div className="flex items-center gap-2">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#3390ec] text-white">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#3ecf8e] text-[#171717]">
         <BellIcon />
       </span>
       <div className="hidden items-center gap-1.5 md:flex">
-        <span className="grid h-7 w-7 place-items-center rounded-lg text-[#6d7871]">
+        <span className="grid h-7 w-7 place-items-center rounded-lg text-[#a0a0a0]">
           <HomeIcon />
         </span>
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-white shadow-sm">
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#242424] shadow-sm">
           <span className="h-3.5 w-3.5 rounded-full bg-[conic-gradient(#8b5cf6,#fb7185,#f59e0b,#8b5cf6)]" />
         </span>
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#3390ec] text-[11px] text-white">✸</span>
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#3ecf8e] text-[11px] text-[#171717]">✸</span>
         <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#6366f1] text-[10px] font-bold text-white">≡</span>
-        <span className="grid h-7 w-7 place-items-center rounded-lg border border-[#e3e7e1] text-[#8b938d]">+</span>
+        <span className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-[#8f8f8f]">+</span>
       </div>
-      <span className="hidden h-8 items-center gap-1 rounded-full bg-white px-3 text-[12px] font-medium shadow-sm lg:inline-flex">
-        <span className="text-[#3390ec]">+</span> Create
+      <span className="hidden h-8 items-center gap-1 rounded-full bg-[#242424] px-3 text-[12px] font-medium shadow-sm lg:inline-flex">
+        <span className="text-[#3ecf8e]">+</span> Create
       </span>
-      <span className="hidden text-[#8b938d] lg:grid">
+      <span className="hidden text-[#8f8f8f] lg:grid">
         <BellIcon />
       </span>
-      <div className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-3 text-[12px] text-[#8b938d] shadow-sm">
+      <div className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#242424] px-3 text-[12px] text-[#8f8f8f] shadow-sm">
         <SearchIcon />
         Search anything...
       </div>
@@ -77,31 +77,31 @@ function Sidebar() {
 
   return (
     <aside className="hidden w-[208px] shrink-0 flex-col pr-1 lg:flex">
-      <p className="px-2 text-[11px] text-[#8b938d]">General</p>
+      <p className="px-2 text-[11px] text-[#8f8f8f]">General</p>
       <NavRow label="Overview" />
       <NavRow label="Meeting Space" active />
       <NavRow label="My Task" />
       <NavRow label="Directories" />
       <NavRow label="Archived" />
 
-      <p className="mt-4 px-2 text-[11px] text-[#8b938d]">Spotlight</p>
+      <p className="mt-4 px-2 text-[11px] text-[#8f8f8f]">Spotlight</p>
       <div className="mt-1 flex items-center gap-2 px-2 py-1.5 text-[12px]">
         <span className="rounded bg-[#e11d48] px-1 py-px text-[8px] font-bold text-white">PDF</span>
         Project-brief.pdf
       </div>
       <div className="flex items-center gap-2 px-2 py-1.5 text-[12px]">
-        <span className="h-5 w-5 rounded-full bg-[#c4b5a5]" />
+        <span className="h-5 w-5 rounded-full bg-[#3f3a36]" />
         Joshua Orlando
       </div>
 
-      <div className="mt-4 flex items-center justify-between px-2 text-[11px] text-[#8b938d]">
+      <div className="mt-4 flex items-center justify-between px-2 text-[11px] text-[#8f8f8f]">
         Group <span>+</span>
       </div>
       <NavRow label="General" />
       <NavRow label="Designer Spot" />
       <NavRow label="Report Only" />
 
-      <div className="mt-4 flex items-center justify-between px-2 text-[11px] text-[#8b938d]">
+      <div className="mt-4 flex items-center justify-between px-2 text-[11px] text-[#8f8f8f]">
         Direct Messages <span>+</span>
       </div>
       <ul className="mt-1 space-y-0.5">
@@ -113,7 +113,7 @@ function Sidebar() {
             />
             <span className="flex-1 truncate">{dm.name}</span>
             {dm.badge ? (
-              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#3390ec] px-1 text-[9px] text-white">
+              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#3ecf8e] px-1 text-[9px] text-[#171717]">
                 {dm.badge}
               </span>
             ) : null}
@@ -128,10 +128,10 @@ function NavRow({ label, active = false }: { label: string; active?: boolean }) 
   return (
     <div
       className={`mt-0.5 flex items-center gap-2 rounded-xl px-2 py-1.5 text-[12.5px] ${
-        active ? "bg-[#e7ebe4] font-medium" : "text-[#3d4741]"
+        active ? "bg-[#2a2a2a] font-medium" : "text-[#ededed]"
       }`}
     >
-      <span className="grid h-4 w-4 place-items-center text-[#7a847e]">
+      <span className="grid h-4 w-4 place-items-center text-[#8f8f8f]">
         {active ? <CamIcon /> : <DotIcon />}
       </span>
       {label}
@@ -142,7 +142,7 @@ function NavRow({ label, active = false }: { label: string; active?: boolean }) 
 function VideoStage() {
   return (
     <div className="grid h-[270px] gap-2 sm:grid-cols-[minmax(0,1.45fr)_168px]">
-      <div className="relative overflow-hidden rounded-2xl bg-[#d7dbd4]">
+      <div className="relative overflow-hidden rounded-2xl bg-[#2e2e2e]">
         <img
           src={hostSrc}
           alt="کنت اسمیت، میزبان جلسه"
@@ -165,7 +165,7 @@ function VideoStage() {
 
 function VideoTile({ src, name }: { src: string; name: string }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-[#d7dbd4]">
+    <div className="relative overflow-hidden rounded-2xl bg-[#2e2e2e]">
       <img src={src} alt={name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
       <span className="absolute bottom-2 left-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] text-white">{name}</span>
     </div>
@@ -174,38 +174,38 @@ function VideoTile({ src, name }: { src: string; name: string }) {
 
 function AiSummary() {
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-sm">
-      <div className="mb-2 flex justify-end gap-2 text-[#8b938d]">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#f3f5f1]">⋮</span>
+    <div className="rounded-2xl bg-[#242424] p-3 shadow-sm">
+      <div className="mb-2 flex justify-end gap-2 text-[#8f8f8f]">
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#2a2a2a]">⋮</span>
         <span className="h-8 w-8 rounded-full bg-cover bg-center" style={{ backgroundImage: `url(${hostSrc})` }} />
       </div>
-      <p className="text-[10px] font-semibold tracking-[0.14em] text-[#8b938d]">AI SUMMARY</p>
-      <p className="mt-1 text-[11px] text-[#8b938d]">FOR THE WEEK OF DEC 15–21</p>
+      <p className="text-[10px] font-semibold tracking-[0.14em] text-[#8f8f8f]">AI SUMMARY</p>
+      <p className="mt-1 text-[11px] text-[#8f8f8f]">FOR THE WEEK OF DEC 15–21</p>
       <p className="mt-3 text-[13px] leading-5">
         Today’s focus is on the <span className="font-semibold">Alpha release</span>. The team is feeling confident but is
         slightly behind on the documentation.
       </p>
-      <ul className="mt-3 space-y-2 text-[12px] leading-5 text-[#3d4741]">
+      <ul className="mt-3 space-y-2 text-[12px] leading-5 text-[#ededed]">
         <li className="flex gap-2">
-          <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#3390ec] text-[9px] text-white">✓</span>
+          <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#3ecf8e] text-[9px] text-[#171717]">✓</span>
           <span>
             <b>Sarah:</b> Complete the remaining 10% of server migration.
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#cfd6d0]" />
+          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#3e3e3e]" />
           <span>
             <b>Creative Team:</b> Send final PNG assets to Mark by 2:00 PM.
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#cfd6d0]" />
+          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#3e3e3e]" />
           <span>
             <b>Admin:</b> Schedule the follow-up sync for 4:30 PM.
           </span>
         </li>
       </ul>
-      <p className="mt-4 text-right text-[11px] text-[#8b938d]">Page 8</p>
+      <p className="mt-4 text-right text-[11px] text-[#8f8f8f]">Page 8</p>
     </div>
   );
 }
@@ -221,28 +221,28 @@ function CalendarPanel() {
   ];
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
+    <div className="rounded-2xl bg-[#242424] p-4 shadow-sm">
       <p className="text-center text-[14px] font-semibold">January, 2025 ▾</p>
       <div className="mt-3 grid grid-cols-7 text-center">
         {days.map((d, i) => (
           <div key={d} className="text-[11px]">
-            <p className="text-[#8b938d]">{d}</p>
+            <p className="text-[#8f8f8f]">{d}</p>
             <p className="mt-1 text-[15px] font-medium">{nums[i]}</p>
-            {i === 3 ? <span className="mx-auto mt-1 block h-1 w-4 rounded-full bg-[#3390ec]" /> : null}
-            {i === 4 ? <span className="mx-auto mt-1 block h-1 w-3 rounded-full bg-[#cfd6d0]" /> : null}
+            {i === 3 ? <span className="mx-auto mt-1 block h-1 w-4 rounded-full bg-[#3ecf8e]" /> : null}
+            {i === 4 ? <span className="mx-auto mt-1 block h-1 w-3 rounded-full bg-[#3e3e3e]" /> : null}
           </div>
         ))}
       </div>
       <ul className="mt-4 space-y-2">
         {meetings.map((m) => (
-          <li key={m.title} className="flex items-center justify-between rounded-xl bg-[#f6f7f4] px-3 py-2.5">
+          <li key={m.title} className="flex items-center justify-between rounded-xl bg-[#242424] px-3 py-2.5">
             <div>
               <p className="text-[13px] font-medium">{m.title}</p>
-              <p className="text-[11px] text-[#8b938d]">
+              <p className="text-[11px] text-[#8f8f8f]">
                 {m.time} · {m.team}
               </p>
             </div>
-            <span className="flex items-center gap-2 text-[11px] font-medium" style={{ color: m.color ?? "#3390ec" }}>
+            <span className="flex items-center gap-2 text-[11px] font-medium" style={{ color: m.color ?? "#3ecf8e" }}>
               {m.status}
               <span className="h-4 w-4 rounded bg-gradient-to-br from-[#818cf8] to-[#34d399]" />
             </span>
@@ -255,13 +255,13 @@ function CalendarPanel() {
 
 function InsightCard() {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-[12px] font-medium text-[#8b938d]">Insight</p>
-      <p className="mt-1 text-[28px] font-semibold leading-none text-[#3390ec]">93%</p>
-      <p className="mt-2 text-[12px] leading-5 text-[#5b655f]">
+    <div className="rounded-2xl bg-[#242424] p-4 shadow-sm">
+      <p className="text-[12px] font-medium text-[#8f8f8f]">Insight</p>
+      <p className="mt-1 text-[28px] font-semibold leading-none text-[#3ecf8e]">93%</p>
+      <p className="mt-2 text-[12px] leading-5 text-[#a0a0a0]">
         Is your meeting attendance rate based on your activity for the week of Dec 15–21.
       </p>
-      <p className="mt-2 text-[12px] leading-5 text-[#5b655f]">
+      <p className="mt-2 text-[12px] leading-5 text-[#a0a0a0]">
         You’re doing great this month! You have attended 12 out of 14 scheduled meetings. Keep it up!
       </p>
     </div>
@@ -270,7 +270,7 @@ function InsightCard() {
 
 function InviteCard() {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
+    <div className="rounded-2xl bg-[#242424] p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[14px] font-semibold leading-5">
@@ -278,15 +278,15 @@ function InviteCard() {
             <br />
             meeting invites
           </p>
-          <p className="mt-2 text-[12px] leading-5 text-[#8b938d]">Take a moment to review your new meeting invitations.</p>
+          <p className="mt-2 text-[12px] leading-5 text-[#8f8f8f]">Take a moment to review your new meeting invitations.</p>
         </div>
         <div className="flex -space-x-2">
           {[hostSrc, peerASrc, peerBSrc].map((src) => (
-            <span key={src} className="h-7 w-7 rounded-full border-2 border-white bg-cover bg-center" style={{ backgroundImage: `url(${src})` }} />
+            <span key={src} className="h-7 w-7 rounded-full border-2 border-[#1c1c1c] bg-cover bg-center" style={{ backgroundImage: `url(${src})` }} />
           ))}
         </div>
       </div>
-      <span className="mt-4 inline-flex h-9 items-center rounded-full bg-[#3390ec] px-4 text-[12px] font-medium text-white">
+      <span className="mt-4 inline-flex h-9 items-center rounded-full bg-[#3ecf8e] px-4 text-[12px] font-medium text-[#171717]">
         Review Invitation
       </span>
     </div>
@@ -296,13 +296,13 @@ function InviteCard() {
 function RightRail() {
   return (
     <aside className="ml-1 hidden w-[52px] shrink-0 flex-col items-center gap-3 pt-1 xl:flex">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">▢</span>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">◎</span>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">☰</span>
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">▢</span>
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">◎</span>
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">☰</span>
       <span className="mt-2 grid h-9 w-9 place-items-center rounded-full bg-[#e11d48] text-[10px] text-white">●</span>
-      <span className="mt-auto grid h-9 w-9 place-items-center rounded-xl bg-[#3390ec] text-lg text-white">+</span>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">≡</span>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#6d7871] shadow-sm">⌂</span>
+      <span className="mt-auto grid h-9 w-9 place-items-center rounded-xl bg-[#3ecf8e] text-lg text-[#171717]">+</span>
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">≡</span>
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">⌂</span>
     </aside>
   );
 }
@@ -343,5 +343,5 @@ function CamIcon() {
 }
 
 function DotIcon() {
-  return <span className="h-1.5 w-1.5 rounded-full bg-[#c5cdc6]" />;
+  return <span className="h-1.5 w-1.5 rounded-full bg-[#6e6e6e]" />;
 }

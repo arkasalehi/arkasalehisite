@@ -176,7 +176,7 @@ function CartProvider({ children, user }: { children: React.ReactNode; user: Ses
 
 export function Providers({
   children,
-  initialTheme = "light",
+  initialTheme = "dark",
   workspaceDoc = false,
 }: {
   children: React.ReactNode;

@@ -17,12 +17,12 @@ export function StartHere({ posts }: { posts: PostCardPost[] }) {
             href={postPath(post.type, post.slug)}
             className="surface glow-hover flex flex-col rounded-[24px] p-6 md:p-7"
           >
-            <p className="text-xs text-[#8b938d]">{post.publishedAt ? formatDate(post.publishedAt) : ""}</p>
-            <h3 className="mt-3 text-[18px] font-semibold leading-snug tracking-tight text-[#1e2a24] md:text-[20px]">
+            <p className="text-xs text-muted">{post.publishedAt ? formatDate(post.publishedAt) : ""}</p>
+            <h3 className="mt-3 text-[18px] font-semibold leading-snug tracking-tight text-foreground md:text-[20px]">
               {post.title}
             </h3>
-            {post.excerpt ? <p className="mt-3 line-clamp-4 text-sm leading-7 text-[#8b938d]">{post.excerpt}</p> : null}
-            <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-[#3390ec]">
+            {post.excerpt ? <p className="mt-3 line-clamp-4 text-sm leading-7 text-muted">{post.excerpt}</p> : null}
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium text-primary">
               ادامه
               <ArrowIcon className="h-3.5 w-3.5" />
             </span>
@@ -30,12 +30,12 @@ export function StartHere({ posts }: { posts: PostCardPost[] }) {
         ))}
       </div>
       {list.length ? (
-        <ul className="rounded-[24px] border border-[#e8ece6] bg-white/80 px-5 shadow-[0_16px_40px_rgba(20,60,100,0.06)] backdrop-blur-md">
+        <ul className="rounded-xl border border-border bg-card px-5">
           {list.map((post, index) => (
-            <li key={post.id} className={index < list.length - 1 ? "border-b border-[#e8ece6]" : ""}>
+            <li key={post.id} className={index < list.length - 1 ? "border-b border-border" : ""}>
               <Link href={postPath(post.type, post.slug)} className="flex items-baseline justify-between gap-4 py-4">
-                <span className="line-clamp-1 text-[15px] font-medium text-[#1e2a24]">{post.title}</span>
-                <time className="shrink-0 text-xs text-[#8b938d]">
+                <span className="line-clamp-1 text-[15px] font-medium text-foreground">{post.title}</span>
+                <time className="shrink-0 font-mono text-xs text-muted">
                   {post.publishedAt ? formatDate(post.publishedAt) : ""}
                 </time>
               </Link>

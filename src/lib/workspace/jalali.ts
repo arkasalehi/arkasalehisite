@@ -9,7 +9,7 @@ function div(a: number, b: number) {
 export function toJalali(gy: number, gm: number, gd: number): JalaliDate {
   const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
   let jy = gy <= 1600 ? 0 : 979;
-  let gy2 = gy <= 1600 ? gy - 621 : gy - 1600;
+  const gy2 = gy <= 1600 ? gy - 621 : gy - 1600;
   const gyMinus = gm > 2 ? gy2 + 1 : gy2;
   let days = 365 * gy2 + div(gyMinus + 3, 4) - div(gyMinus + 99, 100) + div(gyMinus + 399, 400) - 80 + gd + g_d_m[gm - 1]!;
   jy += 33 * div(days, 12053);
