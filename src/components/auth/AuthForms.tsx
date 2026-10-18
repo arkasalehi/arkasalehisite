@@ -2,13 +2,24 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { Button } from "@/components/ui/Button";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { canAccessWorkspace } from "@/lib/auth/roles";
 import { safeInternalPath } from "@/lib/auth/paths";
 import { workspaceUrl } from "@/lib/runtime";
 
+function AuthCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
+      <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+        <span className="grid h-7 w-7 place-items-center rounded-md bg-[var(--brand)] text-[14px] text-[var(--brand-fg)]">آ</span>
+        آرکا صالحی
+      </Link>
+      {children}
+    </div>
+  );
+}
 function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const next = safeInternalPath(useSearchParams().get("next"), "/dashboard");
@@ -69,7 +80,7 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <GlassCard className="mx-auto max-w-md p-8">
+    <AuthCard>
       <p className="text-sm font-medium text-muted">حساب کاربری</p>
       <h1 className="mt-1 text-[28px] font-semibold tracking-tight">{mode === "login" ? "ورود" : "ثبت‌نام"}</h1>
       <p className="mt-2 text-sm leading-7 text-muted">
@@ -107,7 +118,7 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
           </a>
         )}
       </p>
-    </GlassCard>
+    </AuthCard>
   );
 }
 
@@ -159,7 +170,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <GlassCard className="mx-auto max-w-md p-8">
+    <AuthCard>
       <h1 className="text-[28px] font-semibold tracking-tight">بازیابی رمز</h1>
       <p className="mt-2 text-sm leading-7 text-muted">ایمیل حساب را وارد کنید تا لینک بازنشانی ارسال شود.</p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
@@ -175,7 +186,7 @@ export function ForgotPasswordPage() {
           بازگشت به ورود
         </a>
       </p>
-    </GlassCard>
+    </AuthCard>
   );
 }
 
@@ -217,7 +228,7 @@ export function UpdatePasswordPage() {
   }
 
   return (
-    <GlassCard className="mx-auto max-w-md p-8">
+    <AuthCard>
       <h1 className="text-[28px] font-semibold tracking-tight">رمز تازه</h1>
       <p className="mt-2 text-sm leading-7 text-muted">پس از باز کردن لینک ایمیل، رمز جدید را تنظیم کنید.</p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
@@ -228,6 +239,6 @@ export function UpdatePasswordPage() {
           ذخیره رمز
         </Button>
       </form>
-    </GlassCard>
+    </AuthCard>
   );
 }

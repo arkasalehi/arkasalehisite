@@ -62,7 +62,7 @@ export async function ContentGrid({
                 {categories.map((c) => (
                   <li key={c.slug}>
                     <Link
-                      href={`${type === "VIDEO" ? "/video" : type === "SHORT" ? "/shorts" : "/blog"}?category=${c.slug}`}
+                      href={`${type === "VIDEO" ? "/video" : "/blog"}?category=${c.slug}`}
                       className="flex items-center justify-between rounded-xl px-2 py-1.5 text-muted hover:bg-foreground/5 hover:text-foreground"
                     >
                       <span>{c.name}</span>

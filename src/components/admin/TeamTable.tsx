@@ -14,15 +14,26 @@ type Row = {
 export function TeamTable() {
   const [users, setUsers] = useState<Row[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   async function load() {
-    const res = await fetch("/api/admin/team");
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error ?? "خطا");
-      return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/team");
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "خطا");
+        setUsers([]);
+        return;
+      }
+      setError("");
+      setUsers(Array.isArray(data.users) ? data.users : []);
+    } catch {
+      setError("فهرست کاربران بارگذاری نشد.");
+      setUsers([]);
+    } finally {
+      setLoading(false);
     }
-    setUsers(Array.isArray(data.users) ? data.users : []);
   }
 
   useEffect(() => {
@@ -46,8 +57,9 @@ export function TeamTable() {
 
   return (
     <div className="space-y-3">
-      {error ? <p className="text-sm text-rose-300">{error}</p> : null}
-      <div className="overflow-x-auto">
+      {error ? <p className="text-sm text-rose-400" role="alert">{error}</p> : null}
+      {loading ? <p className="text-sm text-muted">در حال بارگذاری کاربران…</p> : null}
+      <div className="max-w-full overflow-x-auto">
         <table className="w-full min-w-[520px] text-right text-sm">
           <thead className="text-muted">
             <tr>
@@ -57,6 +69,13 @@ export function TeamTable() {
             </tr>
           </thead>
           <tbody>
+            {!loading && !users.length ? (
+              <tr>
+                <td colSpan={3} className="p-4 text-muted">
+                  {error ? "فهرست کاربران در دسترس نیست." : "کاربری ثبت نشده."}
+                </td>
+              </tr>
+            ) : null}
             {users.map((u) => (
               <tr key={u.id} className="border-t border-[var(--border)]">
                 <td className="p-2">{u.display_name}</td>

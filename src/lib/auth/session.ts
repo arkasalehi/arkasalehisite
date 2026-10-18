@@ -61,10 +61,27 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const session = await requireUser();
-  if (!isAdminRole(session.role)) {
-    const error = new Error("FORBIDDEN");
-    error.name = "FORBIDDEN";
-    throw error;
+  const supabase = await createServerSupabase();
+  const { data, error } = await supabase.rpc("is_admin");
+  if (error || data !== true || !isAdminRole(session.role)) {
+    const denied = new Error("FORBIDDEN");
+    denied.name = "FORBIDDEN";
+    throw denied;
+  }
+  return session;
+}
+
+/** Page gate. Role comes from is_admin() in the database, not from a form field. */
+export async function requireAdminPage() {
+  const { redirect } = await import("next/navigation");
+  const session = await getSession();
+  if (!session) redirect("/login?next=/admin");
+  try {
+    const supabase = await createServerSupabase();
+    const { data, error } = await supabase.rpc("is_admin");
+    if (error || data !== true) redirect("/");
+  } catch {
+    redirect("/");
   }
   return session;
 }

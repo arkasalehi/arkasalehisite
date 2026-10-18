@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { CoverField } from "@/components/admin/CoverField";
 
 type PostFormValues = {
   id?: string;
@@ -45,11 +46,9 @@ function slugify(value: string) {
 
 export function PostEditor({
   categories,
-  products,
   initial,
 }: {
   categories: Array<{ id: string; name: string }>;
-  products: Array<{ id: string; title: string }>;
   initial?: PostFormValues;
 }) {
   const router = useRouter();
@@ -62,7 +61,6 @@ export function PostEditor({
     e.preventDefault();
     setSaving(true);
     const form = new FormData(e.currentTarget);
-    const productIds = form.getAll("productIds").map(String);
     const scheduledRaw = String(form.get("scheduledAt") || "");
     const payload = {
       id: initial?.id,
@@ -81,7 +79,6 @@ export function PostEditor({
       seoDescription: String(form.get("seoDescription") || "") || null,
       featured: form.get("featured") === "on",
       scheduledAt: scheduledRaw ? new Date(scheduledRaw).toISOString() : null,
-      productIds,
     };
 
     const res = await fetch("/api/admin/posts", {
@@ -106,7 +103,7 @@ export function PostEditor({
         <Select value={type} onChange={(e) => setType(e.target.value as PostFormValues["type"])}>
           <option value="BLOG">مقاله</option>
           <option value="VIDEO">ویدیو</option>
-          <option value="SHORT">شورتس</option>
+          {type === "SHORT" ? <option value="SHORT">شورتس (قدیمی)</option> : null}
         </Select>
         <Select name="status" defaultValue={initial?.status ?? "DRAFT"}>
           <option value="DRAFT">پیش‌نویس</option>
@@ -141,7 +138,7 @@ export function PostEditor({
 
       <Card className="grid gap-4">
         <p className="text-sm font-medium">رسانه و متن</p>
-        <Input name="coverImage" defaultValue={initial?.coverImage ?? ""} placeholder="URL تصویر جلد" />
+        <CoverField initial={initial?.coverImage} />
         {type !== "BLOG" ? (
           <>
             <Input name="videoUrl" defaultValue={initial?.videoUrl ?? ""} placeholder="URL ویدیو" />
@@ -165,18 +162,15 @@ export function PostEditor({
       </Card>
 
       <Card className="grid gap-4 md:grid-cols-2">
-        <p className="text-sm font-medium md:col-span-2">سئو و محصولات</p>
-        <Input name="seoTitle" defaultValue={initial?.seoTitle ?? ""} placeholder="عنوان سئو" />
-        <Input name="seoDescription" defaultValue={initial?.seoDescription ?? ""} placeholder="توضیح سئو" />
-        <fieldset className="md:col-span-2">
-          <legend className="mb-2 text-sm text-muted">کارت محصول داخل محتوا</legend>
-          {products.map((product) => (
-            <label key={product.id} className="ml-4 inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" name="productIds" value={product.id} defaultChecked={initial?.productIds?.includes(product.id)} />
-              {product.title}
-            </label>
-          ))}
-        </fieldset>
+        <p className="text-sm font-medium md:col-span-2">سئو</p>
+        <label className="block text-sm">
+          <span className="mb-1 block text-muted">عنوان سئو</span>
+          <Input name="seoTitle" defaultValue={initial?.seoTitle ?? ""} placeholder="عنوان سئو" />
+        </label>
+        <label className="block text-sm">
+          <span className="mb-1 block text-muted">توضیح سئو</span>
+          <Input name="seoDescription" defaultValue={initial?.seoDescription ?? ""} placeholder="توضیح سئو" />
+        </label>
       </Card>
 
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}

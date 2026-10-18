@@ -52,7 +52,6 @@ export async function proxy(request: NextRequest) {
   const needsAuth =
     adminPage ||
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/checkout") ||
     workspaceGate;
 
   let authed = false;
@@ -123,9 +122,15 @@ export async function proxy(request: NextRequest) {
 
   if (needsAuth && !authed) {
     const login = request.nextUrl.clone();
+    const returnTo = `${pathname}${request.nextUrl.search}`;
     login.pathname = "/login";
+    login.search = "";
     const afterLogin =
-      onWorkspaceHost || pathname.startsWith("/ws") ? (pathname.startsWith("/ws") ? pathname : "/ws") : pathname;
+      onWorkspaceHost || pathname.startsWith("/ws")
+        ? pathname.startsWith("/ws")
+          ? `${pathname}${request.nextUrl.search}`
+          : "/ws"
+        : returnTo;
     login.searchParams.set("next", afterLogin);
     return NextResponse.redirect(login);
   }

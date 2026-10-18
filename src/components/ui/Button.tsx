@@ -31,7 +31,7 @@ export function Button({
 
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={cls} onClick={props.onClick as React.MouseEventHandler<HTMLAnchorElement> | undefined}>
         {inner}
       </Link>
     );

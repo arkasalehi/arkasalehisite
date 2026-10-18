@@ -1,16 +1,25 @@
 import { PostEditor } from "@/components/admin/PostEditor";
 import { listCategories } from "@/lib/data/posts";
-import { listProducts } from "@/lib/data/products";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewPostPage() {
-  const [categories, products] = await Promise.all([listCategories(), listProducts()]);
+export default async function NewPostPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const sp = await searchParams;
+  const categories = await listCategories().catch(() => []);
+  const type = sp.type === "VIDEO" ? "VIDEO" : "BLOG";
+
   return (
     <section>
-      <h1 className="text-3xl font-medium">محتوای جدید</h1>
+      <h1 className="text-[28px] font-semibold tracking-tight">{type === "VIDEO" ? "ویدیوی جدید" : "نوشتهٔ جدید"}</h1>
       <div className="mt-6">
-        <PostEditor categories={categories} products={products} />
+        <PostEditor
+          categories={categories}
+          initial={{ type, status: "DRAFT", title: "", slug: "" }}
+        />
       </div>
     </section>
   );

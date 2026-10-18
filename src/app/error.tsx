@@ -7,10 +7,10 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   return (
-    <div className="py-20 text-center">
-      <h1 className="text-2xl font-medium">خطایی رخ داد</h1>
+    <div className="mx-auto max-w-lg py-20 text-center">
+      <h1 className="text-[28px] font-semibold tracking-tight">خطایی رخ داد</h1>
       <p className="mt-2 text-muted">اگر دیتابیس تنظیم نشده، فایل README را ببینید.</p>
-      <button type="button" onClick={reset} className="mt-6 text-sm font-medium text-foreground underline-offset-4 hover:underline">
+      <button type="button" onClick={reset} className="sb-btn sb-btn-secondary mx-auto mt-6 h-10 px-4">
         تلاش دوباره
       </button>
     </div>

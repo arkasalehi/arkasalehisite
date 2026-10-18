@@ -27,6 +27,8 @@ export function RootFrame({ children, cms }: { children: React.ReactNode; cms: S
     else syncPublicThemeFromStorage();
   }, [pathname]);
 
+  if (pathname.startsWith("/admin")) return children;
+
   if (site) {
     return <SiteChrome cms={cms}>{children}</SiteChrome>;
   }

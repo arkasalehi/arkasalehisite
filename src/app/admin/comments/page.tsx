@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/Page";
 export const dynamic = "force-dynamic";
 
 export default async function AdminCommentsPage() {
-  const comments = await listAdminComments();
+  const comments = await listAdminComments().catch(() => []);
   return (
     <section>
       <PageHeader title="نظرها" />
