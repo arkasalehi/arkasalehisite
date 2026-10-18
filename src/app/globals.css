@@ -468,26 +468,61 @@ select.field {
   }
 }
 
-.hero-nameplate-rule {
-  transform: scaleY(0);
-  transform-origin: bottom;
-  animation: hero-name-rule 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.hero-nameplate-wrap {
+  container-type: inline-size;
+  width: 100%;
+}
+
+.hero-nameplate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+  min-height: 4.5rem;
+  font-size: clamp(1.4rem, 8.2cqi, 3.25rem);
+}
+
+.hero-nameplate-en-clip,
+.hero-nameplate-fa-clip {
+  display: block;
+  flex: 0 0 auto;
+  min-width: max-content;
+  overflow: clip;
 }
 
 .hero-nameplate-en,
 .hero-nameplate-fa {
-  display: inline-block;
+  display: block;
+  white-space: nowrap;
+  line-height: 1.15;
+  color: #fff;
   opacity: 0;
 }
 
 .hero-nameplate-en {
-  transform: translate3d(100%, 0, 0);
-  animation: hero-name-from-right 0.7s 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+  padding-inline-end: 0.62em;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  animation: hero-name-from-right 0.7s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .hero-nameplate-fa {
-  transform: translate3d(-100%, 0, 0);
-  animation: hero-name-from-left 0.7s 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+  padding-inline-start: 0.62em;
+  font-weight: 800;
+  animation: hero-name-from-left 0.7s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-nameplate-rule {
+  flex: 0 0 auto;
+  width: 0.12em;
+  height: 1.05em;
+  border-radius: 1px;
+  background: #fff;
+  transform: scaleY(0);
+  transform-origin: center;
+  animation: hero-name-rule 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes hero-name-rule {
@@ -502,7 +537,7 @@ select.field {
 @keyframes hero-name-from-right {
   from {
     opacity: 0;
-    transform: translate3d(100%, 0, 0);
+    transform: translate3d(0.35em, 0, 0);
   }
   to {
     opacity: 1;
@@ -513,7 +548,7 @@ select.field {
 @keyframes hero-name-from-left {
   from {
     opacity: 0;
-    transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-0.35em, 0, 0);
   }
   to {
     opacity: 1;
@@ -1513,9 +1548,20 @@ html.ws.ws-theme-light {
 
 .hero-saas-shell .hero-saas-sky {
   background:
-    radial-gradient(55% 42% at 78% -8%, rgba(62, 207, 142, 0.22), transparent 58%),
-    radial-gradient(40% 32% at 12% 0%, rgba(62, 207, 142, 0.08), transparent 52%),
+    radial-gradient(55% 42% at 78% -8%, rgba(62, 207, 142, 0.16), transparent 58%),
+    radial-gradient(40% 32% at 12% 0%, rgba(62, 207, 142, 0.06), transparent 52%),
     #121212 !important;
+}
+
+.hero-saas-shell .hero-sun,
+.hero-saas-shell .hero-fog,
+.hero-saas-shell .hero-lightning {
+  opacity: 0.22;
+}
+
+.hero-saas-shell .hero-precip-rain,
+.hero-saas-shell .hero-precip-snow {
+  opacity: 0.2;
 }
 
 .ws-sidepanel {

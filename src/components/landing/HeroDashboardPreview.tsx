@@ -46,7 +46,7 @@ function TopBar() {
         <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#242424] shadow-sm">
           <span className="h-3.5 w-3.5 rounded-full bg-[conic-gradient(#8b5cf6,#fb7185,#f59e0b,#8b5cf6)]" />
         </span>
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#3ecf8e] text-[11px] text-white">✸</span>
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#3ecf8e] text-[11px] text-[#171717]">✸</span>
         <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#6366f1] text-[10px] font-bold text-white">≡</span>
         <span className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-[#8f8f8f]">+</span>
       </div>
@@ -90,7 +90,7 @@ function Sidebar() {
         Project-brief.pdf
       </div>
       <div className="flex items-center gap-2 px-2 py-1.5 text-[12px]">
-        <span className="h-5 w-5 rounded-full bg-[#c4b5a5]" />
+        <span className="h-5 w-5 rounded-full bg-[#3f3a36]" />
         Joshua Orlando
       </div>
 
@@ -113,7 +113,7 @@ function Sidebar() {
             />
             <span className="flex-1 truncate">{dm.name}</span>
             {dm.badge ? (
-              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#3ecf8e] px-1 text-[9px] text-white">
+              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#3ecf8e] px-1 text-[9px] text-[#171717]">
                 {dm.badge}
               </span>
             ) : null}
@@ -187,7 +187,7 @@ function AiSummary() {
       </p>
       <ul className="mt-3 space-y-2 text-[12px] leading-5 text-[#ededed]">
         <li className="flex gap-2">
-          <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#3ecf8e] text-[9px] text-white">✓</span>
+          <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#3ecf8e] text-[9px] text-[#171717]">✓</span>
           <span>
             <b>Sarah:</b> Complete the remaining 10% of server migration.
           </span>
@@ -258,10 +258,10 @@ function InsightCard() {
     <div className="rounded-2xl bg-[#242424] p-4 shadow-sm">
       <p className="text-[12px] font-medium text-[#8f8f8f]">Insight</p>
       <p className="mt-1 text-[28px] font-semibold leading-none text-[#3ecf8e]">93%</p>
-      <p className="mt-2 text-[12px] leading-5 text-[#5b655f]">
+      <p className="mt-2 text-[12px] leading-5 text-[#a0a0a0]">
         Is your meeting attendance rate based on your activity for the week of Dec 15–21.
       </p>
-      <p className="mt-2 text-[12px] leading-5 text-[#5b655f]">
+      <p className="mt-2 text-[12px] leading-5 text-[#a0a0a0]">
         You’re doing great this month! You have attended 12 out of 14 scheduled meetings. Keep it up!
       </p>
     </div>
@@ -282,11 +282,11 @@ function InviteCard() {
         </div>
         <div className="flex -space-x-2">
           {[hostSrc, peerASrc, peerBSrc].map((src) => (
-            <span key={src} className="h-7 w-7 rounded-full border-2 border-white bg-cover bg-center" style={{ backgroundImage: `url(${src})` }} />
+            <span key={src} className="h-7 w-7 rounded-full border-2 border-[#1c1c1c] bg-cover bg-center" style={{ backgroundImage: `url(${src})` }} />
           ))}
         </div>
       </div>
-      <span className="mt-4 inline-flex h-9 items-center rounded-full bg-[#3ecf8e] px-4 text-[12px] font-medium text-white">
+      <span className="mt-4 inline-flex h-9 items-center rounded-full bg-[#3ecf8e] px-4 text-[12px] font-medium text-[#171717]">
         Review Invitation
       </span>
     </div>
@@ -300,7 +300,7 @@ function RightRail() {
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">◎</span>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">☰</span>
       <span className="mt-2 grid h-9 w-9 place-items-center rounded-full bg-[#e11d48] text-[10px] text-white">●</span>
-      <span className="mt-auto grid h-9 w-9 place-items-center rounded-xl bg-[#3ecf8e] text-lg text-white">+</span>
+      <span className="mt-auto grid h-9 w-9 place-items-center rounded-xl bg-[#3ecf8e] text-lg text-[#171717]">+</span>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">≡</span>
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#242424] text-[#a0a0a0] shadow-sm">⌂</span>
     </aside>
@@ -343,5 +343,5 @@ function CamIcon() {
 }
 
 function DotIcon() {
-  return <span className="h-1.5 w-1.5 rounded-full bg-[#c5cdc6]" />;
+  return <span className="h-1.5 w-1.5 rounded-full bg-[#6e6e6e]" />;
 }

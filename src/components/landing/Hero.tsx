@@ -12,8 +12,8 @@ export function Hero({ cms }: { cms: SiteCms }) {
   return (
     <section dir="rtl" data-weather={weather} className="hero-saas-shell relative overflow-hidden font-sans">
       <div className="hero-saas-sky absolute inset-0" />
-      <div className="hero-grid pointer-events-none absolute inset-0" aria-hidden />
       <HeroAtmosphere weather={weather} />
+      <div className="hero-grid pointer-events-none absolute inset-0 z-[1]" aria-hidden />
       <div className="hero-saas-bottom-fade pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24" aria-hidden />
 
       <div className="relative z-10 mx-auto w-full max-w-[1100px] px-5 pb-8 pt-16 text-center sm:px-8 md:pt-24">

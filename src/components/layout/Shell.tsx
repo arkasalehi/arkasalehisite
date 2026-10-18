@@ -127,10 +127,10 @@ export function Header({ cms }: { cms: SiteCms }) {
 
   return (
     <header className="site-nav sticky top-0 z-40 border-b border-border bg-[color-mix(in_srgb,var(--bg)_86%,transparent)] backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-3 px-4 md:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2" aria-label={cms.seo.title || "آرکا صالحی"}>
+      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-2 px-3 sm:px-4 md:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-2" aria-label={cms.seo.title || "آرکا صالحی"}>
           <Mark />
-          <span className="hidden text-[15px] font-semibold tracking-tight text-foreground sm:inline">آرکا صالحی</span>
+          <span className="hidden truncate text-[15px] font-semibold tracking-tight text-foreground md:inline">آرکا صالحی</span>
         </Link>
 
         <nav className="hidden items-center lg:flex" aria-label="اصلی">
@@ -139,10 +139,10 @@ export function Header({ cms }: { cms: SiteCms }) {
           ))}
         </nav>
 
-        <div className="ms-auto flex shrink-0 items-center gap-1">
-          <SearchBox className="hidden w-40 md:block" />
+        <div className="ms-auto flex min-w-0 items-center justify-end gap-0.5 sm:gap-1">
+          <SearchBox className="hidden w-36 min-w-0 lg:block" />
           <ThemeToggle />
-          <Link href="/cart" className="relative rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground" aria-label="سبد خرید">
+          <Link href="/cart" className="relative shrink-0 rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground" aria-label="سبد خرید">
             <CartIcon />
             {count > 0 ? (
               <span className="absolute -top-0.5 end-0 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--brand)] px-1 text-[10px] font-medium text-[var(--brand-fg)]">
@@ -180,23 +180,23 @@ export function Header({ cms }: { cms: SiteCms }) {
               </Dropdown>
             </>
           ) : (
-            <Link href="/login" className="hidden rounded-md px-2.5 py-1.5 text-[14px] text-muted transition-colors duration-200 hover:text-foreground sm:inline-flex">
+            <Link href="/login" className="hidden shrink-0 rounded-md px-2.5 py-1.5 text-[14px] text-muted transition-colors duration-200 hover:text-foreground md:inline-flex">
               ورود
             </Link>
           )}
-          <Button href={workspaceUrl()} className="ms-1 hidden h-8 px-3 text-[13px] sm:inline-flex">
+          <Button href={workspaceUrl()} className="ms-1 hidden h-8 shrink-0 px-3 text-[13px] lg:inline-flex">
             شروع
           </Button>
-          <button
-            type="button"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-foreground lg:hidden"
-            aria-label={open ? "بستن منو" : "منو"}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? <CloseIcon /> : <MenuIcon />}
-          </button>
         </div>
+        <button
+          type="button"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-foreground lg:hidden"
+          aria-label={open ? "بستن منو" : "منو"}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <CloseIcon /> : <MenuIcon />}
+        </button>
       </div>
 
       {open ? (
