@@ -26,7 +26,7 @@ export function ShortsRail({ posts }: { posts: PostCardPost[] }) {
               {formatNumber(post.viewCount)} بازدید
             </span>
           </article>
-          <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-[#1e2a24]">{post.title}</p>
+          <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-foreground">{post.title}</p>
         </Link>
       ))}
     </div>

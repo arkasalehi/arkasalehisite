@@ -4,12 +4,13 @@ Tokens live in `src/lib/workspace/design-tokens.json` (also copied conceptually 
 
 ## Colors
 
-- Primary `#2F6BFF`, canvas `#F7F8FB`, border `#EEF1F6`, text `#1E293B`, muted `#8B95A5`.
-- Change the hex values in that JSON and in `globals.css` (`.ws-app-sky`, `.ws-window`) plus hardcoded `#2F6BFF` classes in workspace components.
+- Studio accent `#3ecf8e` on a neutral dark scale (`#171717` sidebar, `#1c1c1c` canvas, `#ededed` text). Light mode uses the same green family on `#fafafa`.
+- Public site tokens live in `src/app/globals.css` (`--brand`, `--bg`, `--fg`). Workspace tokens are the `--ws-*` and `--theme-*` variables on `.ws-app`.
+- Motion is 200ms with `cubic-bezier(0.22, 1, 0.36, 1)`.
 
 ## Fonts
 
-Workspace inherits Vazirmatn (`--font-vazir`) so Persian RTL stays readable. English uses system UI.
+Persian stays on Vazirmatn (`--font-vazir`). Latin UI uses Manrope (`--font-manrope`). Code and shortcuts use Source Code Pro (`--font-source`). The stack is `Manrope, Vazirmatn`, so missing glyphs fall through per character and RTL copy stays readable.
 
 ## RTL
 

@@ -22,14 +22,14 @@ export function SectionHeader({
         <h2
           className={
             saas
-              ? "text-[22px] font-semibold tracking-tight text-[#1e2a24] md:text-[28px]"
-              : "text-[32px] font-extrabold tracking-tight md:text-[44px]"
+              ? "text-[22px] font-semibold tracking-tight text-foreground md:text-[28px]"
+              : "text-[32px] font-semibold tracking-tight md:text-[44px]"
           }
         >
           {title}
         </h2>
         {description ? (
-          <p className={cn("mt-1 max-w-xl text-sm leading-6", saas ? "text-[#8b938d]" : "mt-2 leading-7 text-muted")}>{description}</p>
+          <p className={cn("mt-1 max-w-xl text-sm leading-6 text-muted", saas ? "" : "mt-2 leading-7")}>{description}</p>
         ) : null}
       </div>
       {href ? (
@@ -37,8 +37,8 @@ export function SectionHeader({
           href={href}
           className={
             saas
-              ? "mb-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e4e9ee] bg-white px-4 py-1.5 text-[13px] font-semibold text-[#3390ec] transition-colors hover:border-[#3390ec]/25"
-              : "mb-1 inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-muted transition-colors duration-150 hover:text-foreground"
+              ? "sb-btn sb-btn-secondary mb-0.5 h-8 shrink-0 px-3 text-[13px]"
+              : "mb-1 inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-muted transition-colors duration-200 hover:text-foreground"
           }
         >
           {action}

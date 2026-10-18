@@ -31,8 +31,8 @@ export function Dropdown({
       {open ? (
         <div
           className={cn(
-            "surface absolute top-11 z-50 min-w-52 overflow-hidden p-1",
-            align === "end" ? "left-0" : "right-0",
+            "surface absolute top-11 z-50 min-w-52 overflow-hidden rounded-lg p-1",
+            align === "end" ? "end-0" : "start-0",
           )}
           onClick={() => setOpen(false)}
         >

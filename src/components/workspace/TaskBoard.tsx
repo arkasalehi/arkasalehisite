@@ -257,7 +257,7 @@ export function TaskBoard({ initial, people, projects = [] }: { initial: Workspa
         </div>
       )}
       {selected ? (
-        <div className="absolute inset-y-10 end-0 z-20 w-full max-w-md overflow-auto border-s border-[var(--theme-divider-color)] bg-[var(--theme-bg-color)] p-[var(--ws-space-4)] max-md:inset-0 max-md:max-w-none">
+        <div className="ws-sidepanel absolute inset-y-0 end-0 z-20 w-full max-w-md overflow-auto border-s border-[var(--theme-divider-color)] bg-[var(--theme-bg-color)] p-[var(--ws-space-4)] shadow-2xl max-md:max-w-none">
           <button type="button" className="ws-btn ws-btn-ghost text-[var(--theme-darker-color)]" onClick={() => setActive(null)}>
             Close
           </button>

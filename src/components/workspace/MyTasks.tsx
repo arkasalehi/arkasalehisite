@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CheckSquare } from "lucide-react";
 import { EmptyState } from "@/components/workspace/EmptyState";
@@ -60,8 +60,12 @@ export function MyTasks({
   }
 
   return (
-    <div className="ws-scroll h-full overflow-auto p-4">
-      <h1 className="ws-title mb-4">{t.myTasks}</h1>
+    <div className="ws-scroll h-full overflow-auto">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-[var(--theme-divider-color)] bg-[var(--theme-bg-color)] px-4 py-3">
+        <h1 className="text-[14px] font-medium">{t.myTasks}</h1>
+        <span className="font-mono text-[11px] text-[var(--theme-darker-color)]">{roots.length}</span>
+      </div>
+      <div className="p-4">
       {adminPending.length ? (
         <section className="ws-card mb-4">
           <p className="ws-label mb-2">{t.requestTime}</p>
@@ -169,6 +173,7 @@ export function MyTasks({
             </section>
           );
         })}
+      </div>
       </div>
     </div>
   );
