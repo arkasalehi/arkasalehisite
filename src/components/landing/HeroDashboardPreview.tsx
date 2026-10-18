@@ -128,10 +128,10 @@ function NavRow({ label, active = false }: { label: string; active?: boolean }) 
   return (
     <div
       className={`mt-0.5 flex items-center gap-2 rounded-xl px-2 py-1.5 text-[12.5px] ${
-        active ? "bg-[#e7ebe4] font-medium" : "text-[#3d4741]"
+        active ? "bg-[#2a2a2a] font-medium" : "text-[#ededed]"
       }`}
     >
-      <span className="grid h-4 w-4 place-items-center text-[#7a847e]">
+      <span className="grid h-4 w-4 place-items-center text-[#8f8f8f]">
         {active ? <CamIcon /> : <DotIcon />}
       </span>
       {label}
@@ -142,7 +142,7 @@ function NavRow({ label, active = false }: { label: string; active?: boolean }) 
 function VideoStage() {
   return (
     <div className="grid h-[270px] gap-2 sm:grid-cols-[minmax(0,1.45fr)_168px]">
-      <div className="relative overflow-hidden rounded-2xl bg-[#d7dbd4]">
+      <div className="relative overflow-hidden rounded-2xl bg-[#2e2e2e]">
         <img
           src={hostSrc}
           alt="کنت اسمیت، میزبان جلسه"
@@ -165,7 +165,7 @@ function VideoStage() {
 
 function VideoTile({ src, name }: { src: string; name: string }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-[#d7dbd4]">
+    <div className="relative overflow-hidden rounded-2xl bg-[#2e2e2e]">
       <img src={src} alt={name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
       <span className="absolute bottom-2 left-2 rounded-full bg-black/40 px-2 py-0.5 text-[10px] text-white">{name}</span>
     </div>
@@ -176,7 +176,7 @@ function AiSummary() {
   return (
     <div className="rounded-2xl bg-[#242424] p-3 shadow-sm">
       <div className="mb-2 flex justify-end gap-2 text-[#8f8f8f]">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#f3f5f1]">⋮</span>
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#2a2a2a]">⋮</span>
         <span className="h-8 w-8 rounded-full bg-cover bg-center" style={{ backgroundImage: `url(${hostSrc})` }} />
       </div>
       <p className="text-[10px] font-semibold tracking-[0.14em] text-[#8f8f8f]">AI SUMMARY</p>
@@ -185,7 +185,7 @@ function AiSummary() {
         Today’s focus is on the <span className="font-semibold">Alpha release</span>. The team is feeling confident but is
         slightly behind on the documentation.
       </p>
-      <ul className="mt-3 space-y-2 text-[12px] leading-5 text-[#3d4741]">
+      <ul className="mt-3 space-y-2 text-[12px] leading-5 text-[#ededed]">
         <li className="flex gap-2">
           <span className="mt-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#3ecf8e] text-[9px] text-white">✓</span>
           <span>
@@ -193,13 +193,13 @@ function AiSummary() {
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#cfd6d0]" />
+          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#3e3e3e]" />
           <span>
             <b>Creative Team:</b> Send final PNG assets to Mark by 2:00 PM.
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#cfd6d0]" />
+          <span className="mt-0.5 h-4 w-4 rounded-full border border-[#3e3e3e]" />
           <span>
             <b>Admin:</b> Schedule the follow-up sync for 4:30 PM.
           </span>
@@ -229,13 +229,13 @@ function CalendarPanel() {
             <p className="text-[#8f8f8f]">{d}</p>
             <p className="mt-1 text-[15px] font-medium">{nums[i]}</p>
             {i === 3 ? <span className="mx-auto mt-1 block h-1 w-4 rounded-full bg-[#3ecf8e]" /> : null}
-            {i === 4 ? <span className="mx-auto mt-1 block h-1 w-3 rounded-full bg-[#cfd6d0]" /> : null}
+            {i === 4 ? <span className="mx-auto mt-1 block h-1 w-3 rounded-full bg-[#3e3e3e]" /> : null}
           </div>
         ))}
       </div>
       <ul className="mt-4 space-y-2">
         {meetings.map((m) => (
-          <li key={m.title} className="flex items-center justify-between rounded-xl bg-[#f6f7f4] px-3 py-2.5">
+          <li key={m.title} className="flex items-center justify-between rounded-xl bg-[#242424] px-3 py-2.5">
             <div>
               <p className="text-[13px] font-medium">{m.title}</p>
               <p className="text-[11px] text-[#8f8f8f]">

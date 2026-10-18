@@ -130,7 +130,7 @@ export function Header({ cms }: { cms: SiteCms }) {
       <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-3 px-4 md:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2" aria-label={cms.seo.title || "آرکا صالحی"}>
           <Mark />
-          <span className="text-[15px] font-semibold tracking-tight text-foreground">آرکا صالحی</span>
+          <span className="hidden text-[15px] font-semibold tracking-tight text-foreground sm:inline">آرکا صالحی</span>
         </Link>
 
         <nav className="hidden items-center lg:flex" aria-label="اصلی">
@@ -139,7 +139,7 @@ export function Header({ cms }: { cms: SiteCms }) {
           ))}
         </nav>
 
-        <div className="ms-auto flex items-center gap-1">
+        <div className="ms-auto flex shrink-0 items-center gap-1">
           <SearchBox className="hidden w-40 md:block" />
           <ThemeToggle />
           <Link href="/cart" className="relative rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground" aria-label="سبد خرید">
@@ -189,7 +189,7 @@ export function Header({ cms }: { cms: SiteCms }) {
           </Button>
           <button
             type="button"
-            className="rounded-md p-2 text-foreground lg:hidden"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-foreground lg:hidden"
             aria-label={open ? "بستن منو" : "منو"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
