@@ -6,7 +6,7 @@ import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
 import { createServerSupabase } from "@/lib/supabase/server";
 
-const KEYS: Array<keyof SiteCms> = ["hero", "about", "footer", "seo", "socials", "startHere"];
+const KEYS: Array<keyof SiteCms> = ["hero", "about", "footer", "seo", "socials", "startHere", "pricing"];
 
 function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
   return {
@@ -20,6 +20,11 @@ function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
     seo: { ...base.seo, ...raw.seo },
     socials: raw.socials?.length ? raw.socials : base.socials,
     startHere: { ...base.startHere, ...raw.startHere },
+    pricing: {
+      ...base.pricing,
+      ...raw.pricing,
+      packages: raw.pricing?.packages?.length ? raw.pricing.packages.slice(0, 3) : base.pricing.packages,
+    },
   };
 }
 

@@ -63,15 +63,6 @@ function writeCart(items: CartItem[]) {
   window.dispatchEvent(new Event("as-cart"));
 }
 
-function mergeCart(a: CartItem[], b: CartItem[]) {
-  const map = new Map<string, CartItem>();
-  for (const item of [...a, ...b]) {
-    const prev = map.get(item.productId);
-    map.set(item.productId, prev ? { ...item, quantity: Math.max(prev.quantity, item.quantity) } : item);
-  }
-  return [...map.values()];
-}
-
 function CartProvider({ children, user }: { children: React.ReactNode; user: SessionUser | null }) {
   const raw = useSyncExternalStore(subscribe, getCartSnapshot, getServerCartSnapshot);
   const items = parseCart(raw);
@@ -79,46 +70,12 @@ function CartProvider({ children, user }: { children: React.ReactNode; user: Ses
   const { push } = useToast();
 
   useEffect(() => {
-    if (!user || synced.current) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/cart", { cache: "no-store" });
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as { items: CartItem[] };
-        const merged = mergeCart(parseCart(getCartSnapshot()), data.items ?? []);
-        writeCart(merged);
-        await fetch("/api/cart", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items: merged.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-          }),
-        });
-        synced.current = true;
-      } catch {
-        /* guest fallback */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    synced.current = Boolean(user);
   }, [user]);
 
-  const persist = useCallback(
-    (next: CartItem[]) => {
-      writeCart(next);
-      if (!user) return;
-      fetch("/api/cart", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: next.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-        }),
-      }).catch(() => {});
-    },
-    [user],
-  );
+  const persist = useCallback((next: CartItem[]) => {
+    writeCart(next);
+  }, []);
 
   const add = useCallback(
     (item: Omit<CartItem, "quantity">, quantity = 1) => {

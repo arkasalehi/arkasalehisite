@@ -60,6 +60,7 @@ export function SettingsEditor({ initial }: { initial: SiteCms }) {
           .map((s) => s.trim())
           .filter(Boolean),
       },
+      pricing: initial.pricing,
     };
     const res = await fetch("/api/admin/settings", {
       method: "PUT",
@@ -79,7 +80,9 @@ export function SettingsEditor({ initial }: { initial: SiteCms }) {
     <form className="space-y-8" onSubmit={onSubmit}>
       <section className="surface space-y-3 p-6">
         <h2 className="text-lg font-medium">هیرو</h2>
-        <p className="text-sm text-muted">آسمان صفحه اصلی — بعد از ذخیره در خانه دیده می‌شود.</p>
+        <p className="text-sm leading-7 text-muted">
+          زیرعنوان و دکمه‌ها روی هیروی صفحهٔ اول دیده می‌شوند. انتخاب آسمان ذخیره می‌شود، ولی هیروی فعلی از پس‌زمینهٔ تم استفاده می‌کند.
+        </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {HERO_WEATHERS.map((item) => {
             const selected = resolveHeroWeather(initial.hero.weather) === item.id;

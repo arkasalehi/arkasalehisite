@@ -17,5 +17,6 @@ assert.equal(isWorkspaceChrome("/login", "workspace.arkasalehi.com"), false);
 assert.equal(usesSiteChrome("/login", "arkasalehi.com"), false);
 assert.equal(usesSiteChrome("/login", "workspace.arkasalehi.com"), false);
 assert.equal(usesSiteChrome("/blog", "arkasalehi.com"), true);
+assert.equal(usesSiteChrome("/admin", "arkasalehi.com"), false);
 assert.equal(usesSiteChrome("/", "workspace.arkasalehi.com"), false);
 console.log("runtime origin helpers: pass");

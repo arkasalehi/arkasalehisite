@@ -5,10 +5,10 @@ import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { navItems } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { CartIcon, CloseIcon, MenuIcon, UserIcon } from "@/components/icons";
+import { CloseIcon, MenuIcon, UserIcon } from "@/components/icons";
 import { canAccessWorkspace, isAdminRole } from "@/lib/auth/roles";
 import { workspaceUrl } from "@/lib/runtime";
-import { useAuth, useCart } from "@/components/providers";
+import { useAuth } from "@/components/providers";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { SearchBox } from "@/components/layout/SearchBox";
@@ -23,22 +23,22 @@ const MENUS: Array<{ label: string; items: NavLink[] }> = [
     items: [
       { href: "/blog", title: "وبلاگ", body: "یادداشت‌های استودیو، با همان زبان کار روزمره." },
       { href: "/video", title: "ویدیو", body: "قاب‌های بلند و برش‌های برگزیده." },
-      { href: "/shorts", title: "شورتس", body: "کلیپ‌های عمودی در یک ریل." },
-      { href: "/products", title: "فروشگاه", body: "ابزارها و محصولات محدود استودیو." },
+      { href: "/#work", title: "کارها", body: "آخرین نوشته‌ها و ویدیوها در صفحهٔ اول." },
     ],
   },
   {
     label: "ورک‌اسپیس",
     items: [
       { href: workspaceUrl(), title: "استودیو", body: "تسک، چت، سند و جلسه در یک فضا.", external: true },
-      { href: "/#how-it-works", title: "چطور کار می‌کند", body: "از برنامه‌ریزی تا انتشار، سه قدم." },
+      { href: "/#skills", title: "مهارت‌ها", body: "طراحی، وب و جلسهٔ معماری محصول." },
       { href: "/login", title: "ورود همکاران", body: "حساب همکار برای دسترسی به استودیو." },
     ],
   },
   {
     label: "منابع",
     items: [
-      { href: "/#enterprise", title: "سازمانی", body: "ابزارهایی برای تیم‌هایی که کار را یکجا نگه می‌دارند." },
+      { href: "/#pricing", title: "قیمت‌ها", body: "بسته‌ها و سفارش پروژه." },
+      { href: "/#contact", title: "تماس", body: "پیام برای سفارش کار." },
       { href: "/dashboard", title: "داشبورد", body: "ذخیره‌ها، فعالیت و تنظیمات حساب." },
       { href: "mailto:hello@arkasalehi.ir", title: "تماس", body: "hello@arkasalehi.ir", external: true },
     ],
@@ -112,7 +112,6 @@ function NavMenu({ label, items }: { label: string; items: NavLink[] }) {
 
 export function Header({ cms }: { cms: SiteCms }) {
   const { user } = useAuth();
-  const { count } = useCart();
   const [open, setOpen] = useState(false);
   const [section, setSection] = useState<string | null>(MENUS[0]?.label ?? null);
 
@@ -126,11 +125,11 @@ export function Header({ cms }: { cms: SiteCms }) {
   }, [open]);
 
   return (
-    <header className="site-nav sticky top-0 z-40 border-b border-border bg-[color-mix(in_srgb,var(--bg)_86%,transparent)] backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-2 px-3 sm:px-4 md:px-8">
+    <header className="site-nav sticky top-0 z-40 border-b border-border bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
+      <div className="site-container flex h-14 items-center gap-2">
         <Link href="/" className="flex min-w-0 items-center gap-2" aria-label={cms.seo.title || "آرکا صالحی"}>
           <Mark />
-          <span className="hidden truncate text-[15px] font-semibold tracking-tight text-foreground md:inline">آرکا صالحی</span>
+          <span className="hidden truncate text-[15px] font-semibold tracking-tight text-foreground sm:inline">آرکا صالحی</span>
         </Link>
 
         <nav className="hidden items-center lg:flex" aria-label="اصلی">
@@ -139,52 +138,46 @@ export function Header({ cms }: { cms: SiteCms }) {
           ))}
         </nav>
 
-        <div className="ms-auto flex min-w-0 items-center justify-end gap-0.5 sm:gap-1">
-          <SearchBox className="hidden w-36 min-w-0 lg:block" />
-          <ThemeToggle />
-          <Link href="/cart" className="relative shrink-0 rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground" aria-label="سبد خرید">
-            <CartIcon />
-            {count > 0 ? (
-              <span className="absolute -top-0.5 end-0 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--brand)] px-1 text-[10px] font-medium text-[var(--brand-fg)]">
-                {count}
-              </span>
-            ) : null}
-          </Link>
-          {user ? (
-            <>
-              <NotificationBell />
-              <Dropdown
-                align="end"
-                trigger={
-                  <span className="rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground">
-                    <UserIcon />
-                  </span>
-                }
-              >
-                <Link href="/dashboard" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                  داشبورد
-                </Link>
-                {canAccessWorkspace(user.role) ? (
-                  <a href={workspaceUrl()} className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                    ورک‌اسپیس
-                  </a>
-                ) : null}
-                {isAdminRole(user.role) ? (
-                  <Link href="/admin" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                    پنل ادمین
+        <div className="ms-auto flex min-w-0 items-center justify-end gap-1">
+          <SearchBox className="hidden w-40 min-w-0 lg:block" />
+          <div className="hidden items-center lg:flex">
+            <ThemeToggle />
+            {user ? (
+              <>
+                <NotificationBell />
+                <Dropdown
+                  align="end"
+                  trigger={
+                    <span className="rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground">
+                      <UserIcon />
+                    </span>
+                  }
+                >
+                  <Link href="/dashboard" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
+                    داشبورد
                   </Link>
-                ) : null}
-                <Link href="/dashboard/saved" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                  ذخیره‌ها
-                </Link>
-              </Dropdown>
-            </>
-          ) : (
-            <Link href="/login" className="hidden shrink-0 rounded-md px-2.5 py-1.5 text-[14px] text-muted transition-colors duration-200 hover:text-foreground md:inline-flex">
-              ورود
-            </Link>
-          )}
-          <Button href={workspaceUrl()} className="ms-1 hidden h-8 shrink-0 px-3 text-[13px] lg:inline-flex">
+                  {canAccessWorkspace(user.role) ? (
+                    <a href={workspaceUrl()} className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
+                      ورک‌اسپیس
+                    </a>
+                  ) : null}
+                  {isAdminRole(user.role) ? (
+                    <Link href="/admin" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
+                      پنل ادمین
+                    </Link>
+                  ) : null}
+                  <Link href="/dashboard/saved" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
+                    ذخیره‌ها
+                  </Link>
+                </Dropdown>
+              </>
+            ) : (
+              <Link href="/login" className="shrink-0 rounded-md px-2.5 py-1.5 text-[14px] text-muted transition-colors duration-200 hover:text-foreground">
+                ورود
+              </Link>
+            )}
+          </div>
+          <Button href="/#contact" className="ms-1 h-8 shrink-0 px-3 text-[13px]">
             شروع
           </Button>
         </div>
@@ -227,13 +220,31 @@ export function Header({ cms }: { cms: SiteCms }) {
             })}
             <div className="mt-4 flex flex-col gap-2">
               <SearchBox className="w-full" />
-              {!user ? (
-                <Button href="/login" variant="ghost" className="w-full" >
+              <div className="flex items-center justify-between rounded-md border border-border px-3 py-1">
+                <span className="text-sm text-muted">پوسته</span>
+                <ThemeToggle />
+              </div>
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="rounded-md px-3 py-2 text-sm hover:bg-foreground/5" onClick={() => setOpen(false)}>
+                    داشبورد
+                  </Link>
+                  <Link href="/dashboard/notifications" className="rounded-md px-3 py-2 text-sm hover:bg-foreground/5" onClick={() => setOpen(false)}>
+                    اعلان‌ها
+                  </Link>
+                  {isAdminRole(user.role) ? (
+                    <Link href="/admin" className="rounded-md px-3 py-2 text-sm hover:bg-foreground/5" onClick={() => setOpen(false)}>
+                      پنل ادمین
+                    </Link>
+                  ) : null}
+                </>
+              ) : (
+                <Button href="/login" variant="ghost" className="w-full">
                   ورود
                 </Button>
-              ) : null}
-              <Button href={workspaceUrl()} className="w-full">
-                شروع
+              )}
+              <Button href="/#contact" className="w-full" onClick={() => setOpen(false)}>
+                شروع گفتگو
               </Button>
             </div>
           </nav>
@@ -254,8 +265,8 @@ export function Footer({ cms }: { cms: SiteCms }) {
   const legal = cms.footer.links.filter((item) => !navItems.some((n) => n.href === item.href));
 
   return (
-    <footer className="mt-16 border-t border-border bg-[var(--footer)] text-foreground">
-      <div className="mx-auto grid w-full max-w-[1440px] gap-12 px-5 py-14 md:grid-cols-12 md:px-8">
+    <footer className="border-t border-border bg-[var(--footer)] text-foreground">
+      <div className="site-container grid gap-10 py-14 md:grid-cols-12">
         <div className="md:col-span-4">
           <Link href="/" className="flex items-center gap-2">
             <Mark />
@@ -263,7 +274,7 @@ export function Footer({ cms }: { cms: SiteCms }) {
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-7 text-muted">{cms.about.bio}</p>
           <form
-            className="mt-6 flex max-w-sm items-center gap-2"
+            className="mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:items-center"
             onSubmit={(e) => e.preventDefault()}
           >
             <input
@@ -285,7 +296,7 @@ export function Footer({ cms }: { cms: SiteCms }) {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-8">
+        <div className="site-container flex flex-wrap items-center justify-between gap-4 py-5">
           <p className="text-xs text-muted">© {new Date().getFullYear()} آرکا صالحی</p>
           <div className="flex items-center gap-4 text-muted">
             {cms.socials.map((s) => (

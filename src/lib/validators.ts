@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { HERO_WEATHER_IDS } from "@/lib/cms/heroWeather";
+import { sanitizePlain } from "@/lib/security";
 
 const optionalUrl = z.union([z.url(), z.literal(""), z.null()]).optional();
 
@@ -51,7 +52,12 @@ export const postInputSchema = z.object({
     .max(180)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   excerpt: z.string().max(400).optional().nullable(),
-  body: z.string().optional().nullable(),
+  body: z
+    .string()
+    .max(100_000)
+    .optional()
+    .nullable()
+    .transform((value) => (value ? sanitizePlain(value) : value)),
   coverImage: optionalUrl,
   videoUrl: optionalUrl,
   thumbnailUrl: optionalUrl,
@@ -93,9 +99,15 @@ export const siteCmsSchema = z.object({
       title: z.string().min(1).max(120),
       subtitle: z.string().max(400),
       ctaPrimary: z.string().max(80),
-      ctaPrimaryHref: z.string().max(200),
+      ctaPrimaryHref: z
+        .string()
+        .max(200)
+        .refine((value) => !value || value.startsWith("#") || value.startsWith("mailto:") || (value.startsWith("/") && !value.startsWith("//")), "لینک نامعتبر"),
       ctaSecondary: z.string().max(80),
-      ctaSecondaryHref: z.string().max(200),
+      ctaSecondaryHref: z
+        .string()
+        .max(200)
+        .refine((value) => !value || value.startsWith("#") || value.startsWith("mailto:") || (value.startsWith("/") && !value.startsWith("//")), "لینک نامعتبر"),
       weather: z.enum(HERO_WEATHER_IDS).optional(),
     })
     .optional(),
@@ -122,6 +134,32 @@ export const siteCmsSchema = z.object({
       slugs: z.array(z.string().max(180)).max(6),
     })
     .optional(),
+  pricing: z
+    .object({
+      title: z.string().min(1).max(80),
+      description: z.string().max(300),
+      packages: z
+        .array(
+          z.object({
+            id: z.string().min(1).max(40).regex(/^[a-z0-9-]+$/),
+            name: z.string().min(1).max(80),
+            description: z.string().max(400),
+            priceAmount: z.number().int().nonnegative().nullable(),
+            priceLabel: z.string().max(40),
+            highlighted: z.boolean(),
+            href: z.string().max(200).refine((value) => value.startsWith("/") || value.startsWith("mailto:"), "لینک نامعتبر"),
+          }),
+        )
+        .max(3),
+    })
+    .optional(),
+});
+
+export const contactSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  email: z.email().max(180),
+  message: z.string().trim().min(10).max(4000),
+  company: z.string().max(0).optional(),
 });
 
 export const bulkPostsSchema = z.object({

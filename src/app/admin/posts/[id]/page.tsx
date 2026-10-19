@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { PostEditor } from "@/components/admin/PostEditor";
 import { getPostById, listCategories } from "@/lib/data/posts";
-import { listProducts } from "@/lib/data/products";
 
 export const dynamic = "force-dynamic";
 
@@ -11,20 +10,15 @@ export default async function EditPostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [post, categories, products] = await Promise.all([
-    getPostById(id),
-    listCategories(),
-    listProducts(),
-  ]);
+  const [post, categories] = await Promise.all([getPostById(id), listCategories()]);
   if (!post) notFound();
 
   return (
     <section>
-      <h1 className="text-3xl font-medium">ویرایش محتوا</h1>
+      <h1 className="text-[28px] font-semibold tracking-tight">ویرایش</h1>
       <div className="mt-6">
         <PostEditor
           categories={categories}
-          products={products}
           initial={{
             id: post.id,
             type: post.type,
@@ -42,7 +36,6 @@ export default async function EditPostPage({
             seoDescription: post.seoDescription,
             featured: post.featured,
             scheduledAt: post.scheduledAt,
-            productIds: post.products.map((p) => p.productId),
           }}
         />
       </div>

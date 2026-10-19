@@ -191,6 +191,18 @@ select.field {
   margin-inline-start: -50vw;
 }
 
+.site-container {
+  width: min(1120px, 100%);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 768px) {
+  .site-container {
+    padding-inline: 24px;
+  }
+}
+
 .home-page,
 .site-saas {
   background: var(--bg);
@@ -477,11 +489,31 @@ select.field {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: max-content;
+  width: 100%;
   max-width: 100%;
   margin-inline: auto;
   min-height: 4.5rem;
-  font-size: clamp(1.4rem, 8.2cqi, 3.25rem);
+  font-size: clamp(1.75rem, 8.2cqi, 3.25rem);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .hero-nameplate {
+    flex-direction: column;
+    min-height: 0;
+    font-size: clamp(1.85rem, 10vw, 2.4rem);
+  }
+
+  .hero-nameplate-rule {
+    width: 2.25rem;
+    height: 2px;
+    margin-block: 0.45rem;
+  }
+
+  .hero-nameplate-en,
+  .hero-nameplate-fa {
+    padding-inline: 0;
+  }
 }
 
 .hero-nameplate-en-clip,
@@ -497,7 +529,7 @@ select.field {
   display: block;
   white-space: nowrap;
   line-height: 1.15;
-  color: #fff;
+  color: var(--fg);
   opacity: 0;
 }
 
@@ -519,7 +551,7 @@ select.field {
   width: 0.12em;
   height: 1.05em;
   border-radius: 1px;
-  background: #fff;
+  background: var(--fg);
   transform: scaleY(0);
   transform-origin: center;
   animation: hero-name-rule 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -1451,6 +1483,7 @@ html.ws.ws-theme-light {
 }
 
 /* Marketing + studio motion. Timing matches the Supabase site (~200ms, ease-out expo). */
+@layer components {
 .sb-btn {
   display: inline-flex;
   align-items: center;
@@ -1537,20 +1570,20 @@ html.ws.ws-theme-light {
 .sb-hover-lift:hover {
   transform: translateY(-2px);
 }
+}
 
 .hero-grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--fg) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--fg) 7%, transparent) 1px, transparent 1px);
   background-size: 72px 72px;
   mask-image: radial-gradient(ellipse at 50% 18%, #000 15%, transparent 72%);
 }
 
 .hero-saas-shell .hero-saas-sky {
   background:
-    radial-gradient(55% 42% at 78% -8%, rgba(62, 207, 142, 0.16), transparent 58%),
-    radial-gradient(40% 32% at 12% 0%, rgba(62, 207, 142, 0.06), transparent 52%),
-    #121212 !important;
+    radial-gradient(55% 42% at 50% -8%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 62%),
+    var(--bg) !important;
 }
 
 .hero-saas-shell .hero-sun,
@@ -1608,9 +1641,22 @@ html.ws.ws-theme-light {
   .sb-fade-up,
   .sb-hover-lift,
   .ws-sidepanel,
-  .glow-hover {
+  .glow-hover,
+  .hero-nameplate-en,
+  .hero-nameplate-fa,
+  .hero-nameplate-rule {
     animation: none;
     transition: none;
     transform: none;
+    opacity: 1;
   }
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }

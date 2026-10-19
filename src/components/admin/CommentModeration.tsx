@@ -24,6 +24,10 @@ export function CommentModeration({
     router.refresh();
   }
 
+  if (!comments.length) {
+    return <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted">نظری برای بررسی نیست.</p>;
+  }
+
   return (
     <div className="space-y-3">
       {comments.map((comment) => (

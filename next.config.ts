@@ -16,6 +16,19 @@ const nextConfig: NextConfig = {
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },
+  async redirects() {
+    return [
+      { source: "/products", destination: "/", permanent: false },
+      { source: "/products/:path*", destination: "/", permanent: false },
+      { source: "/product/:path*", destination: "/", permanent: false },
+      { source: "/cart", destination: "/", permanent: false },
+      { source: "/checkout", destination: "/", permanent: false },
+      { source: "/shorts", destination: "/video", permanent: false },
+      { source: "/shorts/:path*", destination: "/video", permanent: false },
+      { source: "/admin/products", destination: "/admin/pricing", permanent: false },
+      { source: "/admin/products/:path*", destination: "/admin/pricing", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

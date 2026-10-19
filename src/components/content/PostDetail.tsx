@@ -5,7 +5,6 @@ import type { PostType } from "@/lib/types";
 import { InteractionBar } from "@/components/content/InteractionBar";
 import { JsonLd } from "@/components/content/JsonLd";
 import { PostCard } from "@/components/content/PostCard";
-import { ProductCard } from "@/components/content/ProductCard";
 import { ArticleBody } from "@/components/content/ArticleBody";
 import { TableOfContents } from "@/components/content/TableOfContents";
 import { CoverImage } from "@/components/content/CoverImage";
@@ -44,7 +43,7 @@ export async function PostDetail({
   const [comments, related] = await Promise.all([listVisibleComments(post.id), getRelatedPosts(post)]);
 
   const jsonLd = post.type === "BLOG" ? articleJsonLd(post) : videoJsonLd(post);
-  const typeHref = post.type === "VIDEO" ? "/video" : post.type === "SHORT" ? "/shorts" : "/blog";
+  const typeHref = post.type === "VIDEO" || post.type === "SHORT" ? "/video" : "/blog";
   const toc = post.body ? extractToc(post.body) : [];
 
   return (
@@ -77,7 +76,7 @@ export async function PostDetail({
         {` · ${formatNumber(post.viewCount)} بازدید`}
       </p>
 
-      <div className="editorial-media relative mt-8 aspect-[16/8] overflow-hidden rounded-[24px]">
+      <div className="relative mt-8 aspect-video overflow-hidden rounded-xl border border-border bg-foreground/5">
         <CoverImage
           src={post.coverImage}
           alt={post.title}
@@ -119,17 +118,6 @@ export async function PostDetail({
           <ArticleBody body={post.body} />
           <TableOfContents items={toc} />
         </div>
-      ) : null}
-
-      {post.products.length ? (
-        <section className="mt-12">
-          <h2 className="text-xl font-medium">محصولات داخل این مطلب</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {post.products.map((row) => (
-              <ProductCard key={row.productId} product={row.product} compact />
-            ))}
-          </div>
-        </section>
       ) : null}
 
       <div id="comments">

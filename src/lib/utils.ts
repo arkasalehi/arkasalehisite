@@ -6,7 +6,7 @@ export function cn(...classes: Array<string | false | null | undefined>) {
 
 export function postPath(type: PostType, slug: string) {
   if (type === "VIDEO") return `/video/${slug}`;
-  if (type === "SHORT") return `/shorts/${slug}`;
+  if (type === "SHORT") return "/video";
   return `/blog/${slug}`;
 }
 

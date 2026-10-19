@@ -84,7 +84,7 @@ export function isWorkspaceChrome(pathname: string, host?: string | null) {
 
 /** Marketing header/footer/padding. Never on workspace host or auth screens. */
 export function usesSiteChrome(pathname: string, host?: string | null) {
-  if (pathname.startsWith("/ws") || pathname.startsWith("/api/")) return false;
+  if (pathname.startsWith("/ws") || pathname.startsWith("/api/") || pathname.startsWith("/admin")) return false;
   if (isWorkspaceHost(host)) return false;
   if (isPublicAuthPath(pathname)) return false;
   return true;

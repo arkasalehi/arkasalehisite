@@ -2,12 +2,16 @@ import { publicSiteUrl, workspaceUrl } from "@/lib/runtime";
 
 /** Strip tags / angle brackets so comments never render as HTML. Prisma already parameterizes SQL. */
 export function sanitizeText(input: string, max = 2000) {
-  return input
-    .replace(/<[^>]*>/g, "")
-    .replace(/[<>]/g, "")
-    .replace(/\u0000/g, "")
-    .trim()
-    .slice(0, max);
+  return stripMarkup(input).trim().slice(0, max);
+}
+
+/** Plain article text. Headings stay; tags never reach the page. */
+export function sanitizePlain(input: string, max = 100_000) {
+  return stripMarkup(input).slice(0, max);
+}
+
+function stripMarkup(input: string) {
+  return input.replace(/<[^>]*>/g, "").replace(/[<>]/g, "").replace(/\u0000/g, "");
 }
 
 function allowedHosts(): Set<string> {
