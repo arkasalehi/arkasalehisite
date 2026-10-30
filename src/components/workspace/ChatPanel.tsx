@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Paperclip, Mic, SendHorizontal } from "lucide-react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
-import type { ChatPerson, WorkspaceMessage } from "@/lib/data/workspace";
+import type { ChatPerson, WorkspaceBot, WorkspaceMessage } from "@/lib/data/workspace";
+import { botIdFromRow, isOwnChatMessage } from "@/lib/workspace/bot-visibility";
 import { chatAvatarColor, CHAT_PAGE_SIZE } from "@/lib/workspace/chat";
 import { loadChatPrefs } from "@/lib/workspace/prefs";
 import { uploadWorkspaceFile } from "@/lib/workspace/uploadClient";
@@ -14,17 +15,22 @@ import { cn } from "@/lib/utils";
 
 const EMOJIS = ["👍", "❤️", "😄", "🎉", "👀"];
 
-function asMessage(row: Record<string, string>, fallbackName: string): WorkspaceMessage {
+function asText(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function asMessage(row: Record<string, unknown>, fallbackName: string): WorkspaceMessage {
   return {
-    id: row.id,
-    channelId: row.channel_id,
-    userId: row.user_id,
-    body: row.body,
-    createdAt: row.created_at,
+    id: asText(row.id),
+    channelId: asText(row.channel_id),
+    userId: asText(row.user_id),
+    botId: botIdFromRow(row),
+    body: asText(row.body),
+    createdAt: asText(row.created_at),
     kind: row.kind === "file" || row.kind === "voice" ? row.kind : "text",
-    fileName: row.file_name || null,
-    fileUrl: row.file_url || null,
-    replyTo: row.reply_to || null,
+    fileName: typeof row.file_name === "string" ? row.file_name : null,
+    fileUrl: typeof row.file_url === "string" ? row.file_url : null,
+    replyTo: typeof row.reply_to === "string" ? row.reply_to : null,
     author: { displayName: fallbackName, username: "", avatarUrl: null },
     reactions: [],
   };
@@ -37,6 +43,7 @@ export function ChatPanel({
   initial,
   userId,
   people = [],
+  bots = [],
   selfName = "",
   selfAvatar = null,
 }: {
@@ -46,6 +53,7 @@ export function ChatPanel({
   initial: WorkspaceMessage[];
   userId: string;
   people?: ChatPerson[];
+  bots?: WorkspaceBot[];
   selfName?: string;
   selfAvatar?: string | null;
 }) {
@@ -70,6 +78,8 @@ export function ChatPanel({
   const scroller = useRef<HTMLDivElement>(null);
   const sending = useRef(false);
   const peopleById = useMemo(() => new Map(people.map((person) => [person.id, person])), [people]);
+  const botsById = useMemo(() => new Map(bots.map((bot) => [bot.id, bot])), [bots]);
+  const extraBots = useRef(new Map<string, WorkspaceBot>());
   const names = useCallback(
     (uid: string, fallback?: string) => {
       if (uid === userId) return selfName || t.you;
@@ -84,6 +94,25 @@ export function ChatPanel({
     },
     [peopleById, selfAvatar, userId],
   );
+  const bubble = useCallback(
+    (m: WorkspaceMessage) => {
+      const mine = isOwnChatMessage(m, userId);
+      if (m.botId) {
+        const bot = botsById.get(m.botId);
+        return {
+          mine,
+          name: m.author?.displayName || bot?.displayName || bot?.username || "",
+          avatarUrl: m.author?.avatarUrl ?? bot?.avatarUrl ?? null,
+        };
+      }
+      return {
+        mine,
+        name: names(m.userId, m.author?.displayName),
+        avatarUrl: avatars(m.userId, m.author?.avatarUrl),
+      };
+    },
+    [avatars, botsById, names, userId],
+  );
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "auto" });
@@ -91,10 +120,10 @@ export function ChatPanel({
 
   const lastMessage = messages.at(-1);
   useEffect(() => {
-    if (lastMessage?.userId === userId) {
+    if (lastMessage?.botId || lastMessage?.userId === userId) {
       bottom.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [lastMessage?.id, lastMessage?.userId, userId]);
+  }, [lastMessage?.botId, lastMessage?.id, lastMessage?.userId, userId]);
 
   const lastId = messages.at(-1)?.id;
   useEffect(() => {
@@ -110,7 +139,9 @@ export function ChatPanel({
     setMessages((prev) => {
       if (prev.some((item) => item.id === incoming.id)) return prev;
       const withoutTemp = prev.filter(
-        (item) => !(item.id.startsWith("tmp-") && item.userId === incoming.userId && item.body === incoming.body),
+        (item) =>
+          Boolean(incoming.botId) ||
+          !(item.id.startsWith("tmp-") && item.userId === incoming.userId && item.body === incoming.body),
       );
       return [...withoutTemp, incoming];
     });
@@ -123,34 +154,84 @@ export function ChatPanel({
     } catch {
       return;
     }
+    async function botById(botId: string): Promise<WorkspaceBot | undefined> {
+      const known = botsById.get(botId) ?? extraBots.current.get(botId);
+      if (known) return known;
+      try {
+        const res = await fetch("/api/workspace/bots");
+        const data = (await res.json().catch(() => ({}))) as { bots?: WorkspaceBot[] };
+        for (const bot of data.bots ?? []) extraBots.current.set(bot.id, bot);
+      } catch {
+        return undefined;
+      }
+      return extraBots.current.get(botId);
+    }
+
     const channel = supabase
       .channel(`workspace-chat:${channelId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "workspace_messages", filter: `channel_id=eq.${channelId}` },
         (payload) => {
-          const row = payload.new as Record<string, string>;
-          if (!row?.id) return;
-          mergeIncoming({
-            ...asMessage(row, names(row.user_id)),
-            author: {
-              displayName: names(row.user_id),
-              username: peopleById.get(row.user_id)?.username ?? "",
-              avatarUrl: avatars(row.user_id),
-            },
-          });
+          const row = payload.new as Record<string, unknown>;
+          if (!row?.id || typeof row.id !== "string") return;
+          void (async () => {
+            const botId = botIdFromRow(row);
+            const user = asText(row.user_id);
+            const bot = botId ? await botById(botId) : undefined;
+            const base = asMessage(row, bot ? bot.displayName || bot.username : names(user));
+            if (!botId) {
+              mergeIncoming({
+                ...base,
+                botId: null,
+                author: {
+                  displayName: names(user),
+                  username: peopleById.get(user)?.username ?? "",
+                  avatarUrl: avatars(user),
+                },
+              });
+              return;
+            }
+            mergeIncoming({
+              ...base,
+              botId,
+              author: {
+                displayName: bot?.displayName || bot?.username || "",
+                username: bot?.username ?? "",
+                avatarUrl: bot?.avatarUrl ?? null,
+              },
+            });
+          })();
         },
       )
       .on("broadcast", { event: "message" }, ({ payload }) => {
         const row = payload as WorkspaceMessage | null;
         if (!row?.id) return;
-        mergeIncoming(row);
+        void (async () => {
+          const botId = row.botId || null;
+          if (!botId) {
+            mergeIncoming({ ...row, botId: null });
+            return;
+          }
+          const bot = await botById(botId);
+          mergeIncoming({
+            ...row,
+            botId,
+            author: bot
+              ? {
+                  displayName: bot.displayName || bot.username,
+                  username: bot.username,
+                  avatarUrl: bot.avatarUrl,
+                }
+              : { displayName: "", username: "", avatarUrl: null },
+          });
+        })();
       })
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [avatars, channelId, mergeIncoming, names, peopleById]);
+  }, [avatars, botsById, channelId, mergeIncoming, names, peopleById]);
 
   async function send(payload: { body: string; kind?: WorkspaceMessage["kind"]; fileName?: string; fileUrl?: string }) {
     const text = payload.body.trim();
@@ -164,6 +245,7 @@ export function ChatPanel({
       id: tempId,
       channelId,
       userId,
+      botId: null,
       body: text || payload.fileName || "file",
       createdAt: new Date().toISOString(),
       kind: payload.kind ?? "text",
@@ -310,7 +392,7 @@ export function ChatPanel({
           <ChatAvatar name={channelName} color={chatAvatarColor(channelId)} size={36} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-semibold text-[var(--theme-caption-color)]">{channelName}</p>
-            <p className="truncate text-[11px] text-[var(--theme-darker-color)]">{dm ? t.pv : t.groups}</p>
+            <p className="truncate text-[11px] text-[var(--theme-darker-color)]">{channelKind === "bot" ? t.botAssistant : dm ? t.pv : t.groups}</p>
           </div>
         </div>
         <div ref={scroller} className="ws-scroll min-h-0 flex-1 overflow-auto px-3 py-3">
@@ -319,13 +401,15 @@ export function ChatPanel({
               {t.loadEarlier}
             </button>
           ) : null}
-          {roots.map((m) => (
+          {roots.map((m) => {
+            const view = bubble(m);
+            return (
             <MessageRow
               key={m.id}
               m={m}
-              mine={m.userId === userId}
-              name={names(m.userId, m.author?.displayName)}
-              avatarUrl={avatars(m.userId, m.author?.avatarUrl)}
+              mine={view.mine}
+              name={view.name}
+              avatarUrl={view.avatarUrl}
               quoted={m.replyTo ? (byId.get(m.replyTo) ?? null) : null}
               replies={messages.filter((x) => x.replyTo === m.id).length}
               onReply={() => setReplyTo(m)}
@@ -334,7 +418,8 @@ export function ChatPanel({
               onIssue={() => void toIssue(m)}
               labels={{ reply: t.reply, thread: t.thread, issue: t.createIssue }}
             />
-          ))}
+            );
+          })}
           {roots.length === 0 ? (
             <p className="py-16 text-center text-[length:var(--ws-type-sm)] text-[var(--theme-darker-color)]">{t.emptyChannelBody}</p>
           ) : null}
@@ -396,13 +481,15 @@ export function ChatPanel({
             </button>
           </div>
           <div className="ws-scroll flex-1 overflow-auto px-3 py-2">
-            {thread.map((m) => (
+            {thread.map((m) => {
+              const view = bubble(m);
+              return (
               <MessageRow
                 key={m.id}
                 m={m}
-                mine={m.userId === userId}
-                name={names(m.userId, m.author?.displayName)}
-                avatarUrl={avatars(m.userId, m.author?.avatarUrl)}
+                mine={view.mine}
+                name={view.name}
+                avatarUrl={view.avatarUrl}
                 quoted={null}
                 replies={0}
                 onReply={() => setReplyTo(m)}
@@ -411,7 +498,8 @@ export function ChatPanel({
                 onIssue={() => void toIssue(m)}
                 labels={{ reply: t.reply, thread: t.thread, issue: t.createIssue }}
               />
-            ))}
+              );
+            })}
           </div>
         </aside>
       ) : null}
@@ -446,7 +534,7 @@ function MessageRow({
 }) {
   return (
     <article className={cn("group mb-2 flex max-w-[86%] gap-2", mine ? "ms-auto" : "")}>
-      {!mine ? <ChatAvatar name={name} url={avatarUrl} color={chatAvatarColor(m.userId)} size={32} /> : <span className="w-8 shrink-0" />}
+      {!mine ? <ChatAvatar name={name} url={avatarUrl} color={chatAvatarColor(m.botId || m.userId)} size={32} /> : <span className="w-8 shrink-0" />}
       <div className={cn("min-w-0 rounded-[14px] px-3 py-2", mine ? "rounded-se-md bg-[var(--ws-accent)] text-white" : "bg-[var(--input-BackgroundColor)] text-[var(--theme-content-color)]")}>
         {!mine ? <p className="mb-0.5 text-[12px] font-medium text-[var(--theme-caption-color)]">{name}</p> : null}
         {quoted ? <p className={cn("mb-1 border-s-2 ps-2 text-[12px]", mine ? "border-white/60 text-white/85" : "border-[var(--ws-accent)] text-[var(--theme-dark-color)]")}>{(quoted.body ?? "").slice(0, 140)}</p> : null}
