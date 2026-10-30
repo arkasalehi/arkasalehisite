@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { sanitizeText } from "@/lib/security";
 import { getActiveTenantId } from "@/lib/data/workspace";
+import { isHiddenBotIdentity } from "@/lib/workspace/bot-visibility";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -37,8 +38,8 @@ export async function POST(request: Request) {
         error.name = "INVALID";
         throw error;
       }
-      const peer = await db.from("profiles").select("id").eq("id", input.withUserId).maybeSingle();
-      if (!peer.data?.id) {
+      const peer = await db.from("profiles").select("id, username, display_name").eq("id", input.withUserId).maybeSingle();
+      if (!peer.data?.id || (!session.isSuperAdmin && isHiddenBotIdentity({ username: peer.data.username, displayName: peer.data.display_name }))) {
         const error = new Error("NOT_FOUND");
         error.name = "NOT_FOUND";
         throw error;
@@ -60,6 +61,11 @@ export async function POST(request: Request) {
       return json({ id: data.id });
     }
     const name = sanitizeText(input.name ?? "channel", 60);
+    if (!session.isSuperAdmin && isHiddenBotIdentity({ name, slug: name })) {
+      const error = new Error("NOT_FOUND");
+      error.name = "NOT_FOUND";
+      throw error;
+    }
     const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 32)}-${crypto.randomUUID().slice(0, 4)}`;
     const kind = input.kind === "private" ? "private" : "channel";
     const { data, error } = await db.from("workspace_channels").insert({ slug, name, kind, tenant_id: tenantId }).select("id").single();

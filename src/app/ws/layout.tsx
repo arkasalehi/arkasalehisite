@@ -37,15 +37,15 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   }
   if (!canAccessWorkspace(session.role)) redirect("/");
   const [channels, inbox, tasks, notes, meetings, tenants, projects, activeTenantId, people] = await Promise.all([
-    listChannels(session.id).catch(() => []),
-    listInbox(session.id).catch(() => []),
+    listChannels(session.id, session).catch(() => []),
+    listInbox(session.id, session).catch(() => []),
     listNavTasks().catch(() => []),
     listNavNotes().catch(() => []),
     listNavMeetings().catch(() => []),
     listTenants(session.id).catch(() => []),
     listProjects().catch(() => []),
     getActiveTenantId().catch(() => null),
-    listCollaboratorDirectory().catch(() => []),
+    listCollaboratorDirectory(session).catch(() => []),
   ]);
   await ensurePersonalRoom(session.id, session.displayName || session.username || "Room").catch(() => null);
   const jar = await cookies();

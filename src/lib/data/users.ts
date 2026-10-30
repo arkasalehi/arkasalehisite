@@ -1,4 +1,5 @@
 import { createServerSupabase } from "@/lib/supabase/server";
+import { WPBOT_USERNAME } from "@/lib/workspace/bot-visibility";
 import { mapProfile } from "./map";
 
 const PROFILE_COLUMNS = "id, email, username, display_name, role, avatar_url, bio, created_at, updated_at";
@@ -57,6 +58,11 @@ export async function updateProfile(
 ) {
   const db = await createServerSupabase();
   if (data.username) {
+    if (data.username.toLowerCase() === WPBOT_USERNAME) {
+      const err = new Error("USERNAME_TAKEN");
+      err.name = "CONFLICT";
+      throw err;
+    }
     const existing = await findUserByUsername(data.username);
     if (existing && String(existing.id) !== userId) {
       const err = new Error("USERNAME_TAKEN");

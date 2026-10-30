@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { isAdminRole } from "@/lib/auth/roles";
 import { getActiveTenantId } from "@/lib/data/workspace";
 import type { ChatPerson, WorkspaceMeeting, WorkspaceProject, WorkspaceTask } from "@/lib/data/workspace";
+import { filterHiddenBots, redactBotMentions, type BotViewer } from "@/lib/workspace/bot-visibility";
 
 export type StudioStatus = "active" | "locked" | "inactive";
 
@@ -88,7 +89,7 @@ function taskProgress(task: WorkspaceTask, all: WorkspaceTask[]) {
   return Math.round((done / kids.length) * 100);
 }
 
-export const listStudioProjects = cache(async (userId: string, role: string) => {
+export const listStudioProjects = cache(async (userId: string, role: string, viewer?: BotViewer) => {
   const db = await createServerSupabase();
   const admin = isAdminRole(role);
   const { data, error } = await db
@@ -186,7 +187,7 @@ export const listStudioProjects = cache(async (userId: string, role: string) => 
         meetingId: row.meeting_id ? String(row.meeting_id) : null,
         boardId: row.board_id ? String(row.board_id) : null,
         createdAt: String(row.created_at),
-        members,
+        members: filterHiddenBots(members, viewer),
         progress,
         boardBody: boardMap.get(id) ?? "",
         tasks: projectTasks,
@@ -195,7 +196,7 @@ export const listStudioProjects = cache(async (userId: string, role: string) => 
     .filter(Boolean) as StudioProject[];
 });
 
-export const listStudioPeople = cache(async () => {
+export const listStudioPeople = cache(async (viewer?: BotViewer) => {
   const db = await createServerSupabase();
   const { data: people, error } = await db
     .from("profiles")
@@ -223,7 +224,7 @@ export const listStudioPeople = cache(async () => {
     : { data: [] as Array<{ id: string; name: string }> };
   const projectName = new Map((projects.data ?? []).map((row) => [String(row.id), String(row.name)]));
   const now = Date.now();
-  return people.map((row) => {
+  return filterHiddenBots(people.map((row) => {
     const uid = String(row.id);
     const last = seen.get(uid);
     const mine = (assignees.data ?? []).filter((item) => String(item.user_id) === uid).map((item) => taskMap.get(String(item.task_id))).filter(Boolean);
@@ -242,10 +243,10 @@ export const listStudioPeople = cache(async () => {
       projectNames,
       openTasks: roots.filter((item) => item?.status !== "done").length,
     };
-  });
+  }), viewer);
 });
 
-export const listStudioEvents = cache(async () => {
+export const listStudioEvents = cache(async (viewer?: BotViewer) => {
   const db = await createServerSupabase();
   const { data, error } = await db
     .from("workspace_calendar_events")
@@ -255,8 +256,8 @@ export const listStudioEvents = cache(async () => {
   if (error || !data) return [] as StudioEvent[];
   return data.map((row) => ({
     id: String(row.id),
-    title: String(row.title),
-    body: String(row.body ?? ""),
+    title: redactBotMentions(String(row.title), viewer),
+    body: redactBotMentions(String(row.body ?? ""), viewer),
     startsAt: String(row.starts_at),
     endsAt: row.ends_at ? String(row.ends_at) : null,
     notifyAt: row.notify_at ? String(row.notify_at) : null,
@@ -315,8 +316,8 @@ export const listStudioRooms = cache(async (): Promise<StudioRoom[]> => {
   }));
 });
 
-export const listMyStudioTasks = cache(async (userId: string, role: string) => {
-  const projects = await listStudioProjects(userId, role);
+export const listMyStudioTasks = cache(async (userId: string, role: string, viewer?: BotViewer) => {
+  const projects = await listStudioProjects(userId, role, viewer);
   const mine = projects.flatMap((project) => project.tasks.filter((task) => task.assigneeIds.includes(userId)));
   const unique = new Map(mine.map((task) => [task.id, task]));
   const tasks = [...unique.values()];

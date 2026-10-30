@@ -11,12 +11,12 @@ export default async function ChatChannelPage({ params }: { params: Promise<{ ch
   const { channelId } = await params;
   const session = await getSession();
   const [channels, people] = await Promise.all([
-    listChannels(session?.id).catch(() => []),
-    listCollaboratorDirectory().catch(() => []),
+    listChannels(session?.id, session).catch(() => []),
+    listCollaboratorDirectory(session).catch(() => []),
   ]);
   const channel = channels.find((item) => item.id === channelId);
   if (!channel || !session) notFound();
-  const messages = await listMessages(channelId, session.id).catch(() => []);
+  const messages = await listMessages(channelId, session.id, undefined, undefined, session).catch(() => []);
   done();
   return (
     <ChatPanel

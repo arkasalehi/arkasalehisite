@@ -13,7 +13,7 @@ export async function GET() {
       error.name = "FORBIDDEN";
       throw error;
     }
-    const items = await listInbox(session.id);
+    const items = await listInbox(session.id, session);
     return json({ items });
   } catch (error) {
     return errorResponse(error, "en");

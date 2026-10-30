@@ -13,7 +13,7 @@ export async function GET() {
       error.name = "FORBIDDEN";
       throw error;
     }
-    const people = await listCollaboratorDirectory();
+    const people = await listCollaboratorDirectory(session);
     return json({
       people: people
         .filter((p) => p.id !== session.id)

@@ -1,6 +1,7 @@
 import { createRouteSupabase, jsonWithCookies } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/roles";
 import { identifierTaken, getProfile } from "@/lib/data/users";
+import { WPBOT_USERNAME } from "@/lib/workspace/bot-visibility";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { registerSchema } from "@/lib/validators";
 import { sanitizeText } from "@/lib/security";
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
     const username = sanitizeText(body.username, 24).toLowerCase();
     const displayName = sanitizeText(body.displayName, 48);
 
+    if (username === WPBOT_USERNAME) return json({ error: "این نام کاربری گرفته شده" }, 409);
     const taken = await identifierTaken(email, username);
     if (taken.email) return json({ error: "این ایمیل قبلاً ثبت شده" }, 409);
     if (taken.username) return json({ error: "این نام کاربری گرفته شده" }, 409);

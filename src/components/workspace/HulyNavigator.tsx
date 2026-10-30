@@ -54,7 +54,7 @@ export function HulyNavigator({
     if (res.ok && data.id) router.push(`/ws/chat/${data.id}`);
   }
 
-  const spaces = channels.filter((ch) => ch.kind !== "dm");
+  const spaces = channels.filter((ch) => ch.kind !== "dm" && ch.kind !== "bot" && ch.name.trim().toLowerCase() !== "wpbot");
   const dms = channels.filter((ch) => ch.kind === "dm");
 
   return (
