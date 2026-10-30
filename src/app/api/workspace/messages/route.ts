@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { sanitizeHttpUrl, sanitizeText } from "@/lib/security";
 import { listMessages, mapMessage, MESSAGE_LIMIT } from "@/lib/data/workspace";
+import { isHiddenBotIdentity, redactBotMentions } from "@/lib/workspace/bot-visibility";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -27,8 +28,16 @@ const messageSchema = z.object({
   replyTo: z.string().uuid().optional().nullable(),
 });
 
-async function assertChannelAccess(channelId: string) {
+async function assertChannelAccess(channelId: string, isSuperAdmin: boolean) {
   const db = await createServerSupabase();
+  if (!isSuperAdmin) {
+    const row = await db.from("workspace_channels").select("slug, name, kind").eq("id", channelId).maybeSingle();
+    if (row.data && isHiddenBotIdentity({ slug: row.data.slug, name: row.data.name, kind: row.data.kind })) {
+      const denied = new Error("FORBIDDEN");
+      denied.name = "FORBIDDEN";
+      throw denied;
+    }
+  }
   const { data, error } = await db.rpc("can_access_channel", { p_channel_id: channelId });
   if (error) return;
   if (!data) {
@@ -45,8 +54,8 @@ export async function GET(request: Request) {
     const channelId = z.string().uuid().parse(url.searchParams.get("channelId"));
     const before = url.searchParams.get("before") || undefined;
     const limit = Math.min(MESSAGE_LIMIT, Math.max(1, Number(url.searchParams.get("limit") ?? MESSAGE_LIMIT) || MESSAGE_LIMIT));
-    await assertChannelAccess(channelId);
-    const messages = await listMessages(channelId, session.id, limit, before);
+    await assertChannelAccess(channelId, session.isSuperAdmin);
+    const messages = await listMessages(channelId, session.id, limit, before, session);
     return json({ messages, hasMore: messages.length >= limit });
   } catch (error) {
     return errorResponse(error, "en");
@@ -58,7 +67,7 @@ export async function POST(request: Request) {
     await guardMutation(request, "workspace-chat", 40);
     const session = await requireWorkspace();
     const input = messageSchema.parse(await request.json());
-    await assertChannelAccess(input.channelId);
+    await assertChannelAccess(input.channelId, session.isSuperAdmin);
     const db = await createServerSupabase();
     const fileUrl = sanitizeHttpUrl(input.fileUrl);
     const row: Record<string, unknown> = {
@@ -83,6 +92,7 @@ export async function POST(request: Request) {
         id: basic.data.id,
         message: {
           ...mapMessage(basic.data as Record<string, unknown>),
+          body: redactBotMentions(String(basic.data.body ?? ""), session),
           author: { displayName: session.displayName, username: session.username, avatarUrl: session.avatarUrl },
         },
       });
@@ -91,6 +101,7 @@ export async function POST(request: Request) {
       id: data.id,
       message: {
         ...mapMessage(data as Record<string, unknown>),
+        body: redactBotMentions(String(data.body ?? ""), session),
         author: { displayName: session.displayName, username: session.username, avatarUrl: session.avatarUrl },
       },
     });

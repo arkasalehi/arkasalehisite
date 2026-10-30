@@ -10,10 +10,10 @@ export default async function WorkspaceHomePage() {
   const done = routeTimer("page /ws");
   const session = await getSession();
   const [projects, people, team, events] = await Promise.all([
-    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator").catch(() => []),
-    listCollaboratorDirectory().catch(() => []),
-    listStudioPeople().catch(() => []),
-    listStudioEvents().catch(() => []),
+    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator", session).catch(() => []),
+    listCollaboratorDirectory(session).catch(() => []),
+    listStudioPeople(session).catch(() => []),
+    listStudioEvents(session).catch(() => []),
   ]);
   done();
   return (

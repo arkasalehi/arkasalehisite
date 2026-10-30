@@ -3,6 +3,7 @@ import { canAccessWorkspace, isAdminRole } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, guardMutation, json } from "@/lib/http";
 import { sanitizeText } from "@/lib/security";
+import { redactBotMentions } from "@/lib/workspace/bot-visibility";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -22,7 +23,12 @@ export async function GET() {
       .order("starts_at")
       .limit(120);
     if (error) throw error;
-    return json({ events: data ?? [] });
+    const events = (data ?? []).map((row) => ({
+      ...row,
+      title: redactBotMentions(String(row.title ?? ""), session),
+      body: redactBotMentions(String(row.body ?? ""), session),
+    }));
+    return json({ events });
   } catch (error) {
     return errorResponse(error, "en");
   }

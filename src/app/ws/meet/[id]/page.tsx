@@ -18,7 +18,7 @@ export default async function MeetingRoomPage({ params }: { params: Promise<{ id
     done();
     return <RoomGate meeting={meeting} userId={session.id} />;
   }
-  const projects = await listStudioProjects(session.id, session.role).catch(() => []);
+  const projects = await listStudioProjects(session.id, session.role, session).catch(() => []);
   const project = projects.find((item) => item.id === meeting.projectId || item.meetingId === meeting.id) ?? null;
   done();
   return (

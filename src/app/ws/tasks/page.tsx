@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function TasksPage() {
   const done = routeTimer("page /ws/tasks");
   const session = await getSession();
-  const data = await listMyStudioTasks(session?.id ?? "", session?.role ?? "collaborator").catch(() => ({
+  const data = await listMyStudioTasks(session?.id ?? "", session?.role ?? "collaborator", session).catch(() => ({
     tasks: [],
     projects: [],
     extensions: [],

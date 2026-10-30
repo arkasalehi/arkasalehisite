@@ -11,8 +11,8 @@ export default async function MeetPage() {
   const session = await getSession();
   const [rooms, projects, people] = await Promise.all([
     listStudioRooms().catch((): StudioRoom[] => []),
-    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator").catch(() => []),
-    listCollaboratorDirectory().catch(() => []),
+    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator", session).catch(() => []),
+    listCollaboratorDirectory(session).catch(() => []),
   ]);
   done();
   return <OfficeHub rooms={rooms} projects={projects} people={people} userId={session?.id ?? ""} role={session?.role ?? "collaborator"} />;

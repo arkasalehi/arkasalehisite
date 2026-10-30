@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, SlidersHorizontal, X } from "lucide-react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
-import type { ChatPerson, InboxItem } from "@/lib/data/workspace";
+import type { ChatPerson, InboxItem, WorkspaceBot } from "@/lib/data/workspace";
 import { chatAvatarColor, chatPreviewText, formatChatWhen } from "@/lib/workspace/chat";
 import { ChatAvatar } from "@/components/workspace/ChatAvatar";
 import { useWsChrome } from "@/lib/theme/workspace";
@@ -22,10 +22,12 @@ function tabOf(kind: string): Tab {
 export function ChatHome({
   initial,
   people,
+  bots = [],
   userId,
 }: {
   initial: InboxItem[];
   people: ChatPerson[];
+  bots?: WorkspaceBot[];
   userId: string;
 }) {
   const { locale, t } = useWsChrome();
@@ -103,6 +105,17 @@ export function ChatHome({
       return `${item.channelName} ${item.preview} ${item.authorName}`.toLowerCase().includes(needle);
     });
   }, [items, query, tab, unreadOnly]);
+
+  const botCards = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return bots.filter((bot) => {
+      if (unreadOnly) return false;
+      if (items.some((item) => item.channelId === bot.channelId || item.channelName.toLowerCase() === bot.displayName.toLowerCase())) return false;
+      if (tab !== "bots" && !(tab === "all" && needle)) return false;
+      if (!needle) return true;
+      return `${bot.displayName} ${bot.username}`.toLowerCase().includes(needle);
+    });
+  }, [bots, items, query, tab, unreadOnly]);
 
   const unreadChats = items.filter((item) => item.unread).length;
   const tabs: Array<{ id: Tab; label: string }> = [
@@ -195,13 +208,26 @@ export function ChatHome({
       </div>
 
       <div className="ws-scroll min-h-0 flex-1 overflow-auto px-1 pt-1 pb-24">
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && botCards.length === 0 ? (
           <p className="px-5 py-16 text-center text-[14px] text-[var(--theme-darker-color)]">
             {tab === "bots" ? t.noBots : t.noChats}
             <span className="mt-1 block text-[13px]">{tab === "bots" ? t.noBotsBody : t.noChatsBody}</span>
           </p>
         ) : (
-          filtered.map((item) => (
+          <>
+          {botCards.map((bot) => (
+            <Link key={bot.id} href={bot.channelId ? `/ws/chat/${bot.channelId}` : "/ws/bots"} className="ws-chat-row">
+              <ChatAvatar name={bot.displayName || bot.username} url={null} color={chatAvatarColor(bot.id)} />
+              <span className="min-w-0 flex-1 border-b border-[var(--theme-divider-color)] py-3">
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="truncate text-[15px] font-medium text-[var(--theme-caption-color)]">{bot.displayName || bot.username}</span>
+                  <span className="shrink-0 text-[12px] text-[var(--theme-darker-color)]">{t.botAssistant}</span>
+                </span>
+                <span className="mt-0.5 block truncate text-[13px] text-[var(--theme-dark-color)]">{t.botOnly}</span>
+              </span>
+            </Link>
+          ))}
+          {filtered.map((item) => (
             <Link key={item.channelId} href={`/ws/chat/${item.channelId}`} className="ws-chat-row">
               <ChatAvatar name={item.channelName} url={item.avatarUrl} color={item.avatarColor} />
               <span className="min-w-0 flex-1 border-b border-[var(--theme-divider-color)] py-3">
@@ -216,7 +242,8 @@ export function ChatHome({
                 </span>
               </span>
             </Link>
-          ))
+          ))}
+          </>
         )}
       </div>
 

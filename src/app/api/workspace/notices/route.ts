@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth/session";
 import { canAccessWorkspace } from "@/lib/auth/roles";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { errorResponse, json } from "@/lib/http";
+import { redactBotMentions } from "@/lib/workspace/bot-visibility";
 
 export const runtime = "nodejs";
 
@@ -21,8 +22,13 @@ export async function GET() {
       .order("created_at", { ascending: false })
       .limit(40);
     if (error) throw error;
-    const unread = (data ?? []).filter((row) => !row.read).length;
-    return json({ notices: data ?? [], unread });
+    const notices = (data ?? []).map((row) => ({
+      ...row,
+      title: redactBotMentions(String(row.title ?? ""), session),
+      body: row.body ? redactBotMentions(String(row.body), session) : row.body,
+    }));
+    const unread = notices.filter((row) => !row.read).length;
+    return json({ notices, unread });
   } catch (error) {
     return errorResponse(error, "en");
   }

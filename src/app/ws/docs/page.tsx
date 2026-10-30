@@ -9,7 +9,7 @@ export default async function DocsIndexPage() {
   const done = routeTimer("page /ws/docs");
   const session = await getSession();
   const [projects, files] = await Promise.all([
-    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator").catch(() => []),
+    listStudioProjects(session?.id ?? "", session?.role ?? "collaborator", session).catch(() => []),
     listStudioFiles().catch(() => []),
   ]);
   done();

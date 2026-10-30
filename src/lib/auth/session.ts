@@ -13,6 +13,8 @@ export type SessionUser = {
   displayName: string;
   role: Role;
   avatarUrl: string | null;
+  /** Owner / top-level admin. Regular `admin` is not enough. */
+  isSuperAdmin: boolean;
 };
 
 export const getSession = cache(async (): Promise<SessionUser | null> => {
@@ -24,7 +26,11 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return null;
-    const profile = await getProfile(user.id);
+    const [{ data: superFlag, error: superError }, profile] = await Promise.all([
+      supabase.rpc("is_super_admin"),
+      getProfile(user.id),
+    ]);
+    const isSuperAdmin = !superError && superFlag === true;
     if (!profile) {
       return {
         id: user.id,
@@ -33,6 +39,7 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
         displayName: String(user.user_metadata?.display_name ?? user.email ?? ""),
         role: "user",
         avatarUrl: null,
+        isSuperAdmin,
       };
     }
     return {
@@ -42,6 +49,7 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
       displayName: profile.displayName,
       role: normalizeRole(profile.role),
       avatarUrl: profile.avatarUrl,
+      isSuperAdmin,
     };
   } catch (error) {
     console.error("getSession", error);

@@ -2,6 +2,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { chatAvatarColor, chatPreviewText, CHAT_PAGE_SIZE } from "@/lib/workspace/chat";
+import { canSeeHiddenBots, filterHiddenBots, isHiddenBotIdentity, redactBotMentions, type BotViewer } from "@/lib/workspace/bot-visibility";
 
 export type WorkspaceChannel = { id: string; slug: string; name: string; kind: string };
 export type WorkspaceMessage = {
@@ -77,6 +78,12 @@ export type ChatPerson = {
   username: string;
   displayName: string;
   avatarUrl: string | null;
+};
+export type WorkspaceBot = {
+  id: string;
+  username: string;
+  displayName: string;
+  channelId: string | null;
 };
 
 export const NAV_LIMIT = 30;
@@ -212,7 +219,7 @@ async function titleDirectChannels(channels: WorkspaceChannel[], userId?: string
   });
 }
 
-export const listChannels = cache(async (userId?: string) => {
+export const listChannels = cache(async (userId?: string, viewer?: BotViewer) => {
   const db = await createServerSupabase();
   const tenantId = await getActiveTenantId();
   let q = db.from("workspace_channels").select("id, slug, name, kind").order("created_at").limit(80);
@@ -220,6 +227,15 @@ export const listChannels = cache(async (userId?: string) => {
   const { data, error } = await q;
   if (error) return [];
   let rows = data ?? [];
+  if (canSeeHiddenBots(viewer)) {
+    const bots = await db.from("workspace_channels").select("id, slug, name, kind").eq("kind", "bot").limit(20);
+    if (!bots.error && bots.data) {
+      const seen = new Set(rows.map((row) => String(row.id)));
+      for (const row of bots.data) {
+        if (!seen.has(String(row.id))) rows.push(row);
+      }
+    }
+  }
   if (userId) {
     const members = await db.from("workspace_channel_members").select("channel_id").eq("user_id", userId);
     const allowed = new Set((members.data ?? []).map((m) => String(m.channel_id)));
@@ -235,10 +251,10 @@ export const listChannels = cache(async (userId?: string) => {
     name: row.kind === "group" ? String(row.name) : englishChannelName(String(row.slug), String(row.name)),
     kind: String(row.kind),
   })) as WorkspaceChannel[];
-  return titleDirectChannels(channels, userId);
+  return filterHiddenBots(await titleDirectChannels(channels, userId), viewer);
 });
 
-export async function listMessages(channelId: string, userId?: string, limit = MESSAGE_LIMIT, before?: string) {
+export async function listMessages(channelId: string, userId?: string, limit = MESSAGE_LIMIT, before?: string, viewer?: BotViewer) {
   const db = await createServerSupabase();
   const selectFull =
     "id, channel_id, user_id, body, created_at, kind, file_name, file_url, reply_to, author:profiles!user_id(display_name, username, avatar_url)";
@@ -261,7 +277,17 @@ export async function listMessages(channelId: string, userId?: string, limit = M
   const rows = (data ?? []).map((row) => mapMessage(row as Record<string, unknown>)).reverse();
   const ids = rows.map((m) => m.id);
   const reactionMap = await loadReactions(ids, userId);
-  return rows.map((m) => ({ ...m, reactions: reactionMap.get(m.id) ?? [] }));
+  return rows.map((m) => {
+    const author = m.author && !canSeeHiddenBots(viewer) && isHiddenBotIdentity(m.author)
+      ? { displayName: "", username: "", avatarUrl: null }
+      : m.author;
+    return {
+      ...m,
+      body: redactBotMentions(m.body, viewer),
+      author,
+      reactions: reactionMap.get(m.id) ?? [],
+    };
+  });
 }
 
 export function mapMessage(rec: Record<string, unknown>): WorkspaceMessage {
@@ -316,8 +342,8 @@ async function loadReactions(messageIds: string[], userId?: string) {
   return map;
 }
 
-export const listInbox = cache(async (userId?: string) => {
-  const channels = await listChannels(userId);
+export const listInbox = cache(async (userId?: string, viewer?: BotViewer) => {
+  const channels = await listChannels(userId, viewer);
   if (!channels.length) return [] as InboxItem[];
   const db = await createServerSupabase();
   const ids = channels.map((channel) => channel.id);
@@ -415,7 +441,11 @@ export const listInbox = cache(async (userId?: string) => {
     });
   }
   items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-  return items;
+  return filterHiddenBots(items, viewer).map((item) => ({
+    ...item,
+    preview: redactBotMentions(item.preview, viewer),
+    authorName: !canSeeHiddenBots(viewer) && isHiddenBotIdentity({ displayName: item.authorName, username: item.authorName }) ? "" : item.authorName,
+  }));
 });
 
 export const listNavMeetings = cache(async () => {
@@ -488,7 +518,7 @@ export async function getNote(id: string) {
   return mapNoteRow(lite.data as Record<string, unknown>);
 }
 
-export async function listTaskComments(taskId: string) {
+export async function listTaskComments(taskId: string, viewer?: BotViewer) {
   const db = await createServerSupabase();
   const { data, error } = await db
     .from("workspace_task_comments")
@@ -499,24 +529,47 @@ export async function listTaskComments(taskId: string) {
   if (error) return [];
   return (data ?? []).map((row) => {
     const author = row.author as { display_name?: string } | null;
+    const authorName = author?.display_name ?? "Teammate";
     return {
       id: String(row.id),
-      body: String(row.body),
+      body: redactBotMentions(String(row.body), viewer),
       createdAt: String(row.created_at),
       userId: String(row.user_id),
-      authorName: author?.display_name ?? "Teammate",
+      authorName: !canSeeHiddenBots(viewer) && isHiddenBotIdentity({ displayName: authorName, username: authorName }) ? "" : authorName,
     };
   });
 }
 
-export const listCollaboratorDirectory = cache(async () => {
+export const listCollaboratorDirectory = cache(async (viewer?: BotViewer) => {
   const db = await createServerSupabase();
   const { data, error } = await db.from("profiles").select("id, username, display_name, avatar_url").order("display_name").limit(50);
   if (error) throw error;
-  return (data ?? []).map((row) => ({
+  const people = (data ?? []).map((row) => ({
     id: String(row.id),
     username: String(row.username ?? ""),
     displayName: String(row.display_name ?? ""),
     avatarUrl: typeof row.avatar_url === "string" ? row.avatar_url : null,
   }));
+  return filterHiddenBots(people, viewer);
 });
+
+export async function listVisibleBots(viewer?: BotViewer): Promise<WorkspaceBot[]> {
+  if (!canSeeHiddenBots(viewer)) return [];
+  const db = await createServerSupabase();
+  const rpc = await db.rpc("list_visible_bots");
+  const source = !rpc.error && Array.isArray(rpc.data) ? rpc.data : null;
+  const table = source
+    ? null
+    : await db.from("workspace_bots").select("id, username, display_name, channel_id");
+  const rows = source ?? table?.data ?? [];
+  if (!source && table?.error) return [];
+  return rows.map((row) => {
+    const record = row as { id?: unknown; username?: unknown; display_name?: unknown; channel_id?: unknown };
+    return {
+      id: String(record.id),
+      username: String(record.username ?? ""),
+      displayName: String(record.display_name ?? ""),
+      channelId: record.channel_id ? String(record.channel_id) : null,
+    };
+  });
+}

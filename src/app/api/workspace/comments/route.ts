@@ -20,10 +20,10 @@ async function requireWorkspace() {
 
 export async function GET(request: Request) {
   try {
-    await requireWorkspace();
+    const session = await requireWorkspace();
     const taskId = new URL(request.url).searchParams.get("taskId");
     if (!taskId) return json({ comments: [] });
-    const comments = await listTaskComments(taskId);
+    const comments = await listTaskComments(taskId, session);
     return json({ comments });
   } catch (error) {
     return errorResponse(error, "en");
