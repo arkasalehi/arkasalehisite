@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { listChannels, listCollaboratorDirectory, listMessages } from "@/lib/data/workspace";
+import { listChannels, listCollaboratorDirectory, listMessages, listVisibleBots } from "@/lib/data/workspace";
 import { ChatPanel } from "@/components/workspace/ChatPanel";
 import { routeTimer } from "@/lib/timing";
 
@@ -10,9 +10,10 @@ export default async function ChatChannelPage({ params }: { params: Promise<{ ch
   const done = routeTimer("page /ws/chat/[channelId]");
   const { channelId } = await params;
   const session = await getSession();
-  const [channels, people] = await Promise.all([
+  const [channels, people, bots] = await Promise.all([
     listChannels(session?.id, session).catch(() => []),
     listCollaboratorDirectory(session).catch(() => []),
+    listVisibleBots(session).catch(() => []),
   ]);
   const channel = channels.find((item) => item.id === channelId);
   if (!channel || !session) notFound();
@@ -27,6 +28,7 @@ export default async function ChatChannelPage({ params }: { params: Promise<{ ch
       initial={messages}
       userId={session.id}
       people={people}
+      bots={bots}
       selfName={session.displayName}
       selfAvatar={session.avatarUrl}
     />

@@ -6,6 +6,7 @@ import { Plus, SlidersHorizontal, X } from "lucide-react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import type { ChatPerson, InboxItem, WorkspaceBot } from "@/lib/data/workspace";
+import { botIdFromRow } from "@/lib/workspace/bot-visibility";
 import { chatAvatarColor, chatPreviewText, formatChatWhen } from "@/lib/workspace/chat";
 import { ChatAvatar } from "@/components/workspace/ChatAvatar";
 import { useWsChrome } from "@/lib/theme/workspace";
@@ -41,6 +42,7 @@ export function ChatHome({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [boundInitial, setBoundInitial] = useState(initial);
   const refreshAt = useRef(0);
+  const botsById = useMemo(() => new Map(bots.map((bot) => [bot.id, bot])), [bots]);
   if (initial !== boundInitial) {
     setBoundInitial(initial);
     setItems(initial);
@@ -74,17 +76,20 @@ export function ChatHome({
             return prev;
           }
           const kind = row.kind === "file" || row.kind === "voice" ? row.kind : "text";
-          const fromOther = row.user_id !== userId;
+          const botId = botIdFromRow(row);
+          const bot = botId ? botsById.get(botId) : undefined;
+          const fromBot = Boolean(botId);
+          const fromOther = fromBot || row.user_id !== userId;
           return [
             {
               ...existing,
               preview: chatPreviewText(kind, row.body ?? "", row.file_name),
               createdAt: row.created_at,
-              lastUserId: row.user_id,
+              lastUserId: botId ?? row.user_id,
               kind,
               unread: existing.unread || fromOther,
               unreadCount: fromOther ? existing.unreadCount + 1 : existing.unreadCount,
-              authorName: fromOther ? existing.authorName : "You",
+              authorName: fromBot ? bot?.displayName || bot?.username || "" : fromOther ? existing.authorName : "You",
             },
             ...prev.filter((item) => item.channelId !== channelId),
           ];
@@ -94,7 +99,7 @@ export function ChatHome({
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [botsById, userId]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -217,7 +222,7 @@ export function ChatHome({
           <>
           {botCards.map((bot) => (
             <Link key={bot.id} href={bot.channelId ? `/ws/chat/${bot.channelId}` : "/ws/bots"} className="ws-chat-row">
-              <ChatAvatar name={bot.displayName || bot.username} url={null} color={chatAvatarColor(bot.id)} />
+              <ChatAvatar name={bot.displayName || bot.username} url={bot.avatarUrl} color={chatAvatarColor(bot.id)} />
               <span className="min-w-0 flex-1 border-b border-[var(--theme-divider-color)] py-3">
                 <span className="flex items-baseline justify-between gap-3">
                   <span className="truncate text-[15px] font-medium text-[var(--theme-caption-color)]">{bot.displayName || bot.username}</span>

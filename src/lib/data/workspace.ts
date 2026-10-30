@@ -2,13 +2,26 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { chatAvatarColor, chatPreviewText, CHAT_PAGE_SIZE } from "@/lib/workspace/chat";
-import { canSeeHiddenBots, filterHiddenBots, isHiddenBotIdentity, redactBotMentions, type BotViewer } from "@/lib/workspace/bot-visibility";
+import {
+  authorForBot,
+  botIdFromRow,
+  canSeeHiddenBots,
+  filterHiddenBots,
+  isHiddenBotIdentity,
+  readEmbeddedBot,
+  redactBotMentions,
+  withBotAuthor,
+  type BotViewer,
+  type MessageBot,
+} from "@/lib/workspace/bot-visibility";
 
 export type WorkspaceChannel = { id: string; slug: string; name: string; kind: string };
 export type WorkspaceMessage = {
   id: string;
   channelId: string;
   userId: string;
+  /** Set when the row was written by a workspace bot. userId stays the profile used for the insert. */
+  botId: string | null;
   body: string;
   createdAt: string;
   kind: "text" | "file" | "voice";
@@ -84,6 +97,7 @@ export type WorkspaceBot = {
   username: string;
   displayName: string;
   channelId: string | null;
+  avatarUrl: string | null;
 };
 
 export const NAV_LIMIT = 30;
@@ -257,34 +271,42 @@ export const listChannels = cache(async (userId?: string, viewer?: BotViewer) =>
 export async function listMessages(channelId: string, userId?: string, limit = MESSAGE_LIMIT, before?: string, viewer?: BotViewer) {
   const db = await createServerSupabase();
   const selectFull =
-    "id, channel_id, user_id, body, created_at, kind, file_name, file_url, reply_to, author:profiles!user_id(display_name, username, avatar_url)";
+    "id, channel_id, user_id, bot_id, body, created_at, kind, file_name, file_url, reply_to, author:profiles!user_id(display_name, username, avatar_url), bot:workspace_bots!bot_id(id, username, display_name)";
+  const selectWithBot =
+    "id, channel_id, user_id, bot_id, body, created_at, kind, file_name, file_url, reply_to, author:profiles!user_id(display_name, username, avatar_url)";
   let query = db.from("workspace_messages").select(selectFull).eq("channel_id", channelId).order("created_at", { ascending: false }).limit(limit);
   if (before) query = query.lt("created_at", before);
   let { data, error } = await query;
   if (error) {
-    let fallbackQuery = db
-      .from("workspace_messages")
-      .select("id, channel_id, user_id, body, created_at")
-      .eq("channel_id", channelId)
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    if (before) fallbackQuery = fallbackQuery.lt("created_at", before);
-    const fallback = await fallbackQuery;
-    if (fallback.error) return [];
-    data = fallback.data as typeof data;
-    error = null;
+    let withBot = db.from("workspace_messages").select(selectWithBot).eq("channel_id", channelId).order("created_at", { ascending: false }).limit(limit);
+    if (before) withBot = withBot.lt("created_at", before);
+    const mid = await withBot;
+    if (!mid.error) {
+      data = mid.data as typeof data;
+      error = null;
+    } else {
+      let fallbackQuery = db
+        .from("workspace_messages")
+        .select("id, channel_id, user_id, body, created_at")
+        .eq("channel_id", channelId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (before) fallbackQuery = fallbackQuery.lt("created_at", before);
+      const fallback = await fallbackQuery;
+      if (fallback.error) return [];
+      data = fallback.data as typeof data;
+    }
   }
   const rows = (data ?? []).map((row) => mapMessage(row as Record<string, unknown>)).reverse();
+  const botIds = rows.flatMap((message) => (message.botId && !message.author?.displayName ? [message.botId] : []));
+  const bots = await loadMessageBots(botIds);
   const ids = rows.map((m) => m.id);
   const reactionMap = await loadReactions(ids, userId);
   return rows.map((m) => {
-    const author = m.author && !canSeeHiddenBots(viewer) && isHiddenBotIdentity(m.author)
-      ? { displayName: "", username: "", avatarUrl: null }
-      : m.author;
+    const attributed = withBotAuthor(m, bots, viewer);
     return {
-      ...m,
+      ...attributed,
       body: redactBotMentions(m.body, viewer),
-      author,
       reactions: reactionMap.get(m.id) ?? [],
     };
   });
@@ -292,24 +314,51 @@ export async function listMessages(channelId: string, userId?: string, limit = M
 
 export function mapMessage(rec: Record<string, unknown>): WorkspaceMessage {
   const author = rec.author as { display_name?: string; username?: string; avatar_url?: string | null } | null;
+  const bot = readEmbeddedBot(rec);
+  const botId = botIdFromRow(rec) ?? bot?.id ?? null;
   const kind = rec.kind === "file" || rec.kind === "voice" ? rec.kind : "text";
   return {
     id: String(rec.id),
     channelId: String(rec.channel_id),
     userId: String(rec.user_id),
+    botId,
     body: String(rec.body),
     createdAt: String(rec.created_at),
     kind,
     fileName: rec.file_name ? String(rec.file_name) : null,
     fileUrl: rec.file_url ? String(rec.file_url) : null,
     replyTo: rec.reply_to ? String(rec.reply_to) : null,
-    author: {
-      displayName: author?.display_name ?? "",
-      username: author?.username ?? "",
-      avatarUrl: author?.avatar_url ?? null,
-    },
+    author: botId
+      ? {
+          displayName: bot?.displayName ?? "",
+          username: bot?.username ?? "",
+          avatarUrl: bot?.avatarUrl ?? null,
+        }
+      : {
+          displayName: author?.display_name ?? "",
+          username: author?.username ?? "",
+          avatarUrl: author?.avatar_url ?? null,
+        },
     reactions: [],
   };
+}
+
+async function loadMessageBots(ids: string[]) {
+  const map = new Map<string, MessageBot>();
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return map;
+  const db = await createServerSupabase();
+  const { data, error } = await db.from("workspace_bots").select("id, username, display_name").in("id", unique);
+  if (error || !data) return map;
+  for (const row of data) {
+    map.set(String(row.id), {
+      id: String(row.id),
+      username: String(row.username ?? ""),
+      displayName: String(row.display_name ?? ""),
+      avatarUrl: null,
+    });
+  }
+  return map;
 }
 
 async function loadReactions(messageIds: string[], userId?: string) {
@@ -414,6 +463,7 @@ export const listInbox = cache(async (userId?: string, viewer?: BotViewer) => {
     }
   }
 
+  const botLatest = await latestBotByChannel(ids);
   const items: InboxItem[] = [];
   for (const channel of channels) {
     const row = latest.get(channel.id);
@@ -423,17 +473,20 @@ export const listInbox = cache(async (userId?: string, viewer?: BotViewer) => {
     const createdAt = String(row.created_at);
     const peer = peerByChannel.get(channel.id);
     const author = authorMap.get(lastUserId);
+    const botHit = botLatest.get(channel.id);
+    const fromBot = Boolean(botHit && sameInstant(createdAt, botHit.at));
+    const botAuthor = fromBot && botHit ? authorForBot(botHit.bot, viewer) : null;
     const lastRead = reads.get(channel.id);
-    const unread = Boolean(userId && lastUserId !== userId && (!lastRead || createdAt > lastRead));
+    const unread = Boolean(userId && (fromBot || lastUserId !== userId) && (!lastRead || createdAt > lastRead));
     items.push({
       channelId: channel.id,
       channelName: peer?.name || channel.name,
       channelKind: channel.kind,
       preview: chatPreviewText(kind, String(row.body ?? ""), row.file_name ? String(row.file_name) : null),
       createdAt,
-      authorName: lastUserId === userId ? "You" : author?.name || "Teammate",
+      authorName: botAuthor ? botAuthor.displayName : lastUserId === userId ? "You" : author?.name || "Teammate",
       kind,
-      lastUserId,
+      lastUserId: fromBot && botHit ? botHit.bot.id : lastUserId,
       unread,
       unreadCount: unread ? 1 : 0,
       avatarUrl: peer?.avatarUrl ?? (channel.kind === "dm" ? author?.avatarUrl ?? null : null),
@@ -447,6 +500,46 @@ export const listInbox = cache(async (userId?: string, viewer?: BotViewer) => {
     authorName: !canSeeHiddenBots(viewer) && isHiddenBotIdentity({ displayName: item.authorName, username: item.authorName }) ? "" : item.authorName,
   }));
 });
+
+async function latestBotByChannel(channelIds: string[]) {
+  const found = new Map<string, { at: string; bot: MessageBot }>();
+  if (!channelIds.length) return found;
+  const db = await createServerSupabase();
+  const full = await db
+    .from("workspace_messages")
+    .select("channel_id, created_at, bot_id, bot:workspace_bots!bot_id(id, username, display_name)")
+    .in("channel_id", channelIds)
+    .not("bot_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(Math.min(400, channelIds.length * 6));
+  let rows: Array<Record<string, unknown>> | null = !full.error ? ((full.data ?? []) as Array<Record<string, unknown>>) : null;
+  if (full.error) {
+    const plain = await db
+      .from("workspace_messages")
+      .select("channel_id, created_at, bot_id")
+      .in("channel_id", channelIds)
+      .not("bot_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(Math.min(400, channelIds.length * 6));
+    rows = plain.error ? null : ((plain.data ?? []) as Array<Record<string, unknown>>);
+  }
+  for (const row of rows ?? []) {
+    const channelId = String(row.channel_id);
+    if (found.has(channelId) || !row.bot_id) continue;
+    const embedded = readEmbeddedBot(row);
+    found.set(channelId, {
+      at: String(row.created_at),
+      bot: embedded ?? { id: String(row.bot_id), username: "", displayName: "", avatarUrl: null },
+    });
+  }
+  return found;
+}
+
+function sameInstant(a: string, b: string) {
+  const left = Date.parse(a);
+  const right = Date.parse(b);
+  return !Number.isNaN(left) && left === right;
+}
 
 export const listNavMeetings = cache(async () => {
   const rows = await listMeetings(NAV_LIMIT);
@@ -564,12 +657,13 @@ export async function listVisibleBots(viewer?: BotViewer): Promise<WorkspaceBot[
   const rows = source ?? table?.data ?? [];
   if (!source && table?.error) return [];
   return rows.map((row) => {
-    const record = row as { id?: unknown; username?: unknown; display_name?: unknown; channel_id?: unknown };
+    const record = row as { id?: unknown; username?: unknown; display_name?: unknown; channel_id?: unknown; avatar_url?: unknown };
     return {
       id: String(record.id),
       username: String(record.username ?? ""),
       displayName: String(record.display_name ?? ""),
       channelId: record.channel_id ? String(record.channel_id) : null,
+      avatarUrl: typeof record.avatar_url === "string" ? record.avatar_url : null,
     };
   });
 }

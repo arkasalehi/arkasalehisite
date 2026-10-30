@@ -22,7 +22,7 @@ export function BotRoster({ bots }: { bots: WorkspaceBot[] }) {
           {bots.map((bot) => (
             <li key={bot.id}>
               <Link href={bot.channelId ? `/ws/chat/${bot.channelId}` : "/ws/chat"} className="ws-card flex items-center gap-3">
-                <ChatAvatar name={bot.displayName || bot.username} url={null} color={chatAvatarColor(bot.id)} size={48} />
+                <ChatAvatar name={bot.displayName || bot.username} url={bot.avatarUrl} color={chatAvatarColor(bot.id)} size={48} />
                 <span className="min-w-0">
                   <span className="block truncate text-[16px] font-semibold">{bot.displayName || bot.username}</span>
                   <span className="block text-[12px] text-[var(--theme-darker-color)]">@{bot.username}</span>
