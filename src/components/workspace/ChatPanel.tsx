@@ -5,7 +5,7 @@ import { ChevronLeft, Paperclip, Mic, SendHorizontal } from "lucide-react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import type { ChatPerson, WorkspaceBot, WorkspaceMessage } from "@/lib/data/workspace";
-import { botIdFromRow, isOwnChatMessage } from "@/lib/workspace/bot-visibility";
+import { botIdFromRow, isOwnChatMessage, showsInMainTimeline } from "@/lib/workspace/bot-visibility";
 import { chatAvatarColor, CHAT_PAGE_SIZE } from "@/lib/workspace/chat";
 import { loadChatPrefs } from "@/lib/workspace/prefs";
 import { uploadWorkspaceFile } from "@/lib/workspace/uploadClient";
@@ -378,7 +378,7 @@ export function ChatPanel({
 
   const [chatPrefs, setChatPrefs] = useState(() => loadChatPrefs());
   const byId = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
-  const roots = messages.filter((m) => !m.replyTo);
+  const roots = messages.filter((m) => showsInMainTimeline(m));
   const thread = threadOf ? messages.filter((m) => m.id === threadOf || m.replyTo === threadOf) : [];
   const dm = channelKind === "dm" || channelKind === "private";
 
@@ -411,7 +411,7 @@ export function ChatPanel({
               name={view.name}
               avatarUrl={view.avatarUrl}
               quoted={m.replyTo ? (byId.get(m.replyTo) ?? null) : null}
-              replies={messages.filter((x) => x.replyTo === m.id).length}
+              replies={messages.filter((x) => x.replyTo === m.id && !x.botId).length}
               onReply={() => setReplyTo(m)}
               onThread={() => setThreadOf(m.id)}
               onReact={(e) => void react(m.id, e)}

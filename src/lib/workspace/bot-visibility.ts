@@ -128,3 +128,11 @@ export function withBotAuthor<T extends BotAuthored>(message: T, bots: Map<strin
   const bot = known && (known.displayName || known.username) ? known : embedded.displayName || embedded.username ? embedded : (known ?? embedded);
   return { ...message, author: authorForBot(bot, viewer) };
 }
+
+/**
+ * Main chat timeline. Human replies (reply_to set, no bot) stay in the side thread.
+ * Bot replies are stored with reply_to pointing at the owner message, but they belong inline.
+ */
+export function showsInMainTimeline(message: { replyTo?: string | null; botId?: string | null }): boolean {
+  return !message.replyTo || Boolean(message.botId);
+}

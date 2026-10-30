@@ -7,6 +7,7 @@ import {
   isHiddenBotIdentity,
   isOwnChatMessage,
   readEmbeddedBot,
+  showsInMainTimeline,
   redactBotMentions,
   withBotAuthor,
 } from "./bot-visibility.ts";
@@ -117,5 +118,15 @@ const human = withBotAuthor(
 );
 assert.equal(human.author?.displayName, "Arka");
 assert.equal(human.author?.avatarUrl, "https://example.com/a.png");
+
+assert.equal(showsInMainTimeline({ replyTo: null, botId: null }), true);
+assert.equal(
+  showsInMainTimeline({
+    replyTo: "6b1a031f-a3af-402c-879d-14ca0db0b5f7",
+    botId: "092d3651-2cf4-49e7-8575-05ef6006abda",
+  }),
+  true,
+);
+assert.equal(showsInMainTimeline({ replyTo: "6b1a031f-a3af-402c-879d-14ca0db0b5f7", botId: null }), false);
 
 console.log("wpbot visibility: pass");
