@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, SlidersHorizontal, X } from "lucide-react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
-import { createBrowserSupabase } from "@/lib/supabase/browser";
+import { createBrowserSupabase, ensureRealtimeAuth } from "@/lib/supabase/browser";
 import type { ChatPerson, InboxItem, WorkspaceBot } from "@/lib/data/workspace";
-import { botIdFromRow } from "@/lib/workspace/bot-visibility";
+import { botIdFromRow, realtimeInsertOmitsBot } from "@/lib/workspace/bot-visibility";
 import { chatAvatarColor, chatPreviewText, formatChatWhen } from "@/lib/workspace/chat";
 import { ChatAvatar } from "@/components/workspace/ChatAvatar";
 import { useWsChrome } from "@/lib/theme/workspace";
@@ -63,12 +63,25 @@ export function ChatHome({
       const data = (await res.json().catch(() => ({}))) as { items?: InboxItem[] };
       if (res.ok && Array.isArray(data.items)) setItems(data.items);
     }
-    const channel = supabase
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await ensureRealtimeAuth(supabase);
+      } catch {
+        /* Subscribe even if the cookie session could not be copied onto the socket. */
+      }
+      if (cancelled) return;
+      channel = supabase
       .channel("workspace-chat-inbox")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "workspace_messages" }, (payload) => {
         const row = payload.new as Record<string, string>;
         const channelId = row.channel_id;
         if (!channelId) return;
+        if (realtimeInsertOmitsBot(row)) {
+          void refresh();
+          return;
+        }
         setItems((prev) => {
           const existing = prev.find((item) => item.channelId === channelId);
           if (!existing) {
@@ -94,10 +107,16 @@ export function ChatHome({
             ...prev.filter((item) => item.channelId !== channelId),
           ];
         });
-      })
-      .subscribe();
+      });
+      if (cancelled) {
+        void supabase.removeChannel(channel);
+        return;
+      }
+      channel.subscribe();
+    })();
     return () => {
-      void supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [botsById, userId]);
 

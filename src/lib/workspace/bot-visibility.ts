@@ -136,3 +136,14 @@ export function withBotAuthor<T extends BotAuthored>(message: T, bots: Map<strin
 export function showsInMainTimeline(message: { replyTo?: string | null; botId?: string | null }): boolean {
   return !message.replyTo || Boolean(message.botId);
 }
+
+/**
+ * Realtime INSERT rows are the committed tuple, but a payload with reply_to and no bot_id
+ * looks like a human thread reply. Those must be loaded from the API before display,
+ * or a wpbot reply (user_id = owner, reply_to set) is kept out of the main timeline.
+ */
+export function realtimeInsertOmitsBot(row: { bot_id?: unknown; botId?: unknown; reply_to?: unknown; replyTo?: unknown } | null | undefined): boolean {
+  if (!row || botIdFromRow(row)) return false;
+  const reply = row.reply_to ?? row.replyTo;
+  return typeof reply === "string" && reply.length > 0;
+}
