@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Paperclip, Mic, SendHorizontal } from "lucide-react";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
-import { createBrowserSupabase } from "@/lib/supabase/browser";
+import { createBrowserSupabase, ensureRealtimeAuth } from "@/lib/supabase/browser";
 import type { ChatPerson, WorkspaceBot, WorkspaceMessage } from "@/lib/data/workspace";
-import { botIdFromRow, isOwnChatMessage, showsInMainTimeline } from "@/lib/workspace/bot-visibility";
+import { botIdFromRow, isOwnChatMessage, realtimeInsertOmitsBot, showsInMainTimeline } from "@/lib/workspace/bot-visibility";
 import { chatAvatarColor, CHAT_PAGE_SIZE } from "@/lib/workspace/chat";
 import { loadChatPrefs } from "@/lib/workspace/prefs";
 import { uploadWorkspaceFile } from "@/lib/workspace/uploadClient";
@@ -154,6 +154,9 @@ export function ChatPanel({
     } catch {
       return;
     }
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
     async function botById(botId: string): Promise<WorkspaceBot | undefined> {
       const known = botsById.get(botId) ?? extraBots.current.get(botId);
       if (known) return known;
@@ -167,69 +170,117 @@ export function ChatPanel({
       return extraBots.current.get(botId);
     }
 
-    const channel = supabase
-      .channel(`workspace-chat:${channelId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "workspace_messages", filter: `channel_id=eq.${channelId}` },
-        (payload) => {
-          const row = payload.new as Record<string, unknown>;
-          if (!row?.id || typeof row.id !== "string") return;
+    function paintRow(row: Record<string, unknown>, botId: string | null, bot: WorkspaceBot | undefined) {
+      const user = asText(row.user_id);
+      const base = asMessage(row, bot ? bot.displayName || bot.username : names(user));
+      if (!botId) {
+        mergeIncoming({
+          ...base,
+          botId: null,
+          author: {
+            displayName: names(user),
+            username: peopleById.get(user)?.username ?? "",
+            avatarUrl: avatars(user),
+          },
+        });
+        return;
+      }
+      mergeIncoming({
+        ...base,
+        botId,
+        author: {
+          displayName: bot?.displayName || bot?.username || "",
+          username: bot?.username ?? "",
+          avatarUrl: bot?.avatarUrl ?? null,
+        },
+      });
+    }
+
+    async function messageFromApi(id: string): Promise<WorkspaceMessage | null> {
+      const res = await fetch(`/api/workspace/messages?channelId=${encodeURIComponent(channelId)}`);
+      if (!res.ok) return null;
+      const data = (await res.json().catch(() => ({}))) as { messages?: WorkspaceMessage[] };
+      return data.messages?.find((message) => message.id === id) ?? null;
+    }
+
+    async function absorbInsert(row: Record<string, unknown>) {
+      const id = asText(row.id);
+      if (!id) return;
+      const arrivedChannel = asText(row.channel_id);
+      if (arrivedChannel && arrivedChannel !== channelId) return;
+      if (realtimeInsertOmitsBot(row)) {
+        const resolved = await messageFromApi(id);
+        if (cancelled) return;
+        if (resolved) {
+          mergeIncoming(resolved);
+          return;
+        }
+      }
+      const botId = botIdFromRow(row);
+      const bot = botId ? await botById(botId) : undefined;
+      if (cancelled) return;
+      paintRow(row, botId, bot);
+    }
+
+    void (async () => {
+      try {
+        await ensureRealtimeAuth(supabase);
+      } catch {
+        /* Subscribe even if the cookie session could not be copied onto the socket. */
+      }
+      if (cancelled) return;
+      channel = supabase
+        .channel(`workspace-chat:${channelId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "workspace_messages", filter: `channel_id=eq.${channelId}` },
+          (payload) => {
+            const row = payload.new as Record<string, unknown>;
+            if (typeof row?.id !== "string") return;
+            void absorbInsert(row);
+          },
+        )
+        .on("broadcast", { event: "message" }, ({ payload }) => {
+          const row = payload as WorkspaceMessage | null;
+          if (!row?.id) return;
           void (async () => {
-            const botId = botIdFromRow(row);
-            const user = asText(row.user_id);
-            const bot = botId ? await botById(botId) : undefined;
-            const base = asMessage(row, bot ? bot.displayName || bot.username : names(user));
+            const botId = row.botId || null;
             if (!botId) {
-              mergeIncoming({
-                ...base,
-                botId: null,
-                author: {
-                  displayName: names(user),
-                  username: peopleById.get(user)?.username ?? "",
-                  avatarUrl: avatars(user),
-                },
-              });
+              if (realtimeInsertOmitsBot(row)) {
+                const resolved = await messageFromApi(row.id);
+                if (!cancelled && resolved) mergeIncoming(resolved);
+                return;
+              }
+              mergeIncoming({ ...row, botId: null });
               return;
             }
+            const bot = await botById(botId);
+            if (cancelled) return;
             mergeIncoming({
-              ...base,
+              ...row,
               botId,
-              author: {
-                displayName: bot?.displayName || bot?.username || "",
-                username: bot?.username ?? "",
-                avatarUrl: bot?.avatarUrl ?? null,
-              },
+              author: bot
+                ? {
+                    displayName: bot.displayName || bot.username,
+                    username: bot.username,
+                    avatarUrl: bot.avatarUrl,
+                  }
+                : row.author?.displayName
+                  ? row.author
+                  : { displayName: "", username: "", avatarUrl: null },
             });
           })();
-        },
-      )
-      .on("broadcast", { event: "message" }, ({ payload }) => {
-        const row = payload as WorkspaceMessage | null;
-        if (!row?.id) return;
-        void (async () => {
-          const botId = row.botId || null;
-          if (!botId) {
-            mergeIncoming({ ...row, botId: null });
-            return;
-          }
-          const bot = await botById(botId);
-          mergeIncoming({
-            ...row,
-            botId,
-            author: bot
-              ? {
-                  displayName: bot.displayName || bot.username,
-                  username: bot.username,
-                  avatarUrl: bot.avatarUrl,
-                }
-              : { displayName: "", username: "", avatarUrl: null },
-          });
-        })();
-      })
-      .subscribe();
+        });
+      if (cancelled) {
+        void supabase.removeChannel(channel);
+        return;
+      }
+      channel.subscribe();
+    })();
+
     return () => {
-      void supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [avatars, botsById, channelId, mergeIncoming, names, peopleById]);
 

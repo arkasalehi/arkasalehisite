@@ -7,6 +7,7 @@ import {
   isHiddenBotIdentity,
   isOwnChatMessage,
   readEmbeddedBot,
+  realtimeInsertOmitsBot,
   showsInMainTimeline,
   redactBotMentions,
   withBotAuthor,
@@ -128,5 +129,23 @@ assert.equal(
   true,
 );
 assert.equal(showsInMainTimeline({ replyTo: "6b1a031f-a3af-402c-879d-14ca0db0b5f7", botId: null }), false);
+
+assert.equal(
+  realtimeInsertOmitsBot({
+    bot_id: "092d3651-2cf4-49e7-8575-05ef6006abda",
+    reply_to: "6b1a031f-a3af-402c-879d-14ca0db0b5f7",
+    user_id: "37559097-fa3f-434e-a61e-c4203f48c528",
+  }),
+  false,
+);
+assert.equal(
+  realtimeInsertOmitsBot({
+    bot_id: null,
+    reply_to: "6b1a031f-a3af-402c-879d-14ca0db0b5f7",
+    user_id: "37559097-fa3f-434e-a61e-c4203f48c528",
+  }),
+  true,
+);
+assert.equal(realtimeInsertOmitsBot({ bot_id: null, reply_to: null }), false);
 
 console.log("wpbot visibility: pass");
