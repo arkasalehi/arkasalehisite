@@ -1,119 +1,77 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
-import { navItems } from "@/lib/config";
-import { cn } from "@/lib/utils";
-import { Dropdown } from "@/components/ui/Dropdown";
-import { CloseIcon, MenuIcon, UserIcon } from "@/components/icons";
+import { navItems, siteConfig } from "@/lib/config";
+import { CloseIcon, MenuIcon } from "@/components/icons";
 import { canAccessWorkspace, isAdminRole } from "@/lib/auth/roles";
 import { workspaceUrl } from "@/lib/runtime";
 import { useAuth } from "@/components/providers";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { SearchBox } from "@/components/layout/SearchBox";
-import { Button } from "@/components/ui/Button";
+import { Dropdown } from "@/components/ui/Dropdown";
 import type { SiteCms } from "@/lib/cms/types";
 
-type NavLink = { href: string; title: string; body: string; external?: boolean };
+type NavLink = { href: string; label: string; external?: boolean };
 
-const MENUS: Array<{ label: string; items: NavLink[] }> = [
-  {
-    label: "محصول",
-    items: [
-      { href: "/blog", title: "وبلاگ", body: "یادداشت‌های استودیو، با همان زبان کار روزمره." },
-      { href: "/video", title: "ویدیو", body: "قاب‌های بلند و برش‌های برگزیده." },
-      { href: "/#work", title: "کارها", body: "آخرین نوشته‌ها و ویدیوها در صفحهٔ اول." },
-    ],
-  },
-  {
-    label: "ورک‌اسپیس",
-    items: [
-      { href: workspaceUrl(), title: "استودیو", body: "تسک، چت، سند و جلسه در یک فضا.", external: true },
-      { href: "/#skills", title: "مهارت‌ها", body: "طراحی، وب و جلسهٔ معماری محصول." },
-      { href: "/login", title: "ورود همکاران", body: "حساب همکار برای دسترسی به استودیو." },
-    ],
-  },
-  {
-    label: "منابع",
-    items: [
-      { href: "/#pricing", title: "قیمت‌ها", body: "بسته‌ها و سفارش پروژه." },
-      { href: "/#contact", title: "تماس", body: "پیام برای سفارش کار." },
-      { href: "/dashboard", title: "داشبورد", body: "ذخیره‌ها، فعالیت و تنظیمات حساب." },
-      { href: "mailto:hello@arkasalehi.ir", title: "تماس", body: "hello@arkasalehi.ir", external: true },
-    ],
-  },
+const PILL: NavLink[] = [
+  { href: "/", label: "خانه" },
+  { href: "/blog", label: "وبلاگ" },
+  { href: "/video", label: "ویدیو" },
+  { href: "/#pricing", label: "قیمت‌ها" },
+  { href: "/#contact", label: "تماس" },
 ];
+
+const MORE: NavLink[] = [
+  { href: "/#skills", label: "مهارت‌ها" },
+  { href: "/#work", label: "کارها" },
+  { href: "/dashboard", label: "داشبورد" },
+  { href: workspaceUrl(), label: "ورک‌اسپیس", external: true },
+];
+
+function safeCta(value: string | undefined) {
+  if (!value) return "/#contact";
+  if (value.startsWith("#")) return `/${value}`;
+  if (value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")) return value;
+  return "/#contact";
+}
+
+function isCurrent(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  if (href.startsWith("/#")) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavAnchor({ item, onClick, className }: { item: NavLink; onClick?: () => void; className?: string }) {
+  if (item.external || item.href.startsWith("http") || item.href.startsWith("mailto:")) {
+    return (
+      <a href={item.href} className={className} onClick={onClick} rel="noreferrer">
+        {item.label}
+      </a>
+    );
+  }
+  return (
+    <Link href={item.href} className={className} onClick={onClick}>
+      {item.label}
+    </Link>
+  );
+}
 
 function Mark() {
   return (
-    <span className="grid h-7 w-7 place-items-center rounded-md bg-[var(--brand)] text-[14px] font-semibold text-[var(--brand-fg)]" aria-hidden>
+    <span className="ph-brand-mark" aria-hidden>
       آ
     </span>
   );
 }
 
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <svg viewBox="0 0 20 20" className={cn("h-3.5 w-3.5 transition-transform duration-200", open && "rotate-180")} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M5 7.5 10 12.5 15 7.5" />
-    </svg>
-  );
-}
-
-function MenuLink({ item, onClick }: { item: NavLink; onClick?: () => void }) {
-  const cls = "block rounded-md px-3 py-2.5 transition-colors duration-200 hover:bg-foreground/5";
-  const inner = (
-    <>
-      <span className="block text-[13px] font-medium text-foreground">{item.title}</span>
-      <span className="mt-0.5 block text-[12px] leading-5 text-muted">{item.body}</span>
-    </>
-  );
-  if (item.external || item.href.startsWith("mailto:") || item.href.startsWith("http")) {
-    return (
-      <a href={item.href} className={cls} onClick={onClick} rel="noreferrer">
-        {inner}
-      </a>
-    );
-  }
-  return (
-    <Link href={item.href} className={cls} onClick={onClick}>
-      {inner}
-    </Link>
-  );
-}
-
-function NavMenu({ label, items }: { label: string; items: NavLink[] }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button
-        type="button"
-        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[14px] text-muted transition-colors duration-200 hover:text-foreground"
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {label}
-        <Chevron open={open} />
-      </button>
-      {open ? (
-        <div className="absolute start-0 top-full z-50 w-[300px] pt-2">
-          <div className="rounded-lg border border-border bg-card p-1.5 shadow-2xl" role="menu">
-            {items.map((item) => (
-              <MenuLink key={`${item.href}-${item.title}`} item={item} onClick={() => setOpen(false)} />
-            ))}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-export function Header({ cms }: { cms: SiteCms }) {
+export function Header({ cms, embedded = false }: { cms: SiteCms; embedded?: boolean }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [section, setSection] = useState<string | null>(MENUS[0]?.label ?? null);
+  const cta = cms.hero.ctaPrimary || "سفارش پروژه";
+  const ctaHref = safeCta(cms.hero.ctaPrimaryHref);
 
   useEffect(() => {
     if (!open) return;
@@ -125,128 +83,100 @@ export function Header({ cms }: { cms: SiteCms }) {
   }, [open]);
 
   return (
-    <header className="site-nav sticky top-0 z-40 border-b border-border bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
-      <div className="site-container flex h-14 items-center gap-2">
-        <Link href="/" className="flex min-w-0 items-center gap-2" aria-label={cms.seo.title || "آرکا صالحی"}>
+    <header className={embedded ? "ph-header ph-header-embed" : "ph-header"}>
+      <div className={embedded ? "ph-header-bar" : "site-container ph-header-bar"}>
+        <Link href="/" className="ph-brand" aria-label={cms.seo.title || siteConfig.name}>
           <Mark />
-          <span className="hidden truncate text-[15px] font-semibold tracking-tight text-foreground sm:inline">آرکا صالحی</span>
+          <span className="ph-brand-name">{siteConfig.name}</span>
         </Link>
 
-        <nav className="hidden items-center lg:flex" aria-label="اصلی">
-          {MENUS.map((menu) => (
-            <NavMenu key={menu.label} label={menu.label} items={menu.items} />
+        <nav className="ph-pillnav" aria-label="اصلی">
+          {PILL.map((item) => (
+            <Link key={item.href} href={item.href} aria-current={isCurrent(pathname, item.href) ? "page" : undefined}>
+              {item.label}
+            </Link>
           ))}
         </nav>
 
-        <div className="ms-auto flex min-w-0 items-center justify-end gap-1">
-          <SearchBox className="hidden w-40 min-w-0 lg:block" />
-          <div className="hidden items-center lg:flex">
-            <ThemeToggle />
-            {user ? (
-              <>
-                <NotificationBell />
-                <Dropdown
-                  align="end"
-                  trigger={
-                    <span className="rounded-md p-2 text-muted transition-colors duration-200 hover:text-foreground">
-                      <UserIcon />
-                    </span>
-                  }
-                >
-                  <Link href="/dashboard" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                    داشبورد
+        <div className="ph-actions">
+          {embedded ? null : (
+            <div className="ph-header-search">
+              <SearchBox pill className="w-40" />
+            </div>
+          )}
+          {user ? <NotificationBell /> : null}
+          <Link href={ctaHref || "/#contact"} className="ph-btn ph-btn-black ph-desktop-only">
+            {cta}
+          </Link>
+          {user ? (
+            <div className="ph-account ph-desktop-only">
+              <Dropdown
+                align="end"
+                trigger={<span className="ph-btn ph-btn-light">حساب</span>}
+              >
+                <Link href="/dashboard" className="block rounded-xl px-3 py-2 text-sm hover:bg-foreground/5">
+                  داشبورد
+                </Link>
+                {canAccessWorkspace(user.role) ? (
+                  <a href={workspaceUrl()} className="block rounded-xl px-3 py-2 text-sm hover:bg-foreground/5">
+                    ورک‌اسپیس
+                  </a>
+                ) : null}
+                {isAdminRole(user.role) ? (
+                  <Link href="/admin" className="block rounded-xl px-3 py-2 text-sm hover:bg-foreground/5">
+                    پنل ادمین
                   </Link>
-                  {canAccessWorkspace(user.role) ? (
-                    <a href={workspaceUrl()} className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                      ورک‌اسپیس
-                    </a>
-                  ) : null}
-                  {isAdminRole(user.role) ? (
-                    <Link href="/admin" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                      پنل ادمین
-                    </Link>
-                  ) : null}
-                  <Link href="/dashboard/saved" className="block rounded-md px-3 py-2 text-sm hover:bg-foreground/5">
-                    ذخیره‌ها
-                  </Link>
-                </Dropdown>
-              </>
-            ) : (
-              <Link href="/login" className="shrink-0 rounded-md px-2.5 py-1.5 text-[14px] text-muted transition-colors duration-200 hover:text-foreground">
-                ورود
-              </Link>
-            )}
-          </div>
-          <Button href="/#contact" className="ms-1 h-8 shrink-0 px-3 text-[13px]">
-            شروع
-          </Button>
+                ) : null}
+                <Link href="/dashboard/saved" className="block rounded-xl px-3 py-2 text-sm hover:bg-foreground/5">
+                  ذخیره‌ها
+                </Link>
+              </Dropdown>
+            </div>
+          ) : (
+            <Link href="/login" className="ph-btn ph-btn-light ph-desktop-only">
+              ورود
+            </Link>
+          )}
+          <button
+            type="button"
+            className="ph-menu-btn"
+            aria-label={open ? "بستن منو" : "منو"}
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
-        <button
-          type="button"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-foreground lg:hidden"
-          aria-label={open ? "بستن منو" : "منو"}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <CloseIcon /> : <MenuIcon />}
-        </button>
       </div>
 
       {open ? (
-        <div className="fixed inset-0 top-14 z-40 overflow-auto bg-[var(--bg)] lg:hidden">
-          <nav className="mx-auto flex w-full max-w-[1440px] flex-col gap-1 px-4 py-4" aria-label="موبایل">
-            {MENUS.map((menu) => {
-              const expanded = section === menu.label;
-              return (
-                <div key={menu.label} className="border-b border-border">
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between py-3 text-[15px] font-medium"
-                    aria-expanded={expanded}
-                    onClick={() => setSection(expanded ? null : menu.label)}
-                  >
-                    {menu.label}
-                    <Chevron open={expanded} />
-                  </button>
-                  {expanded ? (
-                    <div className="pb-3">
-                      {menu.items.map((item) => (
-                        <MenuLink key={`${item.href}-${item.title}`} item={item} onClick={() => setOpen(false)} />
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-            <div className="mt-4 flex flex-col gap-2">
-              <SearchBox className="w-full" />
-              <div className="flex items-center justify-between rounded-md border border-border px-3 py-1">
-                <span className="text-sm text-muted">پوسته</span>
-                <ThemeToggle />
-              </div>
-              {user ? (
-                <>
-                  <Link href="/dashboard" className="rounded-md px-3 py-2 text-sm hover:bg-foreground/5" onClick={() => setOpen(false)}>
-                    داشبورد
-                  </Link>
-                  <Link href="/dashboard/notifications" className="rounded-md px-3 py-2 text-sm hover:bg-foreground/5" onClick={() => setOpen(false)}>
-                    اعلان‌ها
-                  </Link>
-                  {isAdminRole(user.role) ? (
-                    <Link href="/admin" className="rounded-md px-3 py-2 text-sm hover:bg-foreground/5" onClick={() => setOpen(false)}>
-                      پنل ادمین
-                    </Link>
-                  ) : null}
-                </>
-              ) : (
-                <Button href="/login" variant="ghost" className="w-full">
-                  ورود
-                </Button>
-              )}
-              <Button href="/#contact" className="w-full" onClick={() => setOpen(false)}>
-                شروع گفتگو
-              </Button>
-            </div>
+        <div className="ph-drawer" role="presentation" onClick={() => setOpen(false)}>
+          <nav className="ph-drawer-panel" aria-label="موبایل" onClick={(e) => e.stopPropagation()}>
+            <SearchBox pill className="w-full" />
+            {PILL.map((item) => (
+              <NavAnchor key={item.href} item={item} onClick={() => setOpen(false)} />
+            ))}
+            <p className="ph-drawer-label">بیشتر</p>
+            {MORE.map((item) => (
+              <NavAnchor key={item.href} item={item} onClick={() => setOpen(false)} />
+            ))}
+            {user ? (
+              <Link href="/dashboard/notifications" onClick={() => setOpen(false)}>
+                اعلان‌ها
+              </Link>
+            ) : (
+              <Link href="/login" onClick={() => setOpen(false)}>
+                ورود
+              </Link>
+            )}
+            {user && isAdminRole(user.role) ? (
+              <Link href="/admin" onClick={() => setOpen(false)}>
+                پنل ادمین
+              </Link>
+            ) : null}
+            <Link href={ctaHref || "/#contact"} className="ph-btn ph-btn-black mt-2" onClick={() => setOpen(false)}>
+              {cta}
+            </Link>
           </nav>
         </div>
       ) : null}
@@ -265,46 +195,35 @@ export function Footer({ cms }: { cms: SiteCms }) {
   const legal = cms.footer.links.filter((item) => !navItems.some((n) => n.href === item.href));
 
   return (
-    <footer className="border-t border-border bg-[var(--footer)] text-foreground">
-      <div className="site-container grid gap-10 py-14 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <Link href="/" className="flex items-center gap-2">
+    <footer className="ph-footer">
+      <div className="site-container ph-footer-grid">
+        <div>
+          <Link href="/" className="ph-brand">
             <Mark />
-            <span className="text-[15px] font-semibold tracking-tight">آرکا صالحی</span>
+            <span>{siteConfig.name}</span>
           </Link>
-          <p className="mt-4 max-w-sm text-sm leading-7 text-muted">{cms.about.bio}</p>
-          <form
-            className="mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:items-center"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              type="email"
-              required
-              placeholder="ایمیل برای خبرنامه"
-              className="field"
-              aria-label="ایمیل خبرنامه"
-            />
-            <button type="submit" className="sb-btn sb-btn-primary h-10 shrink-0 px-4">
+          <p className="ph-footer-bio">{cms.about.bio}</p>
+          <form className="ph-footer-form" onSubmit={(e) => e.preventDefault()}>
+            <input type="email" required placeholder="ایمیل برای خبرنامه" className="field" aria-label="ایمیل خبرنامه" />
+            <button type="submit" className="ph-btn ph-btn-black">
               عضویت
             </button>
           </form>
         </div>
-        <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3 md:col-span-8">
+        <div className="ph-footer-cols">
           <FooterCol title="پلتفرم" items={platform} />
           <FooterCol title="محتوا" items={content} />
           <FooterCol title="قانونی" items={legal.length ? legal : [{ href: "mailto:hello@arkasalehi.ir", label: "تماس" }]} />
         </div>
       </div>
-      <div className="border-t border-border">
-        <div className="site-container flex flex-wrap items-center justify-between gap-4 py-5">
-          <p className="text-xs text-muted">© {new Date().getFullYear()} آرکا صالحی</p>
-          <div className="flex items-center gap-4 text-muted">
-            {cms.socials.map((s) => (
-              <a key={`${s.href}-${s.label}`} href={s.href} className="text-xs transition-colors duration-200 hover:text-foreground" rel="noreferrer">
-                {s.label}
-              </a>
-            ))}
-          </div>
+      <div className="site-container ph-footer-bar">
+        <p>© {new Date().getFullYear()} {siteConfig.name}</p>
+        <div className="ph-footer-socials">
+          {cms.socials.map((item) => (
+            <a key={`${item.href}-${item.label}`} href={item.href} rel="noreferrer">
+              {item.label}
+            </a>
+          ))}
         </div>
       </div>
     </footer>
@@ -314,24 +233,19 @@ export function Footer({ cms }: { cms: SiteCms }) {
 function FooterCol({ title, items }: { title: string; items: Array<{ href: string; label: string }> }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted">{title}</p>
-      <ul className="mt-4 space-y-2.5">
-        {items.map((item) => {
-          const cls = "text-sm text-foreground/90 transition-colors duration-200 hover:text-[var(--brand)]";
-          return (
-            <li key={`${item.href}-${item.label}`}>
-              {item.href.startsWith("http") || item.href.startsWith("mailto:") ? (
-                <a href={item.href} className={cls} rel="noreferrer">
-                  {item.label}
-                </a>
-              ) : (
-                <Link href={item.href} className={cls}>
-                  {item.label}
-                </Link>
-              )}
-            </li>
-          );
-        })}
+      <p>{title}</p>
+      <ul>
+        {items.map((item) => (
+          <li key={`${item.href}-${item.label}`}>
+            {item.href.startsWith("http") || item.href.startsWith("mailto:") ? (
+              <a href={item.href} rel="noreferrer">
+                {item.label}
+              </a>
+            ) : (
+              <Link href={item.href}>{item.label}</Link>
+            )}
+          </li>
+        ))}
       </ul>
     </div>
   );

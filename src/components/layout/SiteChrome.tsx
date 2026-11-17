@@ -11,12 +11,12 @@ export function SiteChrome({ children, cms }: { children: React.ReactNode; cms: 
 
   return (
     <div className="site-saas flex min-h-full flex-col">
-      <Header cms={cms} />
+      {home ? null : <Header cms={cms} />}
       <main className="w-full flex-1">
         {home ? (
           children
         ) : (
-          <div className="site-container py-10 md:py-16">
+          <div className="site-container py-8 md:py-12">
             <OnboardingBanner />
             {children}
           </div>

@@ -69,14 +69,14 @@ export async function PostDetail({
           </>
         ) : null}
       </p>
-      <h1 className="mt-3 max-w-3xl text-[28px] font-semibold leading-[1.25] tracking-tight md:text-[36px]">{post.title}</h1>
+      <h1 className="mt-3 max-w-3xl text-[32px] font-extrabold leading-[1.25] tracking-[-0.045em] md:text-[42px]">{post.title}</h1>
       <p className="mt-4 text-muted">
         {post.publishedAt ? formatDate(post.publishedAt) : ""}
         {post.readingTime ? ` · ${formatNumber(post.readingTime)} دقیقه مطالعه` : ""}
         {` · ${formatNumber(post.viewCount)} بازدید`}
       </p>
 
-      <div className="relative mt-8 aspect-video overflow-hidden rounded-xl border border-border bg-foreground/5">
+      <div className="relative mt-8 aspect-video overflow-hidden rounded-[22px] border border-border bg-foreground/5">
         <CoverImage
           src={post.coverImage}
           alt={post.title}

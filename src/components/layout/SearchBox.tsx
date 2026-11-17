@@ -15,7 +15,7 @@ type Hit = {
   excerpt?: string | null;
 };
 
-export function SearchBox({ className }: { className?: string }) {
+export function SearchBox({ className, pill = false }: { className?: string; pill?: boolean }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -51,14 +51,19 @@ export function SearchBox({ className }: { className?: string }) {
 
   return (
     <div ref={box} className={cn("relative", className)}>
-      <label className="flex h-9 items-center gap-2 rounded-md border border-border px-3 text-muted">
+      <label
+        className={cn(
+          "flex items-center gap-2 border px-3 text-muted",
+          pill ? "h-10 rounded-full border-[#e6e6ee] bg-white" : "h-9 rounded-md border-border",
+        )}
+      >
         <SearchIcon className="h-4 w-4 shrink-0" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => hits.length && setOpen(true)}
           placeholder="جستجو"
-          className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted md:w-28"
+          className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
           aria-label="جستجوی محتوا"
         />
       </label>

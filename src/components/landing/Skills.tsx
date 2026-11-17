@@ -1,3 +1,6 @@
+import { siteConfig } from "@/lib/config";
+import { ArrowUp, SkillGlyph } from "@/components/landing/marks";
+
 const SKILLS = [
   {
     title: "طراحی محصول",
@@ -27,23 +30,81 @@ const SKILLS = [
   },
 ];
 
-export function Skills() {
+const HIGHLIGHTS = ["شخصی", "انتشار", "طراحی", "محتوا", "وب"];
+
+function featureLine(bio: string) {
+  const parts = bio
+    .split(/(?<=[.!؟])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const line = (parts.length > 1 ? parts.slice(1).join(" ") : parts[0] || "").replace(/[.!؟]\s*$/, "");
+  return line;
+}
+
+function Emphasized({ text }: { text: string }) {
+  const word = HIGHLIGHTS.find((item) => text.includes(item));
+  if (!word) return text;
+  const index = text.indexOf(word);
   return (
-    <section id="skills" className="site-container scroll-mt-20 py-16 md:py-24">
-      <div className="max-w-2xl">
-        <h2 className="text-[28px] font-semibold tracking-tight text-foreground md:text-[36px]">مهارت‌ها</h2>
-        <p className="mt-3 text-[15px] leading-8 text-muted">
-          کارهایی که از بیو، دسته‌ها و محتوای همین سایت درمی‌آید. دو مورد آخر را جدا علامت زدم چون در مخزن سندی ندارند.
-        </p>
+    <>
+      {text.slice(0, index)}
+      <span className="ph-em">{word}</span>
+      {text.slice(index + word.length)}
+    </>
+  );
+}
+
+function SkillCard({ title, body, index }: { title: string; body: string; index: number }) {
+  const number = String(index + 1).padStart(2, "0");
+  return (
+    <article className="ph-skill">
+      <span className="ph-skill-no" dir="ltr">
+        /{number}
+      </span>
+      <SkillGlyph index={index} />
+      <h3>{title}</h3>
+      <p className="ph-muted">{body}</p>
+    </article>
+  );
+}
+
+export function Skills({ bio, cta }: { bio: string; cta: string }) {
+  const lead = SKILLS.slice(0, 3);
+  const rest = SKILLS.slice(3);
+  const statement = featureLine(bio) || featureLine(siteConfig.bio);
+
+  return (
+    <section id="skills" className="ph-section">
+      <div className="site-container">
+        <div className="ph-feature">
+          <div className="ph-skill-col">
+            {lead.map((skill, index) => (
+              <SkillCard key={skill.title} index={index} title={skill.title} body={skill.body} />
+            ))}
+          </div>
+          <div className="ph-feature-copy">
+            <span className="ph-tag">مهارت</span>
+            {statement ? (
+              <p className="ph-statement">
+                <Emphasized text={statement} />
+              </p>
+            ) : null}
+            <div className="ph-feature-actions">
+              <a className="ph-btn ph-btn-blue" href="#contact">
+                {cta || "سفارش پروژه"}
+              </a>
+              <a className="ph-icon-btn" href="#work" aria-label="دیدن کارها">
+                <ArrowUp />
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="ph-skill-rest">
+          {rest.map((skill, index) => (
+            <SkillCard key={skill.title} index={index + 3} title={skill.title} body={skill.body} />
+          ))}
+        </div>
       </div>
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {SKILLS.map((skill) => (
-          <li key={skill.title} className="rounded-xl border border-border bg-card p-5">
-            <h3 className="text-[17px] font-semibold tracking-tight text-foreground">{skill.title}</h3>
-            <p className="mt-2 text-sm leading-7 text-muted">{skill.body}</p>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

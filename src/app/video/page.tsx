@@ -13,7 +13,7 @@ export const metadata: Metadata = buildMetadata({
 export default async function VideoIndexPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; sort?: string }>;
+  searchParams: Promise<{ category?: string; sort?: string; q?: string }>;
 }) {
   const sp = await searchParams;
   return (
@@ -23,6 +23,7 @@ export default async function VideoIndexPage({
       description="ویدیوهای افقی با پخش‌کننده سبک HTML5 و بارگذاری تنبل."
       categorySlug={sp.category}
       sort={sp.sort === "popular" ? "popular" : "latest"}
+      query={sp.q}
     />
   );
 }

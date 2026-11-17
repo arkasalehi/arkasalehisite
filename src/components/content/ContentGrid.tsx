@@ -3,7 +3,7 @@ import { NoPrefetchLink as Link } from "@/components/NoPrefetchLink";
 import { Stagger } from "@/components/motion/Reveal";
 import { PostCard } from "@/components/content/PostCard";
 import { ContentFilters } from "@/components/content/ContentFilters";
-import { listCategories, listPublishedPosts } from "@/lib/data/posts";
+import { listCategories, listPublishedPosts, searchPublishedPosts } from "@/lib/data/posts";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/layout/Page";
 import { formatNumber, postPath } from "@/lib/utils";
@@ -16,6 +16,7 @@ export async function ContentGrid({
   categorySlug,
   sort,
   sidebar = false,
+  query,
 }: {
   title: string;
   description: string;
@@ -23,9 +24,26 @@ export async function ContentGrid({
   categorySlug?: string;
   sort?: "latest" | "popular";
   sidebar?: boolean;
+  query?: string;
 }) {
+  const q = (query ?? "").replace(/[\u0000-\u001F]/g, "").trim().slice(0, 80);
+  const searching = q.length >= 2;
   const [posts, categories, popular] = await Promise.all([
-    listPublishedPosts({ type, categorySlug, sort, take: 24 }),
+    searching
+      ? searchPublishedPosts(q, 8).then((hits) =>
+          hits
+            .filter((hit) => !type || hit.type === type)
+            .map((hit) => ({
+              id: hit.id,
+              type: hit.type,
+              title: hit.title,
+              slug: hit.slug,
+              excerpt: hit.excerpt,
+              coverImage: hit.coverImage,
+              viewCount: 0,
+            })),
+        )
+      : listPublishedPosts({ type, categorySlug, sort, take: 24 }),
     listCategories(),
     sidebar ? listPublishedPosts({ type, sort: "popular", take: 5 }) : Promise.resolve([]),
   ]);
@@ -43,7 +61,12 @@ export async function ContentGrid({
         </Stagger>
       ) : (
         <div className="mt-8">
-          <EmptyState title="محتوایی منتشر نشده" description="به‌زودی مطلب جدید اینجا می‌آید." href="/" action="صفحه نخست" />
+          <EmptyState
+            title={searching ? "نتیجه‌ای برای این عبارت نیست" : "محتوایی منتشر نشده"}
+            description={searching ? "عبارت دیگری را امتحان کنید." : "به‌زودی مطلب جدید اینجا می‌آید."}
+            href="/"
+            action="صفحه نخست"
+          />
         </div>
       )}
     </>
@@ -51,7 +74,7 @@ export async function ContentGrid({
 
   return (
     <section>
-      <PageHeader title={title} description={description} />
+      <PageHeader title={title} description={searching ? `نتایج جستجو برای «${q}»` : description} />
       {sidebar ? (
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem]">
           <div>{feed}</div>
