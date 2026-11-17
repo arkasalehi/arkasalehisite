@@ -4,9 +4,16 @@ import { hasSupabaseConfig } from "@/lib/supabase";
 import { cached, invalidateCache } from "@/lib/cache";
 import { resolveHeroWeather } from "@/lib/cms/heroWeather";
 import { defaultCms, type SiteCms } from "@/lib/cms/types";
+import { publicLinks } from "@/lib/public-links";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 const KEYS: Array<keyof SiteCms> = ["hero", "about", "footer", "seo", "socials", "startHere", "pricing"];
+
+function publicPricingDescription(value: string | undefined, fallback: string) {
+  if (!value) return fallback;
+  if (/مخزن|کاتالوگ اولیه|سندی ندارد|آرکا گفته|نمونه‌ای ثبت نشده/.test(value)) return fallback;
+  return value;
+}
 
 function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
   return {
@@ -16,13 +23,14 @@ function merge(base: SiteCms, raw: Partial<SiteCms>): SiteCms {
       weather: resolveHeroWeather(raw.hero?.weather ?? base.hero.weather),
     },
     about: { ...base.about, ...raw.about },
-    footer: { links: raw.footer?.links?.length ? raw.footer.links : base.footer.links },
+    footer: { links: publicLinks(raw.footer?.links, base.footer.links) },
     seo: { ...base.seo, ...raw.seo },
-    socials: raw.socials?.length ? raw.socials : base.socials,
+    socials: publicLinks(raw.socials, base.socials),
     startHere: { ...base.startHere, ...raw.startHere },
     pricing: {
       ...base.pricing,
       ...raw.pricing,
+      description: publicPricingDescription(raw.pricing?.description, base.pricing.description),
       packages: raw.pricing?.packages?.length ? raw.pricing.packages.slice(0, 3) : base.pricing.packages,
     },
   };

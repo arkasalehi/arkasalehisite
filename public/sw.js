@@ -1,5 +1,5 @@
-const CACHE = "as-shell-v4";
-const SHELL = ["/", "/blog", "/video", "/products"];
+const CACHE = "as-shell-v5";
+const SHELL = ["/", "/blog", "/video"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

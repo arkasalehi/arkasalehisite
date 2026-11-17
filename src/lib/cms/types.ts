@@ -65,7 +65,7 @@ export const defaultCms = (): SiteCms => ({
   },
   pricing: {
     title: "قیمت‌ها",
-    description: "دو مورد از کاتالوگ اولیهٔ استودیو، به‌علاوهٔ سفارش پروژه. قیمت سوم در مخزن عددی ندارد.",
+    description: "یک ابزار آماده، یک جلسه، یا یک پروژهٔ مشخص. جزئیات را با هم می‌چینیم.",
     packages: [
       {
         id: "design-notebook",

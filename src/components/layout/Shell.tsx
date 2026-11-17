@@ -14,6 +14,7 @@ import { NotificationBell } from "@/components/layout/NotificationBell";
 import { SearchBox } from "@/components/layout/SearchBox";
 import { Button } from "@/components/ui/Button";
 import type { SiteCms } from "@/lib/cms/types";
+import { isRetiredPublicHref } from "@/lib/public-links";
 
 type NavLink = { href: string; title: string; body: string; external?: boolean };
 
@@ -262,7 +263,9 @@ export function Footer({ cms }: { cms: SiteCms }) {
     { href: workspaceUrl(), label: "ورک‌اسپیس" },
   ];
   const content = [...navItems.filter((item) => item.href !== "/")];
-  const legal = cms.footer.links.filter((item) => !navItems.some((n) => n.href === item.href));
+  const legal = cms.footer.links.filter(
+    (item) => !isRetiredPublicHref(item.href) && item.label !== "فروشگاه" && item.label !== "شورتس" && !navItems.some((n) => n.href === item.href),
+  );
 
   return (
     <footer className="border-t border-border bg-[var(--footer)] text-foreground">
