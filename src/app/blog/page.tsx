@@ -13,7 +13,7 @@ export const metadata: Metadata = buildMetadata({
 export default async function BlogIndexPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; sort?: string }>;
+  searchParams: Promise<{ category?: string; sort?: string; q?: string }>;
 }) {
   const sp = await searchParams;
   return (
@@ -23,6 +23,7 @@ export default async function BlogIndexPage({
       description="یادداشت‌ها و مقالات بلند، بهینه‌شده برای مطالعه و سئو."
       categorySlug={sp.category}
       sort={sp.sort === "popular" ? "popular" : "latest"}
+      query={sp.q}
       sidebar
     />
   );

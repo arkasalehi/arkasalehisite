@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { manrope, sourceCode, vazir } from "@/lib/fonts";
+import "./public.css";
+import { manrope, rubik, sourceCode, vazir } from "@/lib/fonts";
 import { siteConfig } from "@/lib/config";
 import { getSiteCms } from "@/lib/data/settings";
 import { Providers } from "@/components/providers";
@@ -34,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cms = await getSiteCms();
-  const htmlClass = [vazir.variable, vazir.className, manrope.variable, sourceCode.variable, "dark", "h-full"].join(" ");
+  const htmlClass = [vazir.variable, vazir.className, manrope.variable, rubik.variable, sourceCode.variable, "dark", "h-full"].join(" ");
 
   return (
     <html lang="fa" dir="rtl" className={htmlClass} suppressHydrationWarning>

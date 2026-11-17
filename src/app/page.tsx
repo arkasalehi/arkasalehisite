@@ -87,7 +87,7 @@ export default async function HomePage() {
       <JsonLd data={personJsonLd()} />
       <JsonLd data={professionalServiceJsonLd()} />
       <Hero cms={cms} />
-      <Skills />
+      <Skills bio={cms.about.bio} cta={cms.hero.ctaPrimary || "سفارش پروژه"} />
       <PricingSummary pricing={cms.pricing} />
       <WorkGrid blogs={blogs.length ? blogs : DEMO_BLOGS} videos={videos.length ? videos : DEMO_VIDEOS} />
       <ContactBand />

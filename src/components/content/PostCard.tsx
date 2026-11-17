@@ -44,7 +44,7 @@ export function PostCard({
   return (
     <Link
       href={to}
-      className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--brand)_45%,var(--border))]"
+      className="flex h-full flex-col overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_10px_28px_rgba(20,20,40,0.04)] transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--brand)_35%,var(--border))]"
     >
       <div className={`relative overflow-hidden bg-foreground/5 ${featured ? "aspect-video" : "aspect-[16/10]"}`}>
         <CoverImage
